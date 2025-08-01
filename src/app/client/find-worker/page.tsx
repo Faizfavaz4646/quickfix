@@ -38,7 +38,7 @@ export default function FindWorker() {
             className="flex-1 px-4 py-3 text-sm sm:text-base rounded-md border border-gray-300 focus:outline-none text-black"
           />
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-sm sm:text-base rounded-md font-semibold transition">
-            Searc
+            Search
           </button>
         </div>
       </div>

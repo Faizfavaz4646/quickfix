@@ -6,6 +6,13 @@
       "email": "jamshil@gmail.com",
       "password": "1234567",
       "role": "worker"
+    },
+    {
+      "id": "ba34",
+      "name": "saheer",
+      "email": "saheer@gmail.com",
+      "password": "1234567",
+      "role": "client"
     }
   ]
 }

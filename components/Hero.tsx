@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { usePathname } from 'next/navigation';
+import  Link from 'next/link'; 
 
 export default function Hero() {
   const headingRef = useRef(null);
@@ -38,29 +39,29 @@ export default function Hero() {
           Connect with verified experts in your area for all your home service needs.
         </p>
 
-        <div
-          ref={searchWrapperRef}
-          className="bg-white shadow-lg rounded-full flex flex-col sm:flex-row gap-4 sm:gap-0 overflow-hidden items-stretch w-full max-w-3xl mx-auto mb-6 p-2"
-        >
-          <input
-            type="text"
-            placeholder="🔍 What service do you need?"
-            className="flex-1 px-4 py-3 rounded-full focus:outline-none text-black"
-          />
-          <input
-            type="text"
-            placeholder="📍 Enter your location"
-            className="flex-1 px-4 py-3 rounded-full focus:outline-none text-black"
-          />
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition font-semibold">
-            Search
-          </button>
-        </div>
+       <div
+  ref={searchWrapperRef}
+  className="bg-white shadow-lg rounded-2xl sm:rounded-full flex flex-col sm:flex-row gap-3 sm:gap-0 overflow-hidden w-full max-w-3xl mx-auto mb-6 p-3"
+>
+  <input
+    type="text"
+    placeholder="🔍 What service do you need?"
+    className="flex-1 px-4 py-3 text-sm sm:text-base rounded-md sm:rounded-full border border-gray-200 focus:outline-none text-black"
+  />
+  <input
+    type="text"
+    placeholder="📍 Enter your location"
+    className="flex-1 px-4 py-3 text-sm sm:text-base rounded-md sm:rounded-full border border-gray-200 focus:outline-none text-black"
+  />
+  <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-sm sm:text-base rounded-md sm:rounded-full font-semibold transition">
+    Search
+  </button>
+</div>
+
 
         <div className="flex flex-col sm:flex-row justify-center gap-4" ref={buttonRef}>
-          <button className="bg-white text-blue-600 hover:bg-gray-100 px-5 py-2 rounded-md font-medium">
-            Find a Professional
-          </button>
+       <Link href='/client/find-worker' className="bg-white text-blue-600 hover:bg-gray-100 px-5 py-2 rounded-md font-medium">  Find a Professional</Link>  
+          
           <button className="border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-5 py-2 rounded-md font-medium">
             Join as a Professional
           </button>

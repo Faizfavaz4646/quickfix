@@ -14,7 +14,7 @@ export default function Hero() {
 
   useEffect(() => {
     if (pathname === '/') {
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out', duration: 1 } });
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out', duration: 1.1 } });
 
       tl.fromTo(headingRef.current, { y: -50, opacity: 0 }, { y: 0, opacity: 1 })
         .fromTo(subheadingRef.current, { y: -30, opacity: 0 }, { y: 0, opacity: 1 }, "-=0.6")

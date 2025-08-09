@@ -1,5 +1,5 @@
 'use client';
-
+import { toast } from 'sonner';
 import { useFormik } from 'formik';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
@@ -26,6 +26,7 @@ export default function LoginPage() {
 
           // Save user in Zustand store (it will persist if configured)
           setUser({
+            id:user.id?? user._id,
             name: user.name,
             email: user.email,
             role: user.role,
@@ -33,6 +34,7 @@ export default function LoginPage() {
 
           // Redirect based on role
           if (user.role === 'worker') {
+            toast.success("login successfull. please fill the form")
             router.push('/worker/profile');
           } else {
             router.push('/');

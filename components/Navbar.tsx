@@ -20,9 +20,23 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    logout();
-    router.push('/auth/login');
-  };
+  toast("Are you sure you want to logout?", {
+    action: {
+      label: "Yes",
+      onClick: () => {
+        logout();
+        router.push("/auth/login");
+        toast.success("You have been logged out.");
+      },
+    },
+    cancel: {
+      label: "No",
+      onClick: () => toast.dismiss(),
+    },
+    duration: 10000,
+  });
+};
+
 
   const checkingLog = () => {
     if (!user) {
@@ -55,6 +69,7 @@ export default function Navbar() {
           <button onClick={checkingLog} className="text-green-600 font-semibold hover:underline">Join as a Professional</button>
           {user ? (
             <button onClick={handleLogout} className="text-red-600 font-semibold hover:underline">Logout</button>
+
           ) : (
             <>
               <Link href="/auth/login" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">Login</Link>
@@ -79,7 +94,8 @@ export default function Navbar() {
             <Link href="/client/find-worker" onClick={() => setIsOpen(false)} className="text-blue-600 font-semibold">Find a Professional</Link>
             <button onClick={() => { checkingLog(); setIsOpen(false); }} className="text-green-600 font-semibold text-left">Join as a Professional</button>
             {user ? (
-              <button onClick={() => { handleLogout(); setIsOpen(false); }} className="text-red-600 font-semibold text-left">Logout</button>
+             <button onClick={() => { handleLogout(); setIsOpen(false); }} className="text-red-600 font-semibold text-left">Logout</button>
+
             ) : (
               <>
                 <Link href="/auth/login" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">Login</Link>

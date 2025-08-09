@@ -1,5 +1,5 @@
 'use client';
-
+import { toast } from 'sonner';
 import { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -33,17 +33,16 @@ const SignupPage = () => {
     }),
     onSubmit: async (values, { setSubmitting }) => {
       try {
-        // Lowercase the email
         const email = values.email.toLowerCase();
 
-        // Check if email already exists
+        // Check if email exists
         const existing = await axios.get(`${API_URL}/users?email=${email}`);
         if (existing.data.length > 0) {
-          alert('Email already registered');
+          toast.info('Email already registered');
           return;
         }
 
-        // Proceed to create user
+        // Create user
         const response = await axios.post(`${API_URL}/users`, {
           name: values.name,
           email,
@@ -51,19 +50,38 @@ const SignupPage = () => {
           role,
         });
 
-        // Store user in zustand and localStorage
-        setUser(response.data);
-        localStorage.setItem('user', JSON.stringify(response.data));
+        const newUser = response.data;
 
-        // Redirect
-        router.push(role === 'worker' ? '/login' : '/login');
+        // Auto-login after signup
+        setUser({
+          id: newUser.id ?? newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          token: newUser.token
+        });
+
+        toast.success('Account created and logged in');
+
+        // Redirect based on role
+        if (role === 'worker') {
+          router.push('/worker/profile');
+        } else {
+          router.push('/auth/login');
+        }
+
       } catch (err) {
-        alert('Signup failed');
+        toast.error('Signup failed');
       } finally {
         setSubmitting(false);
       }
     },
   });
+
+ 
+
+
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">

@@ -1,6 +1,12 @@
 import Image from "next/image";
 
 export default function FindWorker() {
+
+
+  
+
+
+
   return (
     <section className="relative w-full h-screen overflow-hidden">
       {/* Background Image */}

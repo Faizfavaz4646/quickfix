@@ -7,7 +7,7 @@
       "password": "1234567",
       "role": "worker",
       "workerProfile": {
-        "profession": "electrition",
+        "profession": "electrician",
         "phone": "7034514646",
         "gender": "male",
         "state": "Kerala",
@@ -48,6 +48,32 @@
       "id": "ef46",
       "name": "harshad",
       "email": "harshad@gmail.com",
+      "password": "1234567",
+      "role": "client"
+    },
+    {
+      "id": "f349",
+      "name": "virat",
+      "email": "virat@gmail.com",
+      "password": "1234567",
+      "role": "worker",
+      "workerProfile": {
+        "profession": "plumber",
+        "phone": "2345678921",
+        "gender": "male",
+        "state": "kerala",
+        "district": "malappuram",
+        "city": "malappuram",
+        "zip": "673638",
+        "schedule": "mon-fri 9am  to. 6pm",
+        "profilePic": "",
+        "termsAccepted": true
+      }
+    },
+    {
+      "id": "8867",
+      "name": "pran",
+      "email": "pran@gmail.com",
       "password": "1234567",
       "role": "client"
     }

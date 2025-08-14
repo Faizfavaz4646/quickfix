@@ -3,8 +3,11 @@ import { toast } from 'sonner';
 import { useFormik } from 'formik';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/app/store/authStore';
-import { API_URL } from '../../../lib/constants';
+import { useAuthStore } from '@/store/authStore';
+import { API_URL } from "../../../../lib/constants"
+import { FaTools } from 'react-icons/fa';
+import Link from 'next/link';
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,6 +40,7 @@ export default function LoginPage() {
             toast.success("login successfull. please fill the form")
             router.push('/worker/profile');
           } else {
+            toast.success("login successfull")
             router.push('/');
           }
         } else {
@@ -52,10 +56,14 @@ export default function LoginPage() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
+       
       <form
         onSubmit={formik.handleSubmit}
         className="bg-white p-6 rounded shadow-md w-96"
       >
+        <h1 className='flex gap-2 justify-center text-2xl font-bold mb-4'> <FaTools className="text-blue-600 mt-1" />
+                QuickFix</h1>
+       
         <h2 className="text-xl font-bold mb-4 text-center">Login</h2>
 
         <input
@@ -82,11 +90,13 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={formik.isSubmitting}
-          className="bg-blue-500 text-white w-full p-2 rounded hover:bg-blue-600"
+          className="bg-blue-500 text-white w-full p-2 rounded hover:bg-blue-600 cursor-pointer"
         >
           {formik.isSubmitting ? 'Logging in...' : 'Login'}
         </button>
+        <Link className='text-blue-600 flex justify-end mt-3' href="/auth/signup">signup</Link>
       </form>
+      
     </div>
   );
 }

@@ -3,11 +3,11 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useAuthStore } from '@/app/store/authStore';
+import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { API_URL } from '../../../lib/constants';
+import { FaEye, FaEyeSlash, FaTools } from 'react-icons/fa';
+import { API_URL } from '../../../../lib/constants';
 
 const SignupPage = () => {
   const { setUser } = useAuthStore();
@@ -86,6 +86,9 @@ const SignupPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-md bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+         <h1 className='flex gap-2 justify-center text-3xl font-bold mb-4'> <FaTools className="text-blue-600 mt-1" />
+                        QuickFix</h1>
+               
         <h2 className="text-2xl font-bold mb-6 text-center">Signup</h2>
 
         {/* Role Selection */}

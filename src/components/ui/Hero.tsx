@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { usePathname } from 'next/navigation';
 import  Link from 'next/link'; 
-import Wrench from '../components/Wrench'
+import Wrench from '../animation/Wrench'
 
 export default function Hero() {
   const headingRef = useRef(null);

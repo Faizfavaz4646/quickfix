@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '@/app/store/authStore';
+import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { FaUserCircle } from 'react-icons/fa';

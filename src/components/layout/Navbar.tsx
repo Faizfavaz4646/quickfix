@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { FaTools } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/app/store/authStore';
+import { useAuthStore } from '@/store/authStore';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);

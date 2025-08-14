@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock } from "react-icons/fa";
 import Image from "next/image";
+import { FaMessage } from "react-icons/fa6";
 
 interface WorkerProfile {
   name: string;
@@ -44,12 +45,12 @@ export default function WorkerProfilePage() {
         src="/images/combo.png"
         alt="Worker background"
         fill
-        className="object-cover opacity-5"
+        className="object-cover opacity-3"
         priority
       />
 
       {/* Card */}
-      <div className="bg-white rounded-xl shadow-md flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 p-6 w-full max-w-4xl mt-20 mx-auto">
+      <div className="bg-white rounded-xl shadow-2xl flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 p-6 w-full max-w-4xl mt-20 mx-auto">
         {/* Left Section */}
         <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start text-center sm:text-left">
           <img
@@ -81,11 +82,11 @@ export default function WorkerProfilePage() {
 
         {/* Right Section */}
         <div className="flex flex-col gap-3 w-full sm:w-auto">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium w-full sm:w-auto cursor-pointer">
             Request Service
           </button>
-          <button className="border border-blue-600 text-blue-600 px-4 py-2 rounded-md font-medium hover:bg-blue-50 w-full sm:w-auto">
-            Message
+          <button className="border border-blue-600 text-blue-600 px-4 py-2 rounded-md font-medium hover:bg-blue-50 w-full sm:w-auto flex gap-2 cursor-pointer justify-center">
+           <FaMessage className="mt-1" /> Message
           </button>
         </div>
       </div>

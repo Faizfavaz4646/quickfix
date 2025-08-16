@@ -12,7 +12,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
 
   // Pages where Navbar & Footer should be hidden
-  const hideNavbarAndFooter = ["/publicpages/auth/login", "/publicpages/auth/signup"];
+  const hideNavbarAndFooter = ["/publicpages/auth/login", "/publicpages/auth/signup", "/publicpages/worker/dashboard"];
 
   useEffect(() => {
     const timeout = setTimeout(() => setLoading(false), 2000);

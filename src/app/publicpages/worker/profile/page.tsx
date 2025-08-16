@@ -116,7 +116,7 @@ export default function ProfileForm() {
 
       updateUserProfile(formData);
       alert('Profile updated successfully!');
-      router.push('/worker/dashboard');
+      router.push('/publicpages/worker/dashboard');
     } catch (error: any) {
       console.error('Error submitting profile:', error);
       alert(

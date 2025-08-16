@@ -172,7 +172,7 @@ export default function ProfileForm() {
   ];
 
   return (
-    <div className="max-w-xl mx-auto p-4 bg-white rounded-xl shadow mt-6">
+    <div className="max-w-xl mx-auto p-4 bg-white rounded-xl shadow mt-15">
       {/* Profile Picture */}
       <div className="flex flex-col items-center mb-6">
         <div className="relative w-32 h-32 rounded-full overflow-hidden shadow-md border bg-blue-100 flex items-center justify-center">
@@ -187,7 +187,7 @@ export default function ProfileForm() {
           name="profilePic"
           accept="image/*"
           onChange={handleChange}
-          className="mt-3 text-sm"
+          className="mt-3 text-sm cursor-pointer "
         />
         <p className="text-xs text-gray-500 mt-1">Upload a clear photo (optional)</p>
       </div>
@@ -231,7 +231,7 @@ export default function ProfileForm() {
         ))}
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition cursor-pointer"
         >
           Save Changes
         </button>

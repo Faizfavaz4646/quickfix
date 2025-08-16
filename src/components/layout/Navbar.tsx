@@ -8,12 +8,22 @@ import { FaTools } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 
+interface Profile {
+  name:string;
+  email:string;
+  role:string;
+  Profile?:{
+    profilePic?:string;
+  }
+}
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const router = useRouter();
+  
 
   useEffect(() => {
     setIsMounted(true);
@@ -25,7 +35,7 @@ export default function Navbar() {
       label: "Yes",
       onClick: () => {
         logout();
-        router.push("/auth/login");
+        router.push("/publicpages/auth/login");
         toast.success("You have been logged out.");
       },
     },
@@ -40,10 +50,10 @@ export default function Navbar() {
 
   const checkingLog = () => {
     if (!user) {
-      router.push("/auth/signup?role=worker");
+      router.push("/publicpages/auth/signup?role=worker");
     } else if (user.role === "worker") {
       toast.info("You are already registered as a professional.");
-      router.push("/worker/profile");
+      router.push("/publicpages/worker/profile");
     } else {
       toast.info("You are logged in as a client. Please log out to join as a professional.");
     }
@@ -62,18 +72,18 @@ export default function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex gap-6 items-center">
-          <Link href="/about" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">About</Link>
+          <Link href="/publicpages/about" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">About</Link>
           <Link href="/services" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">Services</Link>
           <Link href="/contact" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">Contact</Link>
-          <Link href="/client/find-worker" className="text-blue-600 font-semibold hover:underline">Find a Professional</Link>
+          <Link href="/publicpages/client/find-worker" className="text-blue-600 font-semibold hover:underline">Find a Professional</Link>
           <button onClick={checkingLog} className="text-green-600 font-semibold hover:underline">Join as a Professional</button>
           {user ? (
             <button onClick={handleLogout} className="text-red-600 font-semibold hover:underline">Logout</button>
 
           ) : (
             <>
-              <Link href="/auth/login" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">Login</Link>
-              <Link href="/auth/signup" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Sign Up</Link>
+              <Link href="/publicpages/auth/login" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">Login</Link>
+              <Link href="/publicpages/auth/signup" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Sign Up</Link>
             </>
           )}
         </div>
@@ -88,18 +98,18 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden bg-white dark:bg-black px-4 pb-4">
           <div className="flex flex-col gap-4 mt-2">
-            <Link href="/about" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">About</Link>
+            <Link href="/publicpages/about" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">About</Link>
             <Link href="/services" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">Services</Link>
             <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">Contact</Link>
-            <Link href="/client/find-worker" onClick={() => setIsOpen(false)} className="text-blue-600 font-semibold">Find a Professional</Link>
+            <Link href="/publicpages/client/find-worker" onClick={() => setIsOpen(false)} className="text-blue-600 font-semibold">Find a Professional</Link>
             <button onClick={() => { checkingLog(); setIsOpen(false); }} className="text-green-600 font-semibold text-left">Join as a Professional</button>
             {user ? (
              <button onClick={() => { handleLogout(); setIsOpen(false); }} className="text-red-600 font-semibold text-left">Logout</button>
 
             ) : (
               <>
-                <Link href="/auth/login" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">Login</Link>
-                <Link href="/auth/signup" onClick={() => setIsOpen(false)} className="text-white bg-blue-600 px-4 py-2 rounded text-center">Sign Up</Link>
+                <Link href="/publicpages/auth/login" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">Login</Link>
+                <Link href="/publicpages/auth/signup" onClick={() => setIsOpen(false)} className="text-white bg-blue-600 px-4 py-2 rounded text-center">Sign Up</Link>
               </>
             )}
           </div>

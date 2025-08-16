@@ -7,9 +7,9 @@ import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock } from "react-icons/fa";
 import Image from "next/image";
 import { FaMessage } from "react-icons/fa6";
 
-interface WorkerProfile {
+interface Profile {
   name: string;
-  workerProfile: {
+  Profile: {
     profession: string;
     state: string;
     district: string;
@@ -21,9 +21,9 @@ interface WorkerProfile {
   email: string;
 }
 
-export default function WorkerProfilePage() {
+export default function ProfilePage() {
   const { id } = useParams();
-  const [worker, setWorker] = useState<WorkerProfile | null>(null);
+  const [worker, setWorker] = useState<Profile | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -54,27 +54,27 @@ export default function WorkerProfilePage() {
         {/* Left Section */}
         <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start text-center sm:text-left">
           <img
-            src={worker.workerProfile.profilePic || "/images/avatar.avif"}
+            src={worker.Profile.profilePic || "/images/avatar.avif"}
             alt={worker.name}
             className="w-20 h-20 rounded-full object-cover"
           />
           <div>
             <h2 className="text-xl font-semibold text-gray-800">{worker.name}</h2>
-            <p className="text-black">{worker.workerProfile.profession}</p>
+            <p className="text-black">{worker.Profile.profession}</p>
             <div className="mt-2 space-y-1 text-sm text-black">
               <p className="flex items-center justify-center sm:justify-start gap-2">
                 <FaMapMarkerAlt className="text-black" />{" "}
-                {worker.workerProfile.state}, {worker.workerProfile.district},{" "}
-                {worker.workerProfile.city}
+                {worker.Profile.state}, {worker.Profile.district},{" "}
+                {worker.Profile.city}
               </p>
               <p className="flex items-center justify-center sm:justify-start gap-2">
-                <FaClock className="text-black" /> Available: {worker.workerProfile.schedule}
+                <FaClock className="text-black" /> Available: {worker.Profile.schedule}
               </p>
               <p className="flex items-center justify-center sm:justify-start gap-2">
                 <FaEnvelope className="text-black" /> {worker.email}
               </p>
               <p className="flex items-center justify-center sm:justify-start gap-2">
-                <FaPhone className="text-black" /> {worker.workerProfile.phone}
+                <FaPhone className="text-black" /> {worker.Profile.phone}
               </p>
             </div>
           </div>

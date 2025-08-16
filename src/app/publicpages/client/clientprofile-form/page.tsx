@@ -1,27 +1,32 @@
-'use client';
+'use client'
+import { useAuthStore } from "@/store/authStore";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FaUserCircle } from "react-icons/fa";
 
-import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '@/store/authStore';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
-import { FaUserCircle } from 'react-icons/fa';
-
+// Profile interface
 interface Profile {
-  profession?: string; // optional for clients
-  phone: string;
+  phone?: string;
   gender?: string;
-  state: string;
-  district: string;
-  city: string;
+  state?: string;
+  district?: string;
+  city?: string;
   zip?: string;
-  schedule?: string; // optional for clients
-  profilePic?: string; // Base64 image string
-  termsAccepted: boolean;
+  profilePic?: string;
 }
 
+// Client form data (extends profile + auth fields)
+interface ClientData extends Profile {
+  name: string;
+  email: string;
+ 
+}
+
+// Field definition for form builder
 interface Field {
   label: string;
-  name: keyof Profile | 'gender';
+  name: keyof ClientData | "gender";
   type: string;
   options?: { value: string; label: string }[];
   maxLength?: number;
@@ -31,92 +36,110 @@ interface Field {
 export default function ProfileForm() {
   const router = useRouter();
   const { user, updateUserProfile } = useAuthStore();
-
-  const [formData, setFormData] = useState<Profile>({
-    profession: '',
+  
+  // Local form state
+  const [formData, setFormData] = useState<ClientData>({
+    name: '',
+    email: '',
     phone: '',
     gender: '',
     state: '',
     district: '',
     city: '',
     zip: '',
-    schedule: '',
     profilePic: '',
-    termsAccepted: false,
   });
 
   const [picPreview, setPicPreview] = useState<string | null>(null);
 
+  // Load data into form
   useEffect(() => {
-    if (!user) {
-      router.push('/publicpages/auth/login');
+    if (user?.role !== 'client') {
+      alert('Only clients can access this page');
+      router.push('/publicpages/client/dashboard');
       return;
     }
-    if (user.role !== 'worker') {
-      alert('Only workers can access this page.');
-      router.push('/publicpages/worker/dashboard');
-      return;
-    }
-    if (user.profile) {
-      setFormData((prev) => ({ ...prev, ...user.profile }));
-      if (user.profile.profilePic) {
+
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.profile?.phone || '',
+        gender: user.profile?.gender || '',
+        state: user.profile?.state || '',
+        district: user.profile?.district || '',
+        city: user.profile?.city || '',
+        zip: user.profile?.zip || '',
+        profilePic: user.profile?.profilePic || '',
+      });
+
+      if (user.profile?.profilePic) {
         setPicPreview(user.profile.profilePic);
       }
     }
   }, [user, router]);
 
-  // Convert image file to Base64
-  const convertToBase64 = (file: File) => {
-    return new Promise<string>((resolve, reject) => {
+  // Convert image to Base64
+  const convertToBase64 = (file: File) =>
+    new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => resolve(reader.result as string);
       reader.onerror = (error) => reject(error);
     });
-  };
 
+  // Handle input changes
   const handleChange = async (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value, files, type, checked } = e.target as HTMLInputElement;
+    const { name, value, files } = e.target as HTMLInputElement;
 
     if (name === 'profilePic' && files && files[0]) {
       const base64String = await convertToBase64(files[0]);
       setFormData((prev) => ({ ...prev, profilePic: base64String }));
       setPicPreview(base64String);
-    } else if (type === 'checkbox') {
-      setFormData((prev) => ({ ...prev, [name]: checked }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
+  // Submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user?.id) {
+    if (!user || !user.id) {
       alert('No user ID found. Please log in again.');
-      router.push('/auth/login');
-      return;
-    }
-
-    if (!formData.termsAccepted) {
-      alert('You must accept the terms & conditions to proceed.');
+      router.push('/publicpages/auth/login');
       return;
     }
 
     try {
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        
+        Profile: {
+          phone: formData.phone,
+          gender: formData.gender,
+          state: formData.state,
+          district: formData.district,
+          city: formData.city,
+          zip: formData.zip,
+          profilePic: formData.profilePic,
+        },
+      };
+
+      // Update JSON server
       await axios.patch(
         `http://localhost:50001/users/${user.id}`,
-        { profile: formData }, // updated key
+        payload,
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
 
-      updateUserProfile(formData);
+      // Update zustand store
+      updateUserProfile(payload.Profile);
       alert('Profile updated successfully!');
-      router.push('/worker/dashboard');
+      router.push('/publicpages/client/dashboard');
     } catch (error: any) {
       console.error('Error submitting profile:', error);
       alert(
@@ -127,8 +150,10 @@ export default function ProfileForm() {
     }
   };
 
+  // Fields list
   const fields: Field[] = [
-    { label: 'Profession', name: 'profession', type: 'text' },
+    { label: 'Full Name', name: 'name', type: 'text' },
+    { label: 'Email', name: 'email', type: 'email' },
     { label: 'Mobile', name: 'phone', type: 'tel' },
     {
       label: 'Gender',
@@ -144,25 +169,15 @@ export default function ProfileForm() {
     { label: 'District', name: 'district', type: 'text' },
     { label: 'City', name: 'city', type: 'text' },
     { label: 'Pincode', name: 'zip', type: 'text', maxLength: 6 },
-    {
-      label: 'Work Schedule',
-      name: 'schedule',
-      type: 'text',
-      placeholder: 'e.g. Mon-Fri, 9am-5pm',
-    },
   ];
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white rounded-xl shadow mt-6">
-      {/* Profile Pic */}
+    <div className="max-w-xl mx-auto p-4 bg-white rounded-xl shadow mt-6">
+      {/* Profile Picture */}
       <div className="flex flex-col items-center mb-6">
         <div className="relative w-32 h-32 rounded-full overflow-hidden shadow-md border bg-blue-100 flex items-center justify-center">
           {picPreview ? (
-            <img
-              src={picPreview}
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
+            <img src={picPreview} alt="Profile" className="w-full h-full object-cover" />
           ) : (
             <FaUserCircle className="text-blue-500" size={120} />
           )}
@@ -174,13 +189,12 @@ export default function ProfileForm() {
           onChange={handleChange}
           className="mt-3 text-sm"
         />
-        <p className="text-xs text-gray-500 mt-1">
-          Upload a clear photo (optional)
-        </p>
+        <p className="text-xs text-gray-500 mt-1">Upload a clear photo (optional)</p>
       </div>
 
-      <h2 className="text-2xl font-bold mb-4 text-center">Worker Profile</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">Client Profile</h2>
 
+      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {fields.map((field) => (
           <div key={field.name}>
@@ -193,7 +207,6 @@ export default function ProfileForm() {
                 name={field.name}
                 value={(formData as any)[field.name] || ''}
                 onChange={handleChange}
-                required
                 className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 outline-none"
               >
                 {field.options?.map((opt) => (
@@ -211,40 +224,16 @@ export default function ProfileForm() {
                 onChange={handleChange}
                 maxLength={field.maxLength}
                 placeholder={field.placeholder}
-                required
                 className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 outline-none"
               />
             )}
           </div>
         ))}
-
-        {/* Terms & Conditions */}
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            id="termsAccepted"
-            name="termsAccepted"
-            checked={formData.termsAccepted}
-            onChange={handleChange}
-            className="w-4 h-4"
-            required
-          />
-          <label
-            htmlFor="termsAccepted"
-            className="text-sm text-gray-700 cursor-pointer"
-          >
-            I accept the{' '}
-            <span className="text-blue-600 cursor-pointer">
-              Terms & Conditions
-            </span>
-          </label>
-        </div>
-
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
         >
-          Submit Profile
+          Save Changes
         </button>
       </form>
     </div>

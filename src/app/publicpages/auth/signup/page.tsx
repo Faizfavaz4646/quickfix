@@ -31,51 +31,68 @@ const SignupPage = () => {
         .oneOf([Yup.ref('password')], 'Passwords must match')
         .required('Confirm password is required'),
     }),
-    onSubmit: async (values, { setSubmitting }) => {
-      try {
-        const email = values.email.toLowerCase();
+    // inside onSubmit
+onSubmit: async (values, { setSubmitting }) => {
+  try {
+    const email = values.email.toLowerCase();
 
-        // Check if email exists
-        const existing = await axios.get(`${API_URL}/users?email=${email}`);
-        if (existing.data.length > 0) {
-          toast.info('Email already registered');
-          return;
-        }
+    // Check if email exists
+    const existing = await axios.get(`${API_URL}/users?email=${email}`);
+    if (existing.data.length > 0) {
+      toast.info('Email already registered');
+      return;
+    }
 
-        // Create user
-        const response = await axios.post(`${API_URL}/users`, {
-          name: values.name,
-          email,
-          password: values.password,
-          role,
-        });
+    // Build payload
+    const payload: any = {
+      name: values.name,
+      email,
+      password: values.password,
+      role
+    };
 
-        const newUser = response.data;
+    // Only add Profile for clients
+    if (role === "client") {
+      payload.Profile = {
+        phone: "",
+        gender: "",
+        state: "",
+        district: "",
+        city: "",
+        zip: "",
+        profilePic: ""
+      };
+    }
 
-        // Auto-login after signup
-        setUser({
-          id: newUser.id ?? newUser._id,
-          name: newUser.name,
-          email: newUser.email,
-          role: newUser.role,
-          token: newUser.token
-        });
+    // Create user
+    const response = await axios.post(`${API_URL}/users`, payload);
+    const newUser = response.data;
 
-        toast.success('Account created and logged in');
+    // Auto-login after signup
+    setUser({
+      id: newUser.id ?? newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      token: newUser.token
+    });
 
-        // Redirect based on role
-        if (role === 'worker') {
-          router.push('/worker/profile');
-        } else {
-          router.push('/auth/login');
-        }
+    toast.success('Account created and logged in');
 
-      } catch (err) {
-        toast.error('Signup failed');
-      } finally {
-        setSubmitting(false);
-      }
-    },
+    // Redirect based on role
+    if (role === 'worker') {
+      router.push('/publicpages/worker/profile');
+    } else {
+      router.push('/publicpages/auth/login');
+    }
+
+  } catch (err) {
+    toast.error('Signup failed');
+  } finally {
+    setSubmitting(false);
+  }
+}
+
   });
 
  

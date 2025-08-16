@@ -6,7 +6,7 @@
       "email": "faizfavaz7@gmail.com",
       "password": "1234567",
       "role": "worker",
-      "workerProfile": {
+      "Profile": {
         "profession": "electrician",
         "phone": "7034514646",
         "gender": "male",
@@ -25,7 +25,7 @@
       "email": "saheer@gmail.com",
       "password": "1234567",
       "role": "worker",
-      "workerProfile": {
+      "Profile": {
         "profession": "plumber",
         "phone": "9074326554",
         "gender": "male",
@@ -43,14 +43,32 @@
       "name": "jamshil",
       "email": "jamshil@gmail.com",
       "password": "1234567",
-      "role": "client"
+      "role": "client",
+      "Profile": {
+        "phone": "7034514646",
+        "gender": "male",
+        "state": "Kerala",
+        "district": "malappuram",
+        "city": "perinthalmanna",
+        "zip": "673638",
+        "profilePic": ""
+      }
     },
     {
       "id": "ef46",
       "name": "harshad",
       "email": "harshad@gmail.com",
       "password": "1234567",
-      "role": "client"
+      "role": "client",
+      "Profile": {
+        "phone": "9947293545",
+        "gender": "male",
+        "state": "Kerala",
+        "district": "calicut",
+        "city": "feroke",
+        "zip": "673634",
+        "profilePic": ""
+      }
     },
     {
       "id": "f349",
@@ -58,7 +76,7 @@
       "email": "virat@gmail.com",
       "password": "1234567",
       "role": "worker",
-      "workerProfile": {
+      "Profile": {
         "profession": "plumber",
         "phone": "2345678921",
         "gender": "male",
@@ -76,7 +94,32 @@
       "name": "pran",
       "email": "pran@gmail.com",
       "password": "1234567",
-      "role": "client"
+      "role": "client",
+      "Profile": {
+        "phone": "1234567890",
+        "gender": "male",
+        "state": "kerala",
+        "district": "calicut",
+        "city": "kohinoor",
+        "zip": "673554",
+        "profilePic": ""
+      }
+    },
+    {
+      "id": "bbe0",
+      "name": "vajid",
+      "email": "vajid@gmail.com",
+      "password": "1234567",
+      "role": "client",
+      "Profile": {
+        "phone": "9945364523",
+        "gender": "male",
+        "state": "kerala",
+        "district": "calicut",
+        "city": "mavoor",
+        "zip": "675634",
+        "profilePic": ""
+      }
     }
   ]
 }

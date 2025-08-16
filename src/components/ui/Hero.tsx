@@ -44,7 +44,7 @@ export default function Hero() {
 
 
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-10" ref={buttonRef}>
-       <Link href='/client/find-worker' className="bg-white text-blue-600 hover:bg-gray-100 px-5 py-2 rounded-md font-medium">  Find a Professional</Link>  
+       <Link href='/publicpages/client/find-worker' className="bg-white text-blue-600 hover:bg-gray-100 px-5 py-2 rounded-md font-medium">  Find a Professional</Link>  
           
           <button className="border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-5 py-2 rounded-md font-medium">
             Join as a Professional

@@ -20,17 +20,17 @@ export default function FindWorker() {
       const workers = res.data.filter((user: any) => {
         if (
           user.role !== "worker" ||
-          !user.workerProfile ||
-          !user.workerProfile.profession
+          !user.Profile ||
+          !user.Profile.profession
         ) {
           return false;
         }
 
-        const matchesProfession = user.workerProfile.profession
+        const matchesProfession = user.Profile.profession
           .toLowerCase()
           .includes(profession.toLowerCase());
 
-        const matchesLocation = `${user.workerProfile.city || ""} ${user.workerProfile.state || ""} ${user.workerProfile.district || ""}`
+        const matchesLocation = `${user.Profile.city || ""} ${user.Profile.state || ""} ${user.Profile.district || ""}`
           .toLowerCase()
           .includes(location.toLowerCase());
 
@@ -128,9 +128,9 @@ export default function FindWorker() {
                   >
                     <Image
                       src={
-                        worker.workerProfile.profilePic &&
-                        worker.workerProfile.profilePic.trim() !== ""
-                          ? worker.workerProfile.profilePic
+                        worker.Profile.profilePic &&
+                        worker.Profile.profilePic.trim() !== ""
+                          ? worker.Profile.profilePic
                           : "/images/avatar.avif"
                       }
                       alt={worker.name || "Worker"}
@@ -139,7 +139,7 @@ export default function FindWorker() {
                       className="rounded-full object-cover w-12 h-12"
                     />
                     <Link
-                      href={`/worker/${worker.id}`}
+                      href={`/publicpages/worker/${worker.id}`} 
                       className="hover:text-blue-600 transition"
                     >
                       {worker.name}

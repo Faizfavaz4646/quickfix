@@ -11,6 +11,7 @@ export default function WorkerNavbar() {
 
   const links = [
     { href: "/publicpages/worker/dashboard", label: "Dashboard" },
+    { href: "/publicpages/worker/reviews", label: "Reviews" },
     { href: "/worker/messages", label: "Messages" },
     { href: "/worker/settings", label: "Settings" },
   ];
@@ -18,13 +19,13 @@ export default function WorkerNavbar() {
   return (
     <nav className="w-full flex items-center justify-between bg-white shadow px-6 py-3">
       {/* Left logo */}
-      <Link href="/publicpages/worker/dashboard" className="font-bold text-xl flex items-center gap-2">
+      <Link href="/publicpages/worker/dashboard" className="font-bold text-2xl flex items-center gap-2">
        <FaTools className="text-blue-600" />
         QuickFix
       </Link>
 
       {/* Center nav links */}
-      <div className="flex gap-6">
+      <div className="flex gap-6 text-md font-semibold">
         {links.map((link) => (
           <Link
             key={link.href}

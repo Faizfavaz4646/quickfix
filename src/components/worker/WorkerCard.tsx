@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
+import Link from 'next/link';
 
 interface Worker {
   id: number;
@@ -29,6 +30,8 @@ const WorkerCard: React.FC = () => {
   if (!worker) return null;
 
   return (
+    <>
+    <Link href="/publicpages/worker/profile">
     <div className="flex items-center gap-3 bg-white shadow-md rounded-xl p-4">
       <img
         src={worker.profile?.profilePic || '/images/avatar.avif'}
@@ -40,6 +43,8 @@ const WorkerCard: React.FC = () => {
         <p className="text-gray-500 text-sm">{worker.profile?.profession || 'No Profession Added'}</p>
       </div>
     </div>
+    </Link>
+    </>
   );
 };
 

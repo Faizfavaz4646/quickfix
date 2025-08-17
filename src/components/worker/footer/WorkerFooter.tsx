@@ -22,9 +22,8 @@ export default function WorkerFooter() {
         <div>
           <h3 className="text-lg font-semibold text-white mb-3">Quick Links</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="/worker/dashboard" className="hover:text-white">Dashboard</a></li>
-            <li><a href="/worker/profile" className="hover:text-white">Profile</a></li>
-            <li><a href="/worker/edit" className="hover:text-white">Edit Profile</a></li>
+            <li><a href="/publicpages/worker/dashboard" className="hover:text-white">Dashboard</a></li>
+            <li><a href="/publicpages/worker/edit" className="hover:text-white">Edit Profile</a></li>
             <li><a href="/worker/orders" className="hover:text-white">My Jobs</a></li>
           </ul>
         </div>

@@ -9,8 +9,10 @@ interface Profile {
   city?: string;
   schedule?: string; // Worker-specific
   phone?: string;
-  gender?:string;
-  zip?:string;
+  gender?: string;
+  zip?: string;
+  profession?: string; // Worker-specific
+  previousWorkImages?: string[]; // Worker-specific
 }
 
 interface User {
@@ -45,7 +47,11 @@ export const useAuthStore = create<AuthState>()(
           set({
             user: {
               ...currentUser,
-              profile: { ...currentUser.profile, ...profile },
+              profile: { 
+                ...currentUser.profile, 
+                ...profile,
+                previousWorkImages: profile.previousWorkImages ?? currentUser.profile?.previousWorkImages ?? [],
+              },
             },
           });
         }

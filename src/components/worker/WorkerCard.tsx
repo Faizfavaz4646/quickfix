@@ -31,7 +31,7 @@ const WorkerCard: React.FC = () => {
 
   return (
     <>
-    <Link href="/publicpages/worker/profile">
+    <Link href="/publicpages/worker/edit">
     <div className="flex items-center gap-3 bg-white shadow-md rounded-xl p-4">
       <img
         src={worker.profile?.profilePic || '/images/avatar.avif'}

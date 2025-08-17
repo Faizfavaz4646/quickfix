@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
+import { useRouter } from "next/navigation";
 import axios from 'axios';
 import { X, Plus, Camera, UserCircle } from 'lucide-react';
 
 const WorkerEditForm: React.FC = () => {
+     const router = useRouter();
   const { user, updateUserProfile } = useAuthStore();
   const [form, setForm] = useState({
     profilePic: user?.profile?.profilePic || '',
@@ -64,15 +67,16 @@ const WorkerEditForm: React.FC = () => {
       });
 
       updateUserProfile(form);
-      alert('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
+      router.push('/publicpages/worker/dashboard');
     } catch (err) {
       console.error(err);
-      alert('Error updating profile');
+      toast.error('Error updating profile');
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-2xl shadow mt-20 relative ">
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-2xl shadow  relative ">
       {/* Profile Pic Top Right */}
       <div className="absolute -top-12 right-6">
         <div className="relative w-24 h-24 mt-12">
@@ -233,7 +237,7 @@ const WorkerEditForm: React.FC = () => {
 
         <button
           type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded-lg"
+          className="w-full bg-green-600 text-white py-2 rounded-lg cursor-pointer"
         >
           Save Changes
         </button>

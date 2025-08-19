@@ -1,11 +1,10 @@
 "use client";
 import axios from "axios";
-import Image from "next/image";
 import { useState } from "react";
-import { MdOutlineVerifiedUser } from "react-icons/md";
+import { MdOutlineVerifiedUser, MdOutlineAccessTime } from "react-icons/md";
 import { AiFillStar } from "react-icons/ai";
-import { MdOutlineAccessTime } from "react-icons/md";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function FindWorker() {
   const [profession, setProfession] = useState("");
@@ -15,29 +14,37 @@ export default function FindWorker() {
 
   const handleSearch = async () => {
     if (!profession) return;
-    try {
-      const res = await axios.get("http://localhost:50001/users");
-      const workers = res.data.filter((user: any) => {
-        if (
-          user.role !== "worker" ||
-          !user.Profile ||
-          !user.Profile.profession
-        ) {
-          return false;
-        }
 
-        const matchesProfession = user.Profile.profession
-          .toLowerCase()
+    try {
+      // Fetch all workers
+      const { data: workersData } = await axios.get("http://localhost:50001/workers");
+
+      // Filter workers by profession and location
+      const filteredWorkers = workersData.filter((worker: any) => {
+        const matchesProfession = worker.profession
+          ?.toLowerCase()
           .includes(profession.toLowerCase());
 
-        const matchesLocation = `${user.Profile.city || ""} ${user.Profile.state || ""} ${user.Profile.district || ""}`
+        const matchesLocation = `${worker.city || ""} ${worker.state || ""} ${worker.district || ""}`
           .toLowerCase()
           .includes(location.toLowerCase());
 
         return matchesProfession && matchesLocation;
       });
 
-      setSearchResult(workers);
+      // Merge user info for each worker
+      const workersWithUserInfo = await Promise.all(
+        filteredWorkers.map(async (worker: any) => {
+          try {
+            const { data: userData } = await axios.get(`http://localhost:50001/users/${worker.userId}`);
+            return { ...worker, name: userData.name, email: userData.email };
+          } catch {
+            return { ...worker, name: "Unknown", email: "" };
+          }
+        })
+      );
+
+      setSearchResult(workersWithUserInfo);
       setShowResults(true);
     } catch (error) {
       console.error("Error fetching workers", error);
@@ -100,7 +107,7 @@ export default function FindWorker() {
           </button>
         </div>
 
-        {/* Stats Section (now smaller & in one line on large screens) */}
+        {/* Stats Section */}
         <div className="flex flex-wrap justify-center items-center gap-4 text-white mb-8 text-xs sm:text-sm md:text-base">
           <div className="flex items-center gap-2">
             <MdOutlineVerifiedUser size={20} className="text-blue-400" />
@@ -126,20 +133,24 @@ export default function FindWorker() {
                     key={index}
                     className="flex items-center gap-4 py-3 font-medium text-gray-800 hover:bg-gray-50 transition rounded-md px-2"
                   >
-                    <Image
-                      src={
-                        worker.Profile.profilePic &&
-                        worker.Profile.profilePic.trim() !== ""
-                          ? worker.Profile.profilePic
-                          : "/images/avatar.avif"
-                      }
-                      alt={worker.name || "Worker"}
-                      width={50}
-                      height={50}
-                      className="rounded-full object-cover w-12 h-12"
-                    />
+                    {worker.profilePic?.startsWith("data:image") ? (
+                      <img
+                        src={worker.profilePic}
+                        alt={worker.name || "Worker"}
+                        className="rounded-full object-cover w-12 h-12"
+                      />
+                    ) : (
+                      <Image
+                        src={worker.profilePic || "/images/avatar.avif"}
+                        alt={worker.name || "Worker"}
+                        width={50}
+                        height={50}
+                        className="rounded-full object-cover w-12 h-12"
+                      />
+                    )}
+
                     <Link
-                      href={`/publicpages/worker/${worker.id}`} 
+                      href={`/worker/${worker.userId}`}
                       className="hover:text-blue-600 transition"
                     >
                       {worker.name}

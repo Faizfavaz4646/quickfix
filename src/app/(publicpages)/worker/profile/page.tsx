@@ -7,15 +7,15 @@ import { useRouter } from 'next/navigation';
 import { FaUserCircle } from 'react-icons/fa';
 
 interface Profile {
-  profession?: string; // optional for clients
+  profession?: string;
   phone: string;
   gender?: string;
   state: string;
   district: string;
-  city: string;
+  city?: string;
   zip?: string;
-  schedule?: string; // optional for clients
-  profilePic?: string; // Base64 image string
+  schedule?: string;
+  profilePic?: string; // Cloudinary URL
   termsAccepted: boolean;
 }
 
@@ -46,84 +46,88 @@ export default function ProfileForm() {
   });
 
   const [picPreview, setPicPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
+  // Redirect if user not logged in or role mismatch
   useEffect(() => {
-    if (!user) {
-      router.push('/publicpages/auth/login');
-      return;
-    }
-    if (user.role !== 'worker') {
-      alert('Only workers can access this page.');
-      router.push('/publicpages/worker/dashboard');
-      return;
-    }
-    if (user.profile) {
-      setFormData((prev) => ({ ...prev, ...user.profile }));
-      if (user.profile.profilePic) {
-        setPicPreview(user.profile.profilePic);
+    if (!user) router.push('/auth/login');
+    else if (user.role !== 'worker') router.push('/worker/dashboard');
+
+    const fetchProfile = async () => {
+      if (!user) return;
+      try {
+        const { data } = await axios.get(
+          `http://localhost:50001/workers?userId=${user.id}`
+        );
+        if (data.length > 0) {
+          setFormData(data[0]);
+          setPicPreview(data[0].profilePic || null);
+        }
+      } catch (err) {
+        console.error('Fetch worker failed:', err);
       }
-    }
+    };
+
+    fetchProfile();
   }, [user, router]);
 
-  // Convert image file to Base64
-  const convertToBase64 = (file: File) => {
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
+  // Handle input changes including image upload via server API
   const handleChange = async (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, files, type, checked } = e.target as HTMLInputElement;
+    const { name, value, type, checked, files } = e.target as HTMLInputElement;
 
-    if (name === 'profilePic' && files && files[0]) {
-      const base64String = await convertToBase64(files[0]);
-      setFormData((prev) => ({ ...prev, profilePic: base64String }));
-      setPicPreview(base64String);
+    if (name === 'profilePic' && files?.[0]) {
+      try {
+        setUploading(true);
+
+        const fileData = new FormData();
+        fileData.append('file', files[0]);
+
+        const res = await fetch('/api/upload', { method: 'POST', body: fileData });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+        setFormData(prev => ({ ...prev, profilePic: data.url }));
+        setPicPreview(data.url);
+      } catch (err) {
+        console.error('Upload failed:', err);
+        alert('Image upload failed. Try again.');
+      } finally {
+        setUploading(false);
+      }
     } else if (type === 'checkbox') {
-      setFormData((prev) => ({ ...prev, [name]: checked }));
+      setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
+  // Submit profile
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!user?.id) {
-      alert('No user ID found. Please log in again.');
-      router.push('/auth/login');
-      return;
-    }
-
-    if (!formData.termsAccepted) {
-      alert('You must accept the terms & conditions to proceed.');
-      return;
-    }
+    if (!user?.id) return router.push('/auth/login');
+    if (!formData.termsAccepted) return alert('Please accept terms & conditions.');
 
     try {
-      await axios.patch(
-        `http://localhost:50001/users/${user.id}`,
-        { profile: formData }, // updated key
-        { headers: { Authorization: `Bearer ${user.token}` } }
+      const workerData = { userId: user.id, ...formData };
+
+      const { data: existing } = await axios.get(
+        `http://localhost:50001/workers?userId=${user.id}`
       );
 
-      updateUserProfile(formData);
-      alert('Profile updated successfully!');
-      router.push('/publicpages/worker/dashboard');
-    } catch (error: any) {
-      console.error('Error submitting profile:', error);
-      alert(
-        error?.response?.status === 404
-          ? 'User not found on the server.'
-          : 'Failed to update profile. Please try again.'
-      );
+      if (existing.length > 0) {
+        await axios.put(`http://localhost:50001/workers/${existing[0].id}`, workerData);
+      } else {
+        await axios.post('http://localhost:50001/workers', workerData);
+      }
+
+      updateUserProfile(workerData); // Update Zustand store
+      alert('Profile saved!');
+      router.push('/worker/dashboard');
+    } catch (err) {
+      console.error('Save profile failed:', err);
+      alert('Failed to save profile.');
     }
   };
 
@@ -148,21 +152,17 @@ export default function ProfileForm() {
       label: 'Work Schedule',
       name: 'schedule',
       type: 'text',
-      placeholder: 'e.g. Mon-Fri, 9am-5pm',
+      placeholder: 'Mon-Fri, 9am-5pm',
     },
   ];
 
   return (
     <div className="max-w-xl mx-auto p-6 bg-white rounded-xl shadow mt-6">
-      {/* Profile Pic */}
+      {/* Profile Picture */}
       <div className="flex flex-col items-center mb-6">
         <div className="relative w-32 h-32 rounded-full overflow-hidden shadow-md border bg-blue-100 flex items-center justify-center">
           {picPreview ? (
-            <img
-              src={picPreview}
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
+            <img src={picPreview} alt="Profile" className="w-full h-full object-cover" />
           ) : (
             <FaUserCircle className="text-blue-500" size={120} />
           )}
@@ -173,14 +173,15 @@ export default function ProfileForm() {
           accept="image/*"
           onChange={handleChange}
           className="mt-3 text-sm"
+          disabled={uploading}
         />
-        <p className="text-xs text-gray-500 mt-1">
-          Upload a clear photo (optional)
-        </p>
+        {uploading && <p className="text-xs text-gray-500 mt-1">Uploading...</p>}
+        <p className="text-xs text-gray-500 mt-1">Upload a clear photo (optional)</p>
       </div>
 
       <h2 className="text-2xl font-bold mb-4 text-center">Worker Profile</h2>
 
+      {/* Form Fields */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {fields.map((field) => (
           <div key={field.name}>
@@ -229,22 +230,18 @@ export default function ProfileForm() {
             className="w-4 h-4"
             required
           />
-          <label
-            htmlFor="termsAccepted"
-            className="text-sm text-gray-700 cursor-pointer"
-          >
+          <label htmlFor="termsAccepted" className="text-sm text-gray-700 cursor-pointer">
             I accept the{' '}
-            <span className="text-blue-600 cursor-pointer">
-              Terms & Conditions
-            </span>
+            <span className="text-blue-600 cursor-pointer">Terms & Conditions</span>
           </label>
         </div>
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
+          disabled={uploading}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition disabled:opacity-50"
         >
-          Submit Profile
+          {uploading ? 'Uploading Image...' : 'Submit Profile'}
         </button>
       </form>
     </div>

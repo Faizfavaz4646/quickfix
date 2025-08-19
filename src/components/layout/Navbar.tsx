@@ -45,7 +45,7 @@ export default function Navbar() {
         label: "Yes",
         onClick: () => {
           logout();
-          router.push("/publicpages/auth/login");
+          router.push("/auth/login");
           toast.success("You have been logged out.");
         },
       },
@@ -59,10 +59,10 @@ export default function Navbar() {
 
   const checkingLog = () => {
     if (!user) {
-      router.push("/publicpages/auth/signup?role=worker");
+      router.push("/auth/signup?role=worker");
     } else if (user.role === "worker") {
       toast.info("You are already registered as a professional.");
-      router.push("/publicpages/worker/profile");
+      router.push("/worker/profile");
     } else {
       toast.info("You are logged in as a client. Please log out to join as a professional.");
     }
@@ -103,7 +103,7 @@ export default function Navbar() {
             Contact
           </Link>
           <Link
-            href="/publicpages/client/findworker"
+            href="/client/findworker"
             className="text-blue-600 font-semibold hover:underline"
           >
             Find a Professional
@@ -121,7 +121,7 @@ export default function Navbar() {
               {user.role === "client" && (
                 <div
                   className="flex items-center gap-2 cursor-pointer"
-                  onClick={() => router.push("/publicpages/client/clientprofile-form")}
+                  onClick={() => router.push("/client/clientprofile-form")}
                 >
                   {profile?.profile?.profilePic ? (
                     <img
@@ -151,7 +151,7 @@ export default function Navbar() {
                 Login
               </Link>
               <Link
-                href="/publicpages/auth/signup"
+                href="/auth/signup"
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
               >
                 Sign Up
@@ -195,7 +195,7 @@ export default function Navbar() {
               Contact
             </Link>
             <Link
-              href="/publicpages/client/findworker"
+              href="/client/findworker"
               onClick={() => setIsOpen(false)}
               className="text-blue-600 font-semibold"
             >
@@ -217,7 +217,7 @@ export default function Navbar() {
                   <div
                     className="flex items-center gap-2 cursor-pointer"
                     onClick={() => {
-                      router.push("/publicpages/client/clientprofile-form");
+                      router.push("/client/clientprofile-form");
                       setIsOpen(false);
                     }}
                   >
@@ -253,7 +253,7 @@ export default function Navbar() {
                   Login
                 </Link>
                 <Link
-                  href="/publicpages/auth/signup"
+                  href="/auth/signup"
                   onClick={() => setIsOpen(false)}
                   className="text-white bg-blue-600 px-4 py-2 rounded text-center"
                 >

@@ -1,20 +1,26 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { toast } from 'sonner';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, X, Menu, LogOut } from "lucide-react";
 import WorkerCard from "@/components/worker/WorkerCard";
 import { FaTools } from "react-icons/fa";
+import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "next/navigation";
 
 export default function WorkerNavbar() {
+   const logout = useAuthStore((state) => state.logout);
+     const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const links = [
-    { href: "/publicpages/worker/dashboard", label: "Dashboard" },
-    { href: "/publicpages/worker/reviews", label: "Reviews" },
+    { href: "/worker/dashboard", label: "Dashboard" },
+    {href: "/worker/posts", label: "Posts"},
+    { href: "/worker/reviews", label: "Reviews" },
     { href: "/worker/messages", label: "Messages" },
     { href: "/worker/settings", label: "Settings" },
   ];
@@ -33,7 +39,23 @@ export default function WorkerNavbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [menuOpen]);
-
+const handleLogout = () => {
+    toast("Are you sure you want to logout?", {
+      action: {
+        label: "Yes",
+        onClick: () => {
+          logout();
+          router.push("/auth/login");
+          toast.success("You have been logged out.");
+        },
+      },
+      cancel: {
+        label: "No",
+        onClick: () => toast.dismiss(),
+      },
+      duration: 10000,
+    });
+  };
   return (
     <>
     <nav className="w-full flex items-center justify-between bg-white shadow px-6 py-3 relative">
@@ -49,7 +71,7 @@ export default function WorkerNavbar() {
 
         {/* Logo */}
         <Link
-          href="/publicpages/worker/dashboard"
+          href="/worker/dashboard"
           className="font-bold text-2xl flex items-center gap-2"
         >
           <FaTools className="text-blue-600" />
@@ -72,7 +94,9 @@ export default function WorkerNavbar() {
             {link.label}
           </Link>
         ))}
-        <button className="text-red-600 font-semibold hover:underline flex items-center gap-1">
+        <button
+        onClick={handleLogout}
+         className="text-red-600 font-semibold hover:underline flex items-center gap-1">
           <LogOut size={16} /> Logout
         </button>
       </div>
@@ -85,7 +109,7 @@ export default function WorkerNavbar() {
             3
           </span>
         </div>
-      <Link href="/publicpages/worker/edit"><WorkerCard /></Link> 
+      <Link href="/worker/edit"><WorkerCard /></Link> 
       </div>
 
       {/* Mobile Sidebar Menu */}
@@ -97,7 +121,7 @@ export default function WorkerNavbar() {
           >
             {/* Worker Profile */}
             <div className="mb-6">
-             <Link href="/publicpages/worker/edit"><WorkerCard /></Link> 
+             <Link href="/worker/edit"><WorkerCard /></Link> 
             </div>
 
             {/* Links */}
@@ -120,7 +144,9 @@ export default function WorkerNavbar() {
 
             {/* Logout Button */}
             <div className="mt-auto">
-              <button className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 flex items-center justify-center gap-2">
+              <button
+              onClick={handleLogout}
+               className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 flex items-center justify-center gap-2">
                 <LogOut size={18} /> Logout
               </button>
             </div>

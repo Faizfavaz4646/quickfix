@@ -12,6 +12,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "axios": "^1.11.0",
+    "cloudinary": "^2.7.0",
     "formik": "^2.4.6",
     "gsap": "^3.13.0",
     "lucide-react": "^0.534.0",

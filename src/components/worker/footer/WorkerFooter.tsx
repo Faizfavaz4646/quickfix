@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaTools } from "react-icons/fa";
 
 export default function WorkerFooter() {
@@ -21,10 +22,10 @@ export default function WorkerFooter() {
         {/* Quick Links */}
         <div>
           <h3 className="text-lg font-semibold text-white mb-3">Quick Links</h3>
-          <ul className="space-y-2 text-sm">
-            <li><a href="/publicpages/worker/dashboard" className="hover:text-white">Dashboard</a></li>
-            <li><a href="/publicpages/worker/edit" className="hover:text-white">Edit Profile</a></li>
-            <li><a href="/worker/orders" className="hover:text-white">My Jobs</a></li>
+          <ul className="space-y-2 text-sm grid grid-rows-1">
+            <Link href="/worker/dashboard" className="hover:text-white">Dashboard</Link>
+            <Link href="/worker/edit" className="hover:text-white">Edit Profile</Link>
+            <Link href="/worker/orders" className="hover:text-white">My Jobs</Link>
           </ul>
         </div>
 

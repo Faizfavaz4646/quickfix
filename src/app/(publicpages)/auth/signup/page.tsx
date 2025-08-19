@@ -81,9 +81,9 @@ onSubmit: async (values, { setSubmitting }) => {
 
     // Redirect based on role
     if (role === 'worker') {
-      router.push('/publicpages/worker/profile');
+      router.push('/worker/profile');
     } else {
-      router.push('/publicpages/auth/login');
+      router.push('/auth/login');
     }
 
   } catch (err) {
@@ -96,10 +96,6 @@ onSubmit: async (values, { setSubmitting }) => {
   });
 
  
-
-
-
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-md bg-white p-6 sm:p-8 rounded-xl shadow-lg">

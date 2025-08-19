@@ -38,7 +38,7 @@ export default function LoginPage() {
           // Redirect based on role
           if (user.role === 'worker') {
             toast.success("login successfull. please fill the form")
-            router.push('/publicpages/worker/profile');
+            router.push('/worker/profile');
           } else {
             toast.success("login successfull")
             router.push('/');
@@ -94,7 +94,7 @@ export default function LoginPage() {
         >
           {formik.isSubmitting ? 'Logging in...' : 'Login'}
         </button>
-        <Link className='text-blue-600 flex justify-end mt-3' href="/publicpages/auth/signup">signup</Link>
+        <Link className='text-blue-600 flex justify-end mt-3' href="/auth/signup">signup</Link>
       </form>
       
     </div>

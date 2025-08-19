@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import SplashScreen from "@/components/ui/SplashScreen";
 import Navbar from "@/components/layout/Navbar";
-import { Toaster } from "sonner";
 import Footer from "@/components/layout/Footer";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -29,7 +28,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       {!hideNavbarAndFooter.includes(pathname) && <Navbar />}
-      <Toaster richColors position="top-right" />
+      
       {children}
       {!hideNavbarAndFooter.includes(pathname) && <Footer />}
     </>

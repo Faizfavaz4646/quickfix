@@ -1,18 +1,19 @@
 // store/authStore.ts
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface Profile {
   profilePic?: string;
   state?: string;
   district?: string;
   city?: string;
-  schedule?: string; // Worker-specific
+  schedule?: string;
   phone?: string;
   gender?: string;
   zip?: string;
-  profession?: string; // Worker-specific
-  previousWorkImages?: string[]; // Worker-specific
+  profession?: string;
+  previousWorkImages?: string[];
+  termsAccepted?: boolean;
 }
 
 interface User {
@@ -21,7 +22,7 @@ interface User {
   email: string;
   role: 'client' | 'worker';
   token?: string;
-  profile?: Profile; // Works for both
+  profile?: Profile; // ✅ full profile in runtime, but not persisted fully
 }
 
 interface AuthState {
@@ -47,10 +48,9 @@ export const useAuthStore = create<AuthState>()(
           set({
             user: {
               ...currentUser,
-              profile: { 
-                ...currentUser.profile, 
+              profile: {
+                ...currentUser.profile,
                 ...profile,
-                previousWorkImages: profile.previousWorkImages ?? currentUser.profile?.previousWorkImages ?? [],
               },
             },
           });
@@ -63,6 +63,21 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'quickfix-user',
+      storage: createJSONStorage(() => localStorage),
+      // 🚨 Only persist light fields
+      partialize: (state) => ({
+        user: state.user
+          ? {
+              id: state.user.id,
+              name: state.user.name,
+              email: state.user.email,
+              role: state.user.role,
+              token: state.user.token,
+              // ⚠️ exclude heavy profile fields (profilePic, previousWorkImages, etc.)
+            }
+          : null,
+        isLogin: state.isLogin,
+      }),
     }
   )
 );

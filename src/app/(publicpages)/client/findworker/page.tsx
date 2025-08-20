@@ -127,11 +127,11 @@ export default function FindWorker() {
         {showResults && (
           <div className="bg-white p-4 rounded-lg shadow-lg w-full max-w-2xl text-left max-h-80 overflow-y-auto">
             {searchResult.length > 0 ? (
-              <ul className="divide-y divide-gray-200">
+              <ul className="divide-y divide-gray-200 bg-white rounded-md">
                 {searchResult.map((worker, index) => (
                   <li
                     key={index}
-                    className="flex items-center gap-4 py-3 font-medium text-gray-800 hover:bg-gray-50 transition rounded-md px-2"
+                    className="flex items-center gap-4 py-3 font-medium text-gray-800 hover:bg-gray-50 transition rounded-md px-2 "
                   >
                     {worker.profilePic?.startsWith("data:image") ? (
                       <img

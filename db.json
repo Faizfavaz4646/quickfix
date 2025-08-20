@@ -35,6 +35,48 @@
       "email": "saheer@gmail.com",
       "password": "1234567",
       "role": "worker"
+    },
+    {
+      "id": "d63c",
+      "name": "jamshil",
+      "email": "jamshil@gmail.com",
+      "password": "1234567",
+      "role": "worker"
+    },
+    {
+      "id": "cbc3",
+      "name": "Harshad",
+      "email": "harshad@gmail.com",
+      "password": "1234567",
+      "role": "worker"
+    },
+    {
+      "id": "cc4d",
+      "name": "Pran Krishna",
+      "email": "pran@gmail.com",
+      "password": "1234567",
+      "role": "worker"
+    },
+    {
+      "id": "a33e",
+      "name": "Jasil",
+      "email": "jasil@gmail.com",
+      "password": "1234567",
+      "role": "worker"
+    },
+    {
+      "id": "4b0b",
+      "name": "Vajid",
+      "email": "vajid@gmail.com",
+      "password": "1234567",
+      "role": "worker"
+    },
+    {
+      "id": "ccb7",
+      "name": "Rishal",
+      "email": "rishal@gmail.com",
+      "password": "1234567",
+      "role": "worker"
     }
   ],
   "workers": [
@@ -59,6 +101,104 @@
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1755666321/quickfix/eeuntceixmyp8j2yruma.png",
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1755666352/quickfix/msuhi39gkxacxvbutsaa.jpg"
       ]
+    },
+    {
+      "id": "8ecf",
+      "userId": "d63c",
+      "profession": "Plumber",
+      "phone": "7736599384",
+      "gender": "male",
+      "state": "Kerala",
+      "district": "malappuram",
+      "city": "printhalmanna",
+      "zip": "675641",
+      "schedule": "9am  to. 5pm",
+      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678793/quickfix/pnkfix6ds5hutd6njqsx.png",
+      "termsAccepted": true,
+      "previousWorks": [
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678818/quickfix/b6pj4awurefl77unpy82.png",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678836/quickfix/j4hq4rfl1hqaauxdawmv.png",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678859/quickfix/sypvc8ymfyjszad9kaee.png",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678877/quickfix/iibhjdd39j7nqqrpwytl.png",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678891/quickfix/qm8fkfbnimfk7swjwcdm.png"
+      ]
+    },
+    {
+      "id": "19a3",
+      "userId": "cbc3",
+      "profession": "Plumber",
+      "phone": "9074326554",
+      "gender": "male",
+      "state": "Kerala",
+      "district": "calicut",
+      "city": "calicut",
+      "zip": "673021",
+      "schedule": "9am  to. 6pm",
+      "profilePic": "",
+      "termsAccepted": true,
+      "previousWorks": [
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755679258/quickfix/mlns5mvrooy5z8bid0pn.png",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755679266/quickfix/rhbvctvs6bd52e6utzhb.png",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755679278/quickfix/s30k1au5ka7m3ipzajhj.png",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755679281/quickfix/dvqzzkymxho9ciaaysg6.png",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755679299/quickfix/bvd3rc0ielw5whu5x5wg.jpg"
+      ]
+    },
+    {
+      "id": "1212",
+      "userId": "cc4d",
+      "profession": "Plumber",
+      "phone": "7034514646",
+      "gender": "male",
+      "state": "Kerala",
+      "district": "malappuram",
+      "city": "kohinoor",
+      "zip": "673638",
+      "schedule": "9am  to. 5pm",
+      "profilePic": "",
+      "termsAccepted": true
+    },
+    {
+      "id": "76bc",
+      "userId": "a33e",
+      "profession": "Electrician",
+      "phone": "9074326554",
+      "gender": "male",
+      "state": "Kerala",
+      "district": "calicut",
+      "city": "calicut",
+      "zip": "673021",
+      "schedule": "9am  to. 5pm",
+      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755684775/quickfix/w26hbwjrzqfelebltucc.jpg",
+      "termsAccepted": true
+    },
+    {
+      "id": "be71",
+      "userId": "4b0b",
+      "profession": "Electrician",
+      "phone": "9074326554",
+      "gender": "male",
+      "state": "Kerala",
+      "district": "calicut",
+      "city": "calicut",
+      "zip": "673021",
+      "schedule": "9am  to. 6pm",
+      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755685032/quickfix/o5fjfa5mjzcsbxcxoyqr.jpg",
+      "termsAccepted": true
+    },
+    {
+      "id": "7317",
+      "userId": "ccb7",
+      "profession": "Electrician",
+      "phone": "9074326554",
+      "gender": "male",
+      "state": "Kerala",
+      "district": "calicut",
+      "city": "calicut",
+      "zip": "673021",
+      "schedule": "9am  to. 6pm",
+      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755685130/quickfix/udx5ydky9ipxlv66eg8v.jpg",
+      "termsAccepted": true
     }
   ]
 }

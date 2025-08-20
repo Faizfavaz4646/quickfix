@@ -16,6 +16,17 @@
         "city": "kollam",
         "zip": "678765",
         "profilePic": "/uploads/wallpapper.jpg"
+      },
+      "profile": {
+        "name": "jomy seban",
+        "email": "jomy@gmail.com",
+        "phone": "07034514646",
+        "gender": "male",
+        "state": "Kerala",
+        "district": "kollam",
+        "city": "kollam",
+        "zip": "673638",
+        "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755668263/emjgomequdbaesyhl8fn.jpg"
       }
     },
     {
@@ -28,8 +39,8 @@
   ],
   "workers": [
     {
-      "id": "c5d4",
       "userId": "c5d4",
+      "id": "c5d4",
       "profession": "Plumber",
       "phone": "0034514646",
       "gender": "male",
@@ -44,7 +55,9 @@
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1755601026/quickfix/cfy1mol0a0shajmliwob.png",
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1755601041/quickfix/ebjc4aeddtfyynsacisx.png",
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1755601064/quickfix/xh2w1rtpbcmq3btah7xk.jpg",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755601082/quickfix/nhfapwvqmaejur6h2vwr.png"
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755601082/quickfix/nhfapwvqmaejur6h2vwr.png",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755666321/quickfix/eeuntceixmyp8j2yruma.png",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755666352/quickfix/msuhi39gkxacxvbutsaa.jpg"
       ]
     }
   ]

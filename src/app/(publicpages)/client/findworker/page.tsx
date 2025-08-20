@@ -150,7 +150,7 @@ export default function FindWorker() {
                     )}
 
                     <Link
-                      href={`/worker/${worker.userId}`}
+                      href={`/client/workerprofile/${worker.userId}`}
                       className="hover:text-blue-600 transition"
                     >
                       {worker.name}

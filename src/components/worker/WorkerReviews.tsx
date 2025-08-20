@@ -6,7 +6,7 @@ export default function WorkerReview() {
       {/* Example review */}
       <div className="space-y-3">
         <div className="border-b-gray-500 pb-2">
-          <p className="text-sm font-medium">John Doe</p>
+          <p className="text-sm font-medium">Jomy</p>
           <p className="text-xs text-gray-500">"Great worker, completed the job on time!"</p>
           <div className="flex mt-1 text-yellow-500 text-sm">
             ⭐⭐⭐⭐☆
@@ -14,7 +14,7 @@ export default function WorkerReview() {
         </div>
 
         <div className="border-b pb-2">
-          <p className="text-sm font-medium">Ayesha Khan</p>
+          <p className="text-sm font-medium">Ayesha </p>
           <p className="text-xs text-gray-500">"Very professional and polite."</p>
           <div className="flex mt-1 text-yellow-500 text-sm">
             ⭐⭐⭐⭐⭐

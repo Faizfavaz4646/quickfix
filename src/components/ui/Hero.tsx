@@ -27,7 +27,7 @@ export default function Hero() {
       <div className="max-w-4xl mx-auto relative z-10">
         <h1
           ref={headingRef}
-          className="text-4xl sm:text-5xl font-bold mb-4 text-gray-900"
+          className="text-4xl sm:text-5xl font-extrabold mb-4 text-gray-900"
         >
           Your Trusted <span className="text-blue-600">Local Service Professionals</span>
         </h1>

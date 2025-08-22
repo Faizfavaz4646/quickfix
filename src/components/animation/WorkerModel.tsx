@@ -1,4 +1,4 @@
-import { OrbitControls, useAnimations, useGLTF,Text} from "@react-three/drei";
+import { OrbitControls, useAnimations, useGLTF,Text3D} from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useEffect } from "react";
 
@@ -63,17 +63,21 @@ export default function LadyOnToolbox() {
           <Toolbox />
           <LadyModelInner />
            {/* 📝 Text on the front of the cube */}
-      <Text
-        position={[0, 0.99, -1.3]} // adjust Z to be slightly in front of cube
-        rotation={[0, 0, 0]} // facing forward
-        fontSize={0.7}
-        color="blue"
-        anchorX="center"
-        anchorY="middle"
+      <Text3D
+      font="/fonts/Boldonse_Regular.json"
+      size={0.40}
+      height={0.4}
+      position={[-1.7, 0.7, -1.5]} // adjust Z to be slightly in front of cube
+      rotation={[0, 0, 0]} // facing forward
+      bevelEnabled
+      bevelThickness={0.05}
+      bevelSize={0.03}
+      bevelSegments={5}
     
       >
        QuickFix 
-      </Text>
+        <meshStandardMaterial color="skyblue" />
+      </Text3D>
         </group>
 
         {/* ❌ remove Bounds – it auto-zooms and breaks your manual positioning */}

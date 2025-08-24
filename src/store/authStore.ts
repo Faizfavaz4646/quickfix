@@ -22,14 +22,14 @@ interface User {
   email: string;
   role: 'client' | 'worker';
   token?: string;
-  profile?: Profile; // ✅ full profile in runtime, but not persisted fully
+  profile?: Profile;
 }
 
 interface AuthState {
   user: User | null;
   isLogin: boolean;
   setUser: (user: User) => void;
-  updateUserProfile: (profile: Partial<Profile>) => void;
+  updateUserProfile: (profile: Partial<Profile>, name?: string) => void; // 👈 also accept name
   setIsLogin: (value: boolean) => void;
   logout: () => void;
 }
@@ -42,12 +42,13 @@ export const useAuthStore = create<AuthState>()(
 
       setUser: (user) => set({ user, isLogin: true }),
 
-      updateUserProfile: (profile) => {
+      updateUserProfile: (profile, name) => {
         const currentUser = get().user;
         if (currentUser) {
           set({
             user: {
               ...currentUser,
+              name: name ?? currentUser.name, // ✅ update root-level name too
               profile: {
                 ...currentUser.profile,
                 ...profile,
@@ -64,7 +65,6 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'quickfix-user',
       storage: createJSONStorage(() => localStorage),
-      // 🚨 Only persist light fields
       partialize: (state) => ({
         user: state.user
           ? {
@@ -73,7 +73,7 @@ export const useAuthStore = create<AuthState>()(
               email: state.user.email,
               role: state.user.role,
               token: state.user.token,
-              // ⚠️ exclude heavy profile fields (profilePic, previousWorkImages, etc.)
+              profile: state.user.profile,
             }
           : null,
         isLogin: state.isLogin,

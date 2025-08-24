@@ -79,10 +79,6 @@ export default function LadyOnToolbox() {
         <meshStandardMaterial color="skyblue" />
       </Text3D>
         </group>
-
-        {/* ❌ remove Bounds – it auto-zooms and breaks your manual positioning */}
-        {/* <Bounds fit clip margin={1.2}> ... </Bounds> */}
-
         <OrbitControls enableZoom={false} enablePan={false} /> 
         {/* Locked orbit (only rotate if you want) */}
       </Canvas>

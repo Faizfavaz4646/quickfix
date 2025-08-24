@@ -5,34 +5,14 @@ import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { FaUserCircle } from 'react-icons/fa';
-
-interface Profile {
-  profession?: string;
-  phone: string;
-  gender?: string;
-  state: string;
-  district: string;
-  city?: string;
-  zip?: string;
-  schedule?: string;
-  profilePic?: string; // Cloudinary URL
-  termsAccepted: boolean;
-}
-
-interface Field {
-  label: string;
-  name: keyof Profile | 'gender';
-  type: string;
-  options?: { value: string; label: string }[];
-  maxLength?: number;
-  placeholder?: string;
-}
+import { uploadToCloudinary } from './/../../../../../utils/uploadToCloudinary'; // global upload
+import {Profile} from "@/types/user";
 
 export default function ProfileForm() {
   const router = useRouter();
   const { user, updateUserProfile } = useAuthStore();
 
-  const [formData, setFormData] = useState<Profile>({
+  const [formData, setFormData] = useState<any>({
     profession: '',
     phone: '',
     gender: '',
@@ -42,13 +22,14 @@ export default function ProfileForm() {
     zip: '',
     schedule: '',
     profilePic: '',
+    previousWorkImages: [],
     termsAccepted: false,
   });
 
   const [picPreview, setPicPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  // Redirect if user not logged in or role mismatch
+  // Redirect and fetch profile
   useEffect(() => {
     if (!user) router.push('/auth/login');
     else if (user.role !== 'worker') router.push('/worker/dashboard');
@@ -56,9 +37,7 @@ export default function ProfileForm() {
     const fetchProfile = async () => {
       if (!user) return;
       try {
-        const { data } = await axios.get(
-          `http://localhost:50001/workers?userId=${user.id}`
-        );
+        const { data } = await axios.get(`http://localhost:50001/workers?userId=${user.id}`);
         if (data.length > 0) {
           setFormData(data[0]);
           setPicPreview(data[0].profilePic || null);
@@ -71,37 +50,27 @@ export default function ProfileForm() {
     fetchProfile();
   }, [user, router]);
 
-  // Handle input changes including image upload via server API
-  const handleChange = async (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
+  // Handle input changes and image upload
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked, files } = e.target as HTMLInputElement;
 
     if (name === 'profilePic' && files?.[0]) {
-      try {
-        setUploading(true);
-
-        const fileData = new FormData();
-        fileData.append('file', files[0]);
-
-        const res = await fetch('/api/upload', { method: 'POST', body: fileData });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Upload failed');
-
-        setFormData(prev => ({ ...prev, profilePic: data.url }));
-        setPicPreview(data.url);
-      } catch (err) {
-        console.error('Upload failed:', err);
-        alert('Image upload failed. Try again.');
-      } finally {
-        setUploading(false);
-      }
-    } else if (type === 'checkbox') {
-      setFormData(prev => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
+     try {
+  setUploading(true);
+  const url = await uploadToCloudinary(files[0]); // global Cloudinary
+  setFormData((prev: Profile) => ({ ...prev, profilePic: url }));
+  setPicPreview(url);
+} catch (err) {
+  console.error('Upload failed:', err);
+  alert('Image upload failed. Try again.');
+} finally {
+  setUploading(false);
+}
+} else if (type === 'checkbox') {
+  setFormData((prev: Profile) => ({ ...prev, [name]: checked }));
+} else {
+  setFormData((prev: Profile) => ({ ...prev, [name]: value }));
+}
 
   // Submit profile
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,9 +81,7 @@ export default function ProfileForm() {
     try {
       const workerData = { userId: user.id, ...formData };
 
-      const { data: existing } = await axios.get(
-        `http://localhost:50001/workers?userId=${user.id}`
-      );
+      const { data: existing } = await axios.get(`http://localhost:50001/workers?userId=${user.id}`);
 
       if (existing.length > 0) {
         await axios.put(`http://localhost:50001/workers/${existing[0].id}`, workerData);
@@ -122,7 +89,7 @@ export default function ProfileForm() {
         await axios.post('http://localhost:50001/workers', workerData);
       }
 
-      updateUserProfile(workerData); // Update Zustand store
+      updateUserProfile(workerData); // Update Zustand
       alert('Profile saved!');
       router.push('/worker/dashboard');
     } catch (err) {
@@ -131,13 +98,12 @@ export default function ProfileForm() {
     }
   };
 
-  const fields: Field[] = [
+  // Form fields (no explicit types needed)
+  const fields = [
     { label: 'Profession', name: 'profession', type: 'text' },
     { label: 'Mobile', name: 'phone', type: 'tel' },
     {
-      label: 'Gender',
-      name: 'gender',
-      type: 'select',
+      label: 'Gender', name: 'gender', type: 'select',
       options: [
         { value: '', label: '--Select Gender--' },
         { value: 'male', label: 'Male' },
@@ -148,12 +114,7 @@ export default function ProfileForm() {
     { label: 'District', name: 'district', type: 'text' },
     { label: 'City', name: 'city', type: 'text' },
     { label: 'Pincode', name: 'zip', type: 'text', maxLength: 6 },
-    {
-      label: 'Work Schedule',
-      name: 'schedule',
-      type: 'text',
-      placeholder: 'Mon-Fri, 9am-5pm',
-    },
+    { label: 'Work Schedule', name: 'schedule', type: 'text', placeholder: 'Mon-Fri, 9am-5pm' },
   ];
 
   return (
@@ -192,7 +153,7 @@ export default function ProfileForm() {
               <select
                 id={field.name}
                 name={field.name}
-                value={(formData as any)[field.name] || ''}
+                value={formData[field.name] || ''}
                 onChange={handleChange}
                 required
                 className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 outline-none"
@@ -208,7 +169,7 @@ export default function ProfileForm() {
                 id={field.name}
                 type={field.type}
                 name={field.name}
-                value={(formData as any)[field.name] || ''}
+                value={formData[field.name] || ''}
                 onChange={handleChange}
                 maxLength={field.maxLength}
                 placeholder={field.placeholder}
@@ -225,7 +186,7 @@ export default function ProfileForm() {
             type="checkbox"
             id="termsAccepted"
             name="termsAccepted"
-            checked={formData.termsAccepted}
+            checked={formData.termsAccepted || false}
             onChange={handleChange}
             className="w-4 h-4"
             required
@@ -246,4 +207,5 @@ export default function ProfileForm() {
       </form>
     </div>
   );
+  }
 }

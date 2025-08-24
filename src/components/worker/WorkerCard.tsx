@@ -3,31 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
+import { User, Profile } from '@/types/user'; // use global types
 
-interface Worker {
-  id: string;
-  userId: string;
-  profession?: string;
-  profilePic?: string;
-  phone?: string;
-  gender?: string;
-  state?: string;
-  district?: string;
-  city?: string;
-  zip?: string;
-  schedule?: string;
-  termsAccepted?: boolean;
-}
-
-interface User {
-  id: string;
-  name: string;
-  role: 'client' | 'worker';
-}
-
-const WorkerCard: React.FC = () => {
+const WorkerCard = () => {
   const { user } = useAuthStore();
-  const [workerProfile, setWorkerProfile] = useState<Worker | null>(null);
+  const [workerProfile, setWorkerProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
     const fetchWorkerProfile = async () => {
@@ -36,10 +16,10 @@ const WorkerCard: React.FC = () => {
       try {
         const { data } = await axios.get(`http://localhost:50001/workers?userId=${user.id}`);
         if (data.length > 0) {
-          setWorkerProfile(data[0]); // get first worker for this user
+          setWorkerProfile(data[0]);
         }
       } catch (err) {
-        console.error(err);
+        console.error('Failed to fetch worker profile:', err);
       }
     };
 
@@ -55,7 +35,7 @@ const WorkerCard: React.FC = () => {
         alt="Profile"
         className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border border-gray-200"
         onError={(e) => {
-          (e.currentTarget as HTMLImageElement).src = '/images/avatar.avif';
+          e.currentTarget.src = '/images/avatar.avif';
         }}
       />
       <div>

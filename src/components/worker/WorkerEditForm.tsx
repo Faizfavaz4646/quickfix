@@ -5,28 +5,16 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { X, Plus, Camera, UserCircle } from 'lucide-react';
+import { X, Plus, Camera, UserCircle, RotateCcw } from 'lucide-react';
+import { Profile } from '@/types/user';
+import { uploadToCloudinary } from '../../../utils/uploadToCloudinary';
 
-interface Worker {
-  id: number;
-  userId: number;
-  profilePic?: string;
-  profession?: string;
-  phone?: string;
-  state?: string;
-  district?: string;
-  city?: string;
-  zip?: string;
-  schedule?: string;
-  previousWorks?: string[];
-}
-
-const WorkerEditForm: React.FC = () => {
+const WorkerEditForm = () => {
   const router = useRouter();
   const { user, updateUserProfile } = useAuthStore();
-  const [worker, setWorker] = useState<Worker | null>(null);
-
-  const [form, setForm] = useState<Omit<Worker, 'id' | 'userId'>>({
+  const [worker, setWorker] = useState<Profile | null>(null);
+  const [form, setForm] = useState<Profile>({
+    id: undefined,
     profilePic: '',
     profession: '',
     phone: '',
@@ -35,122 +23,131 @@ const WorkerEditForm: React.FC = () => {
     city: '',
     zip: '',
     schedule: '',
-    previousWorks: [],
+    previousWorkImages: [],
   });
-
   const [uploading, setUploading] = useState(false);
+  const [removedImages, setRemovedImages] = useState<string[]>([]);
+
+  // Lightbox
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Fetch worker profile
   useEffect(() => {
     if (!user?.id) return;
-
     const fetchWorker = async () => {
       try {
         const { data } = await axios.get(
           `http://localhost:50001/workers?userId=${user.id}`
         );
         if (data.length > 0) {
-          const existingWorker = data[0];
-          setWorker(existingWorker);
-          const { id, userId, ...rest } = existingWorker;
-          setForm(rest);
+          const workerData = data[0];
+          setWorker(workerData);
+          setForm({
+            ...workerData,
+            previousWorkImages: workerData.previousWorkImages || [],
+          });
         }
       } catch (err) {
         console.error(err);
         toast.error('Failed to fetch profile');
       }
     };
-
     fetchWorker();
   }, [user?.id]);
 
-  // Upload file to Cloudinary via API
-  const uploadToCloudinary = async (file: File): Promise<string | null> => {
+  // Upload file
+  const handleFileUpload = async (file: File, key: keyof Profile) => {
+    setUploading(true);
     try {
-      setUploading(true);
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok || !data.url) throw new Error(data.error || 'Upload failed');
-
-      return data.url;
+      const url = await uploadToCloudinary(file);
+      if (url) {
+        setForm(prev => ({
+          ...prev,
+          [key]:
+            key === 'previousWorkImages'
+              ? [...(prev.previousWorkImages || []), url]
+              : url,
+        }));
+      }
     } catch (err) {
       console.error(err);
-      toast.error('Image upload failed');
-      return null;
+      toast.error('Cloudinary upload failed');
     } finally {
       setUploading(false);
     }
   };
 
-  // Handle profile pic change
-  const handleProfilePicChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  // Profile pic
+  const handleProfilePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    const url = await uploadToCloudinary(file);
-    if (url) setForm(prev => ({ ...prev, profilePic: url }));
+    if (file) handleFileUpload(file, 'profilePic');
   };
 
-  // Handle multiple previous works upload
-  const handleMultipleFiles = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  // Multiple previous works
+  const handleMultipleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
+    setUploading(true);
+    try {
+      const urls = (
+        await Promise.all(Array.from(files).map(file => uploadToCloudinary(file)))
+      ).filter(Boolean) as string[];
 
-    const urls = (
-      await Promise.all(Array.from(files).map(file => uploadToCloudinary(file)))
-    ).filter((url): url is string => !!url);
-
-    setForm(prev => ({
-      ...prev,
-      previousWorks: [...(prev.previousWorks || []), ...urls],
-    }));
+      setForm(prev => ({
+        ...prev,
+        previousWorkImages: [...(prev.previousWorkImages || []), ...urls],
+      }));
+    } catch (err) {
+      console.error(err);
+      toast.error('Cloudinary upload failed');
+    } finally {
+      setUploading(false);
+    }
   };
 
+  // Remove with undo
   const handleRemoveWork = (index: number) => {
-    setForm(prev => ({
-      ...prev,
-      previousWorks: prev.previousWorks?.filter((_, i) => i !== index),
-    }));
+    setForm(prev => {
+      const removed = prev.previousWorkImages?.[index];
+      if (!removed) return prev;
+      setRemovedImages(old => [...old, removed]);
+      return {
+        ...prev,
+        previousWorkImages: prev.previousWorkImages?.filter((_, i) => i !== index),
+      };
+    });
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleUndoRemove = () => {
+    if (removedImages.length === 0) return;
+    const lastRemoved = removedImages[removedImages.length - 1];
+    setForm(prev => ({
+      ...prev,
+      previousWorkImages: [...(prev.previousWorkImages || []), lastRemoved],
+    }));
+    setRemovedImages(prev => prev.slice(0, -1));
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.id) {
-      toast.error('You are not logged in');
-      return router.push('/auth/login');
-    }
+    if (!user?.id)
+      return toast.error('You are not logged in') && router.push('/auth/login');
 
     try {
-      let response;
-      if (worker) {
-        response = await axios.patch(
-          `http://localhost:50001/workers/${worker.id}`,
-          { ...form, userId: user.id }
-        );
-      } else {
-        response = await axios.post(`http://localhost:50001/workers`, {
-          id: user.id,
-          userId: user.id,
-          ...form,
-        });
-      }
+      const response = worker
+        ? await axios.patch(`http://localhost:50001/workers/${worker.id}`, {
+            ...form,
+            userId: user.id,
+          })
+        : await axios.post(`http://localhost:50001/workers`, {
+            userId: user.id,
+            ...form,
+          });
 
       setWorker(response.data);
       updateUserProfile(form);
@@ -229,46 +226,20 @@ const WorkerEditForm: React.FC = () => {
 
         {/* Address */}
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium">Zip</label>
-            <input
-              type="text"
-              name="zip"
-              value={form.zip}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">State</label>
-            <input
-              type="text"
-              name="state"
-              value={form.state}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">District</label>
-            <input
-              type="text"
-              name="district"
-              value={form.district}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">City</label>
-            <input
-              type="text"
-              name="city"
-              value={form.city}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
+          {['zip', 'state', 'district', 'city'].map(field => (
+            <div key={field}>
+              <label className="block text-sm font-medium">
+                {field.charAt(0).toUpperCase() + field.slice(1)}
+              </label>
+              <input
+                type="text"
+                name={field}
+                value={(form as any)[field]}
+                onChange={handleChange}
+                className="w-full border rounded-lg p-2"
+              />
+            </div>
+          ))}
         </div>
 
         {/* Schedule */}
@@ -286,6 +257,7 @@ const WorkerEditForm: React.FC = () => {
         {/* Previous Works */}
         <div>
           <label className="block text-sm font-medium mb-2">Previous Works</label>
+
           <div className="flex items-center gap-2">
             <label
               htmlFor="fileUpload"
@@ -301,21 +273,31 @@ const WorkerEditForm: React.FC = () => {
                 onChange={handleMultipleFiles}
               />
             </label>
+
+            {removedImages.length > 0 && (
+              <button
+                type="button"
+                onClick={handleUndoRemove}
+                className="flex items-center gap-1 px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
+              >
+                <RotateCcw size={16} /> Undo Remove
+              </button>
+            )}
           </div>
 
-          {/* Image Previews */}
           <div className="grid grid-cols-3 gap-3 mt-3">
-            {form.previousWorks?.map((img, index) => (
-              <div key={index} className="relative">
+            {form.previousWorkImages?.map((imgUrl, index) => (
+              <div key={index} className="relative group">
                 <img
-                  src={img}
+                  src={imgUrl}
                   alt={`work-${index}`}
-                  className="w-full h-24 object-cover rounded-lg"
+                  className="w-full h-24 object-cover rounded-lg cursor-pointer"
+                  onClick={() => setSelectedImage(imgUrl)}
                 />
                 <button
                   type="button"
                   onClick={() => handleRemoveWork(index)}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
                 >
                   <X size={14} />
                 </button>
@@ -332,6 +314,25 @@ const WorkerEditForm: React.FC = () => {
           {uploading ? 'Uploading...' : 'Save Changes'}
         </button>
       </form>
+
+      {/* Lightbox */}
+      {selectedImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+          <div className="relative">
+            <img
+              src={selectedImage}
+              alt="Full Size"
+              className="max-h-[90vh] max-w-[90vw] rounded-lg"
+            />
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-2 right-2 bg-white rounded-full p-2 shadow hover:bg-gray-100"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

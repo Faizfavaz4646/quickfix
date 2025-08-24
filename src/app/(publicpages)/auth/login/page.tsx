@@ -4,7 +4,7 @@ import { useFormik } from 'formik';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from "@/store/authStore";
-import { API_URL } from "../../../../lib/constants"
+import { API_URL } from "../../../../lib/constants";
 import { FaTools } from 'react-icons/fa';
 import Link from 'next/link';
 
@@ -28,34 +28,32 @@ export default function LoginPage() {
 
         const user = res.data[0];
 
-        // Check password manually
+        // Password check
         if (user.password !== values.password) {
           setErrors({ password: 'Incorrect password' });
           return;
         }
 
-        // Save user in store
-        setUser({
-          id: user.id ?? user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        });
+        // ✅ Fetch full user with profile (to avoid empty fields later)
+        const fullUserRes = await axios.get(`${API_URL}/users/${user.id}`);
+        const fullUser = fullUserRes.data;
+
+        // Save user in store (includes profile)
+        setUser(fullUser);
 
         toast.success('Login successful');
 
         // Redirect based on role
-        if (user.role === 'worker') {
-          // Check if worker has completed profile
-          const workerRes = await axios.get(`${API_URL}/workers?userId=${user.id}`);
-          const workerData = workerRes.data[0];
-
-          const isProfileComplete = workerData && workerData.profession && workerData.phone;
+        if (fullUser.role === 'worker') {
+          const isProfileComplete =
+            fullUser.profile &&
+            fullUser.profile.profession &&
+            fullUser.profile.phone;
 
           if (isProfileComplete) {
-            router.push('/worker/dashboard'); // profile completed → dashboard
+            router.push('/worker/dashboard');
           } else {
-            router.push('/worker/profile'); // not completed → profile form
+            router.push('/worker/profile');
           }
         } else {
           router.push('/'); // client homepage
@@ -79,7 +77,7 @@ export default function LoginPage() {
         <h1 className='flex gap-2 justify-center text-2xl font-bold mb-4'>
           <FaTools className="text-blue-600 mt-1" /> QuickFix
         </h1>
-       
+
         <h2 className="text-xl font-bold mb-4 text-center">Login</h2>
 
         <input

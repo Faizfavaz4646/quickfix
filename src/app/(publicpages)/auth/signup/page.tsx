@@ -51,18 +51,6 @@ onSubmit: async (values, { setSubmitting }) => {
       role
     };
 
-    // Only add Profile for clients
-    if (role === "client") {
-      payload.Profile = {
-        phone: "",
-        gender: "",
-        state: "",
-        district: "",
-        city: "",
-        zip: "",
-        profilePic: ""
-      };
-    }
 
     // Create user
     const response = await axios.post(`${API_URL}/users`, payload);

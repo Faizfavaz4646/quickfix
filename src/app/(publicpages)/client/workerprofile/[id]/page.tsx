@@ -2,162 +2,39 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import axios from "axios";
-import {  FaMapMarkerAlt } from "react-icons/fa";
-import { FaMessage } from "react-icons/fa6";
-
-interface WorkerProfile {
-  id: string;
-  userId: string;
-  profilePic?: string;
-  profession?: string;
-  state?: string;
-  district?: string;
-  city?: string;
-  schedule?: string;
-  phone?: string;
-  name?: string;
-  email?: string;
-  previousWorkImages?: string[];
-}
+import { getWorkerProfile } from "@/services/workerService";
+import ProfileDetails from "@/components/ProfileDetails";
+import RequestDialog from "@/components/RequestDialog";
+import PreviousWorks from "@/components/PreviousWorks";
 
 export default function ProfilePage() {
-  const [selectedimg, setSelectedImg]=useState<string | null>(null)
   const { id } = useParams();
-  const [worker, setWorker] = useState<WorkerProfile | null>(null);
+  const [worker, setWorker] = useState<any>(null);
   const [showDialog, setShowDialog] = useState(false);
-  const [showAllWorks, setShowAllWorks] = useState(false);
+  const [selectedImg, setSelectedImg] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     if (!id) return;
-
-    const fetchWorker = async () => {
-      try {
-        // 1️⃣ Fetch worker by userId
-        const { data: workerData } = await axios.get(`http://localhost:50001/workers?userId=${id}`);
-        if (workerData.length === 0) return;
-
-        const workerInfo = workerData[0];
-
-        // 2️⃣ Fetch user info
-        const { data: userData } = await axios.get(`http://localhost:50001/users/${workerInfo.userId}`);
-
-        // 3️⃣ Merge and set worker
-        setWorker({
-          ...workerInfo,
-          name: userData.name,
-          email: userData.email,
-          previousWorkImages: workerInfo.previousWorks || [],
-        });
-      } catch (err) {
-        console.error("Error fetching worker profile:", err);
-      }
-    };
-
-    fetchWorker();
+    getWorkerProfile(id as string).then(setWorker);
   }, [id]);
 
-  if (!worker) {
-    return <p className="text-center mt-10 text-gray-500">Loading profile...</p>;
-  }
-
-  const workImages = worker.previousWorkImages || [];
-  const displayedImages = showAllWorks ? workImages : workImages.slice(0, 4);
+  if (!worker) return <p className="text-center mt-10 text-gray-500">Loading profile...</p>;
 
   return (
-    <section className="relative w-full min-h-screen bg-gray-50 pb-16 pt-20">
+    <section className="min-h-screen bg-gray-50 pt-20 pb-16">
       <div className="max-w-5xl mx-auto px-6">
-
-        {/* Top Profile Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col md:flex-row md:items-center gap-6 relative">
-
-          {/* Left - Profile Pic & Info */}
-          <div className="flex flex-col items-center md:items-start text-center md:text-left">
-            <div className="relative">
-              <img
-                src={worker.profilePic || "/images/avatar.avif"}
-                alt={worker.name}
-                className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-              />
-              <span className="absolute bottom-2 right-2 w-5 h-5 rounded-full border-2 border-white bg-green-500"></span>
-            </div>
-            <h2 className="text-2xl font-semibold text-gray-800 mt-3">{worker.name}</h2>
-            <span className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm mt-2 font-medium">
-              {worker.profession || 'No Profession Added'}
-            </span>
-
-            {/* Rating */}
-            <div className="flex items-center mt-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <svg key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.163c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.286-3.957a1 1 0 00-.364-1.118L2.07 9.384c-.783-.57-.38-1.81.588-1.81h4.163a1 1 0 00.95-.69l1.286-3.957z"/>
-                </svg>
-              ))}
-              <span className="text-gray-600 text-sm ml-2">4.8 (127 reviews)</span>
-            </div>
-
-            {/* Location */}
-            <p className="flex items-center gap-2 text-gray-500 mt-1">
-              <FaMapMarkerAlt className="text-blue-500" /> {worker.state}, {worker.district}, {worker.city}
-            </p>
-          </div>
-
-          {/* Right - side */}
-          <div className="flex gap-3 w-full md:w-auto mt-4 md:mt-0">
-            <button className="border border-blue-600 text-blue-600 px-5 py-2 rounded-md font-medium hover:bg-blue-50 flex items-center gap-2 justify-center">
-              <FaMessage /> Chat Now
-            </button>
-            <button 
-              onClick={() => setShowDialog(!showDialog)}
-              className="bg-yellow-400 hover:bg-yellow-500 text-white px-5 py-2 rounded-md font-medium"
-            >
-              Request Service
-            </button>
-          </div>
-
-        </div>
-
-        {/* Previous Works */}
-        {workImages.length > 0 && (
-          <div className="bg-white rounded-lg shadow-md p-6 mt-6">
-            <h3 className="text-lg font-semibold text-blue-600 underline mb-4">Previous Works</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {displayedImages.map((img, idx) => (
-                <img 
-                  key={idx}
-                  src={img}
-                  alt={`Work ${idx + 1}`}
-                  className="w-full h-32 object-cover shadow-xl border border-gray-200"
-                  onClick={()=>setSelectedImg(img)}
-                />
-              ))}
-            </div>
-            {selectedimg && (
-                <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
-          onClick={() => setSelectedImg(null)}
-        >
-          <img
-            src={selectedimg}
-            alt="Full Work"
-            className="max-h-[80vh] max-w-[90vw] rounded-lg shadow-lg"
+        <ProfileDetails worker={worker} onRequest={() => setShowDialog(true)} />
+        {showDialog && <RequestDialog onClose={() => setShowDialog(false)} />}
+        {worker.previousWorkImages?.length > 0 && (
+          <PreviousWorks
+            images={worker.previousWorkImages}
+            selected={selectedImg}
+            setSelected={setSelectedImg}
+            showAll={showAll}
+            setShowAll={setShowAll}
           />
-        </div>
-      )}
-            
-            {workImages.length > 4 && (
-              <div className="mt-4 text-center">
-                <button 
-                  onClick={() => setShowAllWorks(!showAllWorks)}
-                  className="text-white bg-blue-400 rounded-md px-3 py-1 cursor-pointer font-medium"
-                >
-                  {showAllWorks ? "Show Less" : "View More"}
-                </button>
-              </div>
-            )}
-          </div>
         )}
-
       </div>
     </section>
   );

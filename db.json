@@ -1,35 +1,6 @@
 {
   "users": [
     {
-      "id": "f92f",
-      "name": "jomy seban",
-      "email": "jomy@gmail.com",
-      "password": "1234567",
-      "role": "client",
-      "Profile": {
-        "name": "jomy seban",
-        "email": "jomy@gmail.com",
-        "phone": "9544880465",
-        "gender": "male",
-        "state": "kerala",
-        "district": "kollam",
-        "city": "kollam",
-        "zip": "678765",
-        "profilePic": "/uploads/wallpapper.jpg"
-      },
-      "profile": {
-        "name": "jomy seban",
-        "email": "jomy@gmail.com",
-        "phone": "07034514646",
-        "gender": "male",
-        "state": "Kerala",
-        "district": "kollam",
-        "city": "kollam",
-        "zip": "673638",
-        "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755668263/emjgomequdbaesyhl8fn.jpg"
-      }
-    },
-    {
       "id": "c5d4",
       "name": "Saheer Chungath",
       "email": "saheer@gmail.com",
@@ -77,6 +48,22 @@
       "email": "rishal@gmail.com",
       "password": "1234567",
       "role": "worker"
+    },
+    {
+      "id": "5f82",
+      "name": "jomy seban",
+      "email": "jomy@gmail.com",
+      "password": "1234567",
+      "role": "client",
+      "profile": {
+        "phone": "7034514646",
+        "gender": "male",
+        "state": "Kerala",
+        "district": "kollam",
+        "city": "kollam",
+        "zip": "673638",
+        "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755939738/upcnpvw9nifvgresrqyu.jpg"
+      }
     }
   ],
   "workers": [
@@ -93,13 +80,8 @@
       "schedule": "9am  to. 6pm",
       "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755600924/quickfix/a2yunflwkewfv9ec9ab2.jpg",
       "termsAccepted": true,
-      "previousWorks": [
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755601026/quickfix/cfy1mol0a0shajmliwob.png",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755601041/quickfix/ebjc4aeddtfyynsacisx.png",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755601064/quickfix/xh2w1rtpbcmq3btah7xk.jpg",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755601082/quickfix/nhfapwvqmaejur6h2vwr.png",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755666321/quickfix/eeuntceixmyp8j2yruma.png",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755666352/quickfix/msuhi39gkxacxvbutsaa.jpg"
+      "previousWorkImages": [
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756016346/q47vqcpiwxnuesgplnrg.jpg"
       ]
     },
     {
@@ -114,14 +96,7 @@
       "zip": "675641",
       "schedule": "9am  to. 5pm",
       "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678793/quickfix/pnkfix6ds5hutd6njqsx.png",
-      "termsAccepted": true,
-      "previousWorks": [
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678818/quickfix/b6pj4awurefl77unpy82.png",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678836/quickfix/j4hq4rfl1hqaauxdawmv.png",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678859/quickfix/sypvc8ymfyjszad9kaee.png",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678877/quickfix/iibhjdd39j7nqqrpwytl.png",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678891/quickfix/qm8fkfbnimfk7swjwcdm.png"
-      ]
+      "termsAccepted": true
     },
     {
       "id": "19a3",
@@ -135,14 +110,7 @@
       "zip": "673021",
       "schedule": "9am  to. 6pm",
       "profilePic": "",
-      "termsAccepted": true,
-      "previousWorks": [
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755679258/quickfix/mlns5mvrooy5z8bid0pn.png",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755679266/quickfix/rhbvctvs6bd52e6utzhb.png",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755679278/quickfix/s30k1au5ka7m3ipzajhj.png",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755679281/quickfix/dvqzzkymxho9ciaaysg6.png",
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1755679299/quickfix/bvd3rc0ielw5whu5x5wg.jpg"
-      ]
+      "termsAccepted": true
     },
     {
       "id": "1212",

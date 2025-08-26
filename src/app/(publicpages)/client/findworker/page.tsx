@@ -90,6 +90,7 @@ export default function FindWorker() {
             <option value="carpenter">Carpenter</option>
             <option value="painter">Painter</option>
             <option value="mechanic">Mechanic</option>
+            <option value="HVAC Technician">HVAC Technician</option>
           </select>
 
           <input

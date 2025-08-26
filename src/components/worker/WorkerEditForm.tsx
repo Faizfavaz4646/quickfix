@@ -201,7 +201,7 @@ const WorkerEditForm = () => {
             <option value="Painter">Painter</option>
             <option value="Cleaner">Cleaner</option>
             <option value="Carpenter">Carpenter</option>
-            <option value="Carpenter">HVAC Technician</option>
+            <option value="HVAC Technician">HVAC Technician</option>
           </select>
         </div>
 

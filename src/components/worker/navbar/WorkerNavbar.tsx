@@ -60,7 +60,7 @@ const handleLogout = () => {
   };
   return (
     <>
-    <nav className="w-full flex items-center justify-between bg-white shadow px-6 py-3 relative">
+    <nav className="w-full flex items-center justify-between bg-white shadow px-6 py-3 sticky z-40 top-0">
       {/* Left Section: Logo + Hamburger */}
       <div className="flex items-center gap-3">
         {/* Hamburger for mobile */}

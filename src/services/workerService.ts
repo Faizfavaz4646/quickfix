@@ -28,7 +28,8 @@ export async function getWorkerProfile(userId: string): Promise<Profile | null> 
     previousWorkImages: workerInfo.previousWorkImages || [],
     notifications: workerInfo.notifications || [],
     Requests: workerInfo.requests || [],
-    activeJobs: workerInfo.activeJobs || [], // 👈 ensure active jobs exist
+    activeJobs: workerInfo.activeJobs || [],
+    completedJobs: workerInfo.completedJobs || [], // 👈 ensure completed jobs exist
   };
 
   return profile;
@@ -89,7 +90,7 @@ export async function declineRequest(userId: string, requestId: number) {
     requests: updatedRequests,
   });
 
-  return await getWorkerProfile(userId); // return fresh worker profile
+  return await getWorkerProfile(userId);
 }
 
 // ---------- Accept request ----------
@@ -113,5 +114,32 @@ export async function acceptRequest(userId: string, requestId: number) {
     activeJobs: updatedActiveJobs,
   });
 
-  return await getWorkerProfile(userId); // return fresh worker profile
+  return await getWorkerProfile(userId);
+}
+
+// ---------- Mark job as completed ----------
+export async function markJobCompleted(userId: string, jobId: number) {
+  const { data: workerData } = await axios.get(`${API_URL}/workers?userId=${userId}`);
+  if (!workerData.length) return null;
+
+  const worker = workerData[0];
+
+  // Find the job in activeJobs
+  const jobToComplete = (worker.activeJobs || []).find((job: any) => job.id === jobId);
+  if (!jobToComplete) return null;
+
+  // Remove from activeJobs
+  const updatedActiveJobs = (worker.activeJobs || []).filter((job: any) => job.id !== jobId);
+
+  // Add to completedJobs (initialize if doesn't exist)
+  const updatedCompletedJobs = [...(worker.completedJobs || []), { ...jobToComplete, status: "completed" }];
+
+  // Patch the worker
+  await axios.patch(`${API_URL}/workers/${worker.id}`, {
+    activeJobs: updatedActiveJobs,
+    completedJobs: updatedCompletedJobs,
+  });
+
+  // Return updated profile
+  return await getWorkerProfile(userId);
 }

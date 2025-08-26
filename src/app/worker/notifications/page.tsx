@@ -21,7 +21,6 @@ type EnrichedNotification = Notification & {
   contact: string;
   description: string;
 };
-
 export default function WorkerNotificationsPage() {
   const { user } = useAuthStore();
   const [workerProfile, setWorkerProfile] = useState<Profile | null>(null);
@@ -75,13 +74,10 @@ export default function WorkerNotificationsPage() {
       };
     }
   );
-
   const handleOpenNotification = async (n: EnrichedNotification) => {
     setSelectedNotification(n);
-
     if (!n.seen && user) {
       await markNotificationSeen(user.id.toString(), n.id);
-
       // update local state
       setWorkerProfile((prev) =>
         prev
@@ -184,7 +180,7 @@ export default function WorkerNotificationsPage() {
     {/* Notification Details Modal */}
     {selectedNotification && (
       <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-        <div className="bg-white p-6 rounded-2xl max-w-md w-full relative shadow-xl">
+        <div className="bg-white p-6 rounded-2xl max-w-md w-full relative shadow-xl border-5 border-blue-400">
           <button
             className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
             onClick={() => setSelectedNotification(null)}

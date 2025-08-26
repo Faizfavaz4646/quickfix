@@ -40,8 +40,12 @@ export default function NewRequests() {
   };
 
   return (
-    <div className="border border-gray-200 w-full h-64 shadow-md rounded-lg p-4 mt-4 hover:shadow-lg transition duration-300 ease-in-out flex flex-col">
-      <h3 className="font-semibold text-lg text-gray-800 mb-3">New Requests</h3>
+ <div className="w-full h-64 rounded-lg p-4 mt-4 hover:shadow-lg transition duration-300 ease-in-out flex flex-col">
+  <div className="flex items-center justify-between mb-3">
+    <h3 className="font-semibold text-lg text-gray-800">New Requests</h3>
+    {/* Blue circle icon */}
+    <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+     </div>
 
       {/* Scrollable requests */}
       <div className="flex-1 overflow-y-auto space-y-3 pr-1">

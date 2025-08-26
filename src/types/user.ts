@@ -4,17 +4,17 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 // ---------- TYPES ----------
-export interface Request {
+
+export interface Job {
   id: number;
-  clientId: string;
-  workerId: string;
+  clientId?: string;
   name: string;
-  contact: string;
+  contact?: string;
   description: string;
-  status: string;
-  date: string;
+  status: "ongoing" | "completed";
+  date?: string;
 }
-export interface ActiveJobs {
+export interface Request {
   id: number;
   clientId: string;
   workerId: string;
@@ -59,7 +59,8 @@ export interface Profile {
   requests?: Request[];
   termsAccepted?: boolean;
   name?: string;
-  activeJobs?:ActiveJobs[];
+  activeJobs?:Job[];
+  completedJobs?:Job[];
 }
 
 export interface User {

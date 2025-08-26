@@ -11,13 +11,11 @@ export async function fetchAllWorkers(): Promise<Profile[]> {
 
 // ---------- Get worker profile (merge user + worker info) ----------
 export async function getWorkerProfile(userId: string): Promise<Profile | null> {
-  // find worker entry linked to userId
   const { data: workerData } = await axios.get(`${API_URL}/workers?userId=${userId}`);
   if (!workerData.length) return null;
 
   const workerInfo = workerData[0];
 
-  // get base user info
   const { data: userData }: { data: User } = await axios.get(
     `${API_URL}/users/${workerInfo.userId}`
   );
@@ -29,7 +27,8 @@ export async function getWorkerProfile(userId: string): Promise<Profile | null> 
     profilePic: workerInfo.profilePic,
     previousWorkImages: workerInfo.previousWorkImages || [],
     notifications: workerInfo.notifications || [],
-    requests: workerInfo.requests || [],
+    Requests: workerInfo.requests || [],
+    activeJobs: workerInfo.activeJobs || [], // 👈 ensure active jobs exist
   };
 
   return profile;
@@ -40,7 +39,6 @@ export async function markNotificationSeen(
   userId: string,
   notificationId: number
 ): Promise<Notification[]> {
-  // find worker entry by userId
   const { data: workerData } = await axios.get(`${API_URL}/workers?userId=${userId}`);
   if (!workerData.length) return [];
 
@@ -62,13 +60,11 @@ export async function deleteNotification(
   userId: string,
   notificationId: number
 ): Promise<Notification[]> {
-  // find worker entry by userId
   const { data: workerData } = await axios.get(`${API_URL}/workers?userId=${userId}`);
   if (!workerData.length) return [];
 
   const worker = workerData[0];
 
-  // remove selected notification
   const updatedNotifications = (worker.notifications || []).filter(
     (n: Notification) => n.id !== notificationId
   );
@@ -78,4 +74,44 @@ export async function deleteNotification(
   });
 
   return updatedNotifications;
+}
+
+// ---------- Decline request ----------
+export async function declineRequest(userId: string, requestId: number) {
+  const { data: workerData } = await axios.get(`${API_URL}/workers?userId=${userId}`);
+  if (!workerData.length) return null;
+
+  const worker = workerData[0];
+
+  const updatedRequests = (worker.requests || []).filter((r: any) => r.id !== requestId);
+
+  await axios.patch(`${API_URL}/workers/${worker.id}`, {
+    requests: updatedRequests,
+  });
+
+  return await getWorkerProfile(userId); // return fresh worker profile
+}
+
+// ---------- Accept request ----------
+export async function acceptRequest(userId: string, requestId: number) {
+  const { data: workerData } = await axios.get(`${API_URL}/workers?userId=${userId}`);
+  if (!workerData.length) return null;
+
+  const worker = workerData[0];
+  const request = (worker.requests || []).find((r: any) => r.id === requestId);
+  if (!request) return await getWorkerProfile(userId);
+
+  const updatedRequests = (worker.requests || []).filter((r: any) => r.id !== requestId);
+
+  const updatedActiveJobs = [
+    ...(worker.activeJobs || []),
+    { ...request, status: "ongoing" },
+  ];
+
+  await axios.patch(`${API_URL}/workers/${worker.id}`, {
+    requests: updatedRequests,
+    activeJobs: updatedActiveJobs,
+  });
+
+  return await getWorkerProfile(userId); // return fresh worker profile
 }

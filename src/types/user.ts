@@ -14,6 +14,16 @@ export interface Request {
   status: string;
   date: string;
 }
+export interface ActiveJobs {
+  id: number;
+  clientId: string;
+  workerId: string;
+  name: string;
+  contact: string;
+  description: string;
+  status: string;
+  date: string;
+}
 export interface Field<T> {
   name: keyof T; // ensures only keys from T are valid
   label: string;
@@ -49,6 +59,7 @@ export interface Profile {
   requests?: Request[];
   termsAccepted?: boolean;
   name?: string;
+  activeJobs?:ActiveJobs[];
 }
 
 export interface User {

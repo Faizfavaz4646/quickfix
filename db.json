@@ -1,80 +1,8 @@
 {
   "users": [
     {
-      "id": "c5d4",
-      "name": "Saheer Chungath",
-      "email": "saheer@gmail.com",
-      "password": "1234567",
-      "role": "worker"
-    },
-    {
-      "id": "d63c",
-      "name": "jamshil",
-      "email": "jamshil@gmail.com",
-      "password": "1234567",
-      "role": "worker"
-    },
-    {
-      "id": "cbc3",
-      "name": "Harshad",
-      "email": "harshad@gmail.com",
-      "password": "1234567",
-      "role": "worker"
-    },
-    {
-      "id": "cc4d",
-      "name": "Pran Krishna",
-      "email": "pran@gmail.com",
-      "password": "1234567",
-      "role": "worker"
-    },
-    {
-      "id": "a33e",
-      "name": "Jasil",
-      "email": "jasil@gmail.com",
-      "password": "1234567",
-      "role": "worker"
-    },
-    {
-      "id": "4b0b",
-      "name": "Vajid",
-      "email": "vajid@gmail.com",
-      "password": "1234567",
-      "role": "worker"
-    },
-    {
-      "id": "ccb7",
-      "name": "Rishal",
-      "email": "rishal@gmail.com",
-      "password": "1234567",
-      "role": "worker"
-    },
-    {
-      "id": "5f82",
-      "name": "jomy seban",
-      "email": "jomy@gmail.com",
-      "password": "1234567",
-      "role": "client",
-      "profile": {
-        "phone": "7034514646",
-        "gender": "male",
-        "state": "Kerala",
-        "district": "kollam",
-        "city": "kollam",
-        "zip": "673638",
-        "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755939738/upcnpvw9nifvgresrqyu.jpg"
-      }
-    },
-    {
-      "id": "04fb",
-      "name": "Muhammed Yasar",
-      "email": "yasar@gmail.com",
-      "password": "1234567",
-      "role": "worker"
-    },
-    {
-      "id": "3500",
-      "name": "faizfavaz",
+      "id": "e6bd",
+      "name": "faizfavaz pm",
       "email": "faizfavaz7@gmail.com",
       "password": "1234567",
       "role": "client",
@@ -85,193 +13,44 @@
         "district": "malappuram",
         "city": "kondotty",
         "zip": "673638",
-        "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756191363/gwg71djyayrghapmesry.jpg"
+        "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756203117/iurv8hsjjkudt20tvzhv.jpg"
       }
     },
     {
-      "id": "24a6",
-      "name": "Vincent",
-      "email": "vincent@gmail.com",
+      "id": "e0d9",
+      "name": "Saheer Chungath",
+      "email": "saheer@gmail.com",
       "password": "1234567",
-      "role": "client",
-      "profile": {
-        "phone": "9074326554",
-        "gender": "male",
-        "state": "Kerala",
-        "district": "calicut",
-        "city": "calicut",
-        "zip": "673021",
-        "profilePic": ""
-      }
+      "role": "worker"
     }
   ],
   "workers": [
     {
-      "userId": "c5d4",
-      "id": "c5d4",
-      "profession": "Plumber",
-      "phone": "7034514646",
+      "id": "1beb",
+      "userId": "e0d9",
+      "profession": "plumber",
+      "phone": "9074326554",
       "gender": "male",
       "state": "Kerala",
       "district": "malappuram",
       "city": "athavanadu",
-      "zip": "673638",
-      "schedule": "9am  to. 6pm",
-      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755600924/quickfix/a2yunflwkewfv9ec9ab2.jpg",
-      "termsAccepted": true,
+      "zip": "673021",
+      "schedule": "9am  to. 5pm",
+      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756203232/syhqqwmimwiedeztjxib.jpg",
       "previousWorkImages": [
-        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756016346/q47vqcpiwxnuesgplnrg.jpg"
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756203296/qmzv2wuyw9knq0l1ii7l.png",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756203321/ximbbr4ug9lf97ky47b0.svg"
       ],
-      "name": "Saheer Chungath",
-      "email": "saheer@gmail.com",
       "requests": [
         {
-          "id": 1756196509292,
-          "clientId": "3500",
-          "workerId": "c5d4",
-          "name": "faiz favaz",
+          "id": 1756203396901,
+          "clientId": "e6bd",
+          "workerId": "1beb",
+          "name": "faizfavaz pm",
           "contact": "7034514646",
-          "description": "urgent need plumbing work at new home!!",
+          "description": "need home plumbing work urgent!!",
           "status": "pending",
-          "date": "2025-08-26T08:21:49.292Z"
-        }
-      ],
-      "notifications": [
-        {
-          "id": 1756196509292,
-          "message": "You have a new job request",
-          "seen": true,
-          "date": "2025-08-26T08:21:49.292Z"
-        }
-      ]
-    },
-    {
-      "id": "8ecf",
-      "userId": "d63c",
-      "profession": "Plumber",
-      "phone": "7736599384",
-      "gender": "male",
-      "state": "Kerala",
-      "district": "malappuram",
-      "city": "printhalmanna",
-      "zip": "675641",
-      "schedule": "9am  to. 5pm",
-      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755678793/quickfix/pnkfix6ds5hutd6njqsx.png",
-      "termsAccepted": true
-    },
-    {
-      "id": "19a3",
-      "userId": "cbc3",
-      "profession": "Plumber",
-      "phone": "9074326554",
-      "gender": "male",
-      "state": "Kerala",
-      "district": "calicut",
-      "city": "calicut",
-      "zip": "673021",
-      "schedule": "9am  to. 6pm",
-      "profilePic": "",
-      "termsAccepted": true
-    },
-    {
-      "id": "1212",
-      "userId": "cc4d",
-      "profession": "Plumber",
-      "phone": "7034514646",
-      "gender": "male",
-      "state": "Kerala",
-      "district": "malappuram",
-      "city": "kohinoor",
-      "zip": "673638",
-      "schedule": "9am  to. 5pm",
-      "profilePic": "",
-      "termsAccepted": true
-    },
-    {
-      "id": "76bc",
-      "userId": "a33e",
-      "profession": "Electrician",
-      "phone": "9074326554",
-      "gender": "male",
-      "state": "Kerala",
-      "district": "calicut",
-      "city": "calicut",
-      "zip": "673021",
-      "schedule": "9am  to. 5pm",
-      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755684775/quickfix/w26hbwjrzqfelebltucc.jpg",
-      "termsAccepted": true
-    },
-    {
-      "id": "be71",
-      "userId": "4b0b",
-      "profession": "Electrician",
-      "phone": "9074326554",
-      "gender": "male",
-      "state": "Kerala",
-      "district": "calicut",
-      "city": "calicut",
-      "zip": "673021",
-      "schedule": "9am  to. 6pm",
-      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755685032/quickfix/o5fjfa5mjzcsbxcxoyqr.jpg",
-      "termsAccepted": true
-    },
-    {
-      "id": "7317",
-      "userId": "ccb7",
-      "profession": "Electrician",
-      "phone": "9074326554",
-      "gender": "male",
-      "state": "Kerala",
-      "district": "calicut",
-      "city": "calicut",
-      "zip": "673021",
-      "schedule": "9am  to. 6pm",
-      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755685130/quickfix/udx5ydky9ipxlv66eg8v.jpg",
-      "termsAccepted": true
-    },
-    {
-      "userId": "04fb",
-      "id": "4e9b",
-      "profession": "painter",
-      "phone": "9987564323",
-      "gender": "male",
-      "state": "Kerala",
-      "district": "malappuram",
-      "city": "kondotty",
-      "zip": "673638",
-      "schedule": "9am  to. 5pm",
-      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756114232/hfy7j65ozti2llvmizka.svg",
-      "previousWorkImages": [],
-      "requests": [
-        {
-          "id": 1756118482516,
-          "clientId": "5f82",
-          "workerId": "4e9b",
-          "name": "jomy sebastian",
-          "contact": "7034514646",
-          "description": "need urgent painting work at home",
-          "status": "pending",
-          "date": "2025-08-25T10:41:22.516Z"
-        },
-        {
-          "id": 1756191452358,
-          "clientId": "3500",
-          "workerId": "4e9b",
-          "name": "faiz favaz",
-          "contact": "7034514646",
-          "description": "need full home painting work!!",
-          "status": "pending",
-          "date": "2025-08-26T06:57:32.358Z"
-        },
-        {
-          "id": 1756191966155,
-          "clientId": "24a6",
-          "workerId": "4e9b",
-          "name": "Vincent",
-          "contact": "7034514646",
-          "description": "urgent painting work needed at office",
-          "status": "pending",
-          "date": "2025-08-26T07:06:06.155Z"
+          "date": "2025-08-26T10:16:36.901Z"
         }
       ],
       "completedJobs": [],
@@ -279,19 +58,17 @@
       "ratings": [],
       "notifications": [
         {
-          "id": 1756118482516,
+          "id": 1756203396901,
           "message": "You have a new job request",
-          "seen": true,
-          "date": "2025-08-25T10:41:22.516Z"
-        },
-        {
-          "id": 1756191966155,
-          "message": "You have a new job request",
-          "seen": true,
-          "date": "2025-08-26T07:06:06.155Z"
+          "seen": false,
+          "date": "2025-08-26T10:16:36.901Z"
         }
       ],
-      "termsAccepted": true
+      "activeJobs": [],
+      "termsAccepted": true,
+      "name": "Saheer Chungath",
+      "email": "saheer@gmail.com",
+      "Requests": []
     }
   ]
 }

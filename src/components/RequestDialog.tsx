@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
 import { sendRequestToWorker } from "@/services/jobRequestHelper";
-import { useAuthStore } from "@/types/user";
+import { useAuthStore } from "@/store/authStore"; // ✅ should import from authStore, not types/user
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -10,10 +10,12 @@ export default function RequestDialog({ workerId }: { workerId: number }) {
   const { user } = useAuthStore();
 
   const [formData, setFormData] = useState({
-    name: "",
-    contact: "",
+    name: user?.name || "",
+    contact: user?.profile?.phone || "",
     description: "",
   });
+
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -29,10 +31,11 @@ export default function RequestDialog({ workerId }: { workerId: number }) {
       return;
     }
 
+    setLoading(true);
     try {
       const { newRequest, newNotification } = await sendRequestToWorker(
         workerId,
-        user.id,
+        user.id, // ✅ cast to string if needed
         formData.name,
         formData.contact,
         formData.description
@@ -41,22 +44,27 @@ export default function RequestDialog({ workerId }: { workerId: number }) {
       toast.success("Request sent! Worker notified ✅");
       console.log("Request:", newRequest, "Notification:", newNotification);
 
-      setFormData({ name: "", contact: "", description: "" });
+      setFormData({ name: user?.name || "", contact: user?.profile?.phone || "", description: "" });
       setOpen(false);
     } catch (err) {
       console.error("Error sending request:", err);
       toast.error("Failed to send request ❌");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="relative inline-block">
-      <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="bg-yellow-500 text-white px-4 py-2 rounded-md"
-      >
-        Request Service
-      </button>
+      {/* Button to toggle form */}
+      {user?.role === "client" && (
+        <button
+          onClick={() => setOpen((prev) => !prev)}
+          className="bg-yellow-500 text-white px-4 py-2 rounded-md"
+        >
+          Request Service
+        </button>
+      )}
 
       {open && (
         <div className="absolute top-full right-0 mt-2 bg-white border rounded-lg shadow-lg p-4 w-72 z-20">
@@ -100,9 +108,12 @@ export default function RequestDialog({ workerId }: { workerId: number }) {
             />
             <button
               type="submit"
-              className="bg-yellow-400 text-white py-1.5 rounded-md text-sm"
+              disabled={loading}
+              className={`${
+                loading ? "bg-gray-400" : "bg-yellow-400"
+              } text-white py-1.5 rounded-md text-sm`}
             >
-              Submit
+              {loading ? "Sending..." : "Submit"}
             </button>
           </form>
         </div>

@@ -93,7 +93,7 @@ export default function ProfileForm() {
 
   // Fields come only from Profile (NOT name)
   const fields: Field<Profile>[] = [
-    { label: "Mobile", name: "phone", type: "tel" },
+    { label: "Mobile", name: "phone", type: "number" },
     {
       label: "Gender", name: "gender", type: "select",
       options: [

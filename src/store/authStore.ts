@@ -1,8 +1,32 @@
-// store/authStore.ts
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+"use client";
 
-interface Profile {
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+
+// ---------- TYPES ----------
+export interface Request {
+  id: number;
+  clientId: string;
+  workerId: string;
+  name: string;
+  contact: string;
+  description: string;
+  status: string;
+  date: string;
+}
+
+export interface Notification {
+  id: number;
+  message: string;
+  date: string;
+  seen: boolean;
+  name?: string;       // merged from Request if available
+  contact?: string;
+  description?: string;
+}
+
+export interface Profile {
+  id?: number;
   profilePic?: string;
   state?: string;
   district?: string;
@@ -13,23 +37,27 @@ interface Profile {
   zip?: string;
   profession?: string;
   previousWorkImages?: string[];
+  notifications?: Notification[];
+  requests?: Request[];
   termsAccepted?: boolean;
+  name?: string;
 }
 
-interface User {
+export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'client' | 'worker';
+  role: "client" | "worker";
   token?: string;
   profile?: Profile;
 }
 
+// ---------- AUTH STORE ----------
 interface AuthState {
   user: User | null;
   isLogin: boolean;
   setUser: (user: User) => void;
-  updateUserProfile: (profile: Partial<Profile>, name?: string) => void; // 👈 also accept name
+  updateUserProfile: (profile: Partial<Profile>, name?: string) => void;
   setIsLogin: (value: boolean) => void;
   logout: () => void;
 }
@@ -48,7 +76,7 @@ export const useAuthStore = create<AuthState>()(
           set({
             user: {
               ...currentUser,
-              name: name ?? currentUser.name, // ✅ update root-level name too
+              name: name ?? currentUser.name, // update root-level name
               profile: {
                 ...currentUser.profile,
                 ...profile,
@@ -63,7 +91,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => set({ user: null, isLogin: false }),
     }),
     {
-      name: 'quickfix-user',
+      name: "quickfix-user",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user
@@ -81,3 +109,16 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+// ---------- NOTIFICATION STORE ----------
+interface NotificationState {
+  count: number;
+  setCount: (c: number) => void;
+  resetCount: () => void;
+}
+
+export const useNotificationStore = create<NotificationState>((set) => ({
+  count: 0,
+  setCount: (c) => set({ count: c }),
+  resetCount: () => set({ count: 0 }),
+}));

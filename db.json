@@ -64,6 +64,45 @@
         "zip": "673638",
         "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755939738/upcnpvw9nifvgresrqyu.jpg"
       }
+    },
+    {
+      "id": "04fb",
+      "name": "Muhammed Yasar",
+      "email": "yasar@gmail.com",
+      "password": "1234567",
+      "role": "worker"
+    },
+    {
+      "id": "3500",
+      "name": "faizfavaz",
+      "email": "faizfavaz7@gmail.com",
+      "password": "1234567",
+      "role": "client",
+      "profile": {
+        "phone": "7034514646",
+        "gender": "male",
+        "state": "Kerala",
+        "district": "malappuram",
+        "city": "kondotty",
+        "zip": "673638",
+        "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756191363/gwg71djyayrghapmesry.jpg"
+      }
+    },
+    {
+      "id": "24a6",
+      "name": "Vincent",
+      "email": "vincent@gmail.com",
+      "password": "1234567",
+      "role": "client",
+      "profile": {
+        "phone": "9074326554",
+        "gender": "male",
+        "state": "Kerala",
+        "district": "calicut",
+        "city": "calicut",
+        "zip": "673021",
+        "profilePic": ""
+      }
     }
   ],
   "workers": [
@@ -71,7 +110,7 @@
       "userId": "c5d4",
       "id": "c5d4",
       "profession": "Plumber",
-      "phone": "0034514646",
+      "phone": "7034514646",
       "gender": "male",
       "state": "Kerala",
       "district": "malappuram",
@@ -82,6 +121,28 @@
       "termsAccepted": true,
       "previousWorkImages": [
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1756016346/q47vqcpiwxnuesgplnrg.jpg"
+      ],
+      "name": "Saheer Chungath",
+      "email": "saheer@gmail.com",
+      "requests": [
+        {
+          "id": 1756196509292,
+          "clientId": "3500",
+          "workerId": "c5d4",
+          "name": "faiz favaz",
+          "contact": "7034514646",
+          "description": "urgent need plumbing work at new home!!",
+          "status": "pending",
+          "date": "2025-08-26T08:21:49.292Z"
+        }
+      ],
+      "notifications": [
+        {
+          "id": 1756196509292,
+          "message": "You have a new job request",
+          "seen": true,
+          "date": "2025-08-26T08:21:49.292Z"
+        }
       ]
     },
     {
@@ -166,6 +227,70 @@
       "zip": "673021",
       "schedule": "9am  to. 6pm",
       "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1755685130/quickfix/udx5ydky9ipxlv66eg8v.jpg",
+      "termsAccepted": true
+    },
+    {
+      "userId": "04fb",
+      "id": "4e9b",
+      "profession": "painter",
+      "phone": "9987564323",
+      "gender": "male",
+      "state": "Kerala",
+      "district": "malappuram",
+      "city": "kondotty",
+      "zip": "673638",
+      "schedule": "9am  to. 5pm",
+      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756114232/hfy7j65ozti2llvmizka.svg",
+      "previousWorkImages": [],
+      "requests": [
+        {
+          "id": 1756118482516,
+          "clientId": "5f82",
+          "workerId": "4e9b",
+          "name": "jomy sebastian",
+          "contact": "7034514646",
+          "description": "need urgent painting work at home",
+          "status": "pending",
+          "date": "2025-08-25T10:41:22.516Z"
+        },
+        {
+          "id": 1756191452358,
+          "clientId": "3500",
+          "workerId": "4e9b",
+          "name": "faiz favaz",
+          "contact": "7034514646",
+          "description": "need full home painting work!!",
+          "status": "pending",
+          "date": "2025-08-26T06:57:32.358Z"
+        },
+        {
+          "id": 1756191966155,
+          "clientId": "24a6",
+          "workerId": "4e9b",
+          "name": "Vincent",
+          "contact": "7034514646",
+          "description": "urgent painting work needed at office",
+          "status": "pending",
+          "date": "2025-08-26T07:06:06.155Z"
+        }
+      ],
+      "completedJobs": [],
+      "reviews": [],
+      "ratings": [],
+      "notifications": [
+        {
+          "id": 1756118482516,
+          "message": "You have a new job request",
+          "seen": true,
+          "date": "2025-08-25T10:41:22.516Z"
+        },
+        {
+          "id": 1756191966155,
+          "message": "You have a new job request",
+          "seen": true,
+          "date": "2025-08-26T07:06:06.155Z"
+        }
+      ],
       "termsAccepted": true
     }
   ]

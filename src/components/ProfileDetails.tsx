@@ -1,15 +1,12 @@
 import { FaMapMarkerAlt } from "react-icons/fa";
-import { FaMessage } from "react-icons/fa6";
-import { User,Profile } from "@/types/user";
+import { Profile } from "@/types/user";
+import RequestDialog from "./RequestDialog";
 
 interface ProfileCardProps {
   worker: Profile;
-
- 
-  onRequest: () => void;
 }
 
-export default function ProfileCard({worker, onRequest }: ProfileCardProps) {
+export default function ProfileCard({ worker }: ProfileCardProps) {
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col md:flex-row gap-6">
       <div className="flex flex-col items-center md:items-start">
@@ -28,13 +25,9 @@ export default function ProfileCard({worker, onRequest }: ProfileCardProps) {
         </p>
       </div>
 
+      {/* RequestDialog handles its own button + dialog */}
       <div className="flex flex-col justify-center">
-        <button
-          onClick={onRequest}
-          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
-        >
-          <FaMessage /> Request Job
-        </button>
+      {worker.id !== undefined && <RequestDialog workerId={worker.id} />}
       </div>
     </div>
   );

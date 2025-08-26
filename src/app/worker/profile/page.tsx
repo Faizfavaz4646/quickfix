@@ -5,8 +5,8 @@ import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { FaUserCircle } from 'react-icons/fa';
-import { uploadToCloudinary } from './/../../../../../utils/uploadToCloudinary'; // global upload
-import {Profile} from "@/types/user";
+import { uploadToCloudinary } from '../../../../utils/uploadToCloudinary';
+import { Profile } from "@/types/user";
 
 export default function ProfileForm() {
   const router = useRouter();
@@ -23,6 +23,11 @@ export default function ProfileForm() {
     schedule: '',
     profilePic: '',
     previousWorkImages: [],
+    requests: [],       // pending requests
+    completedJobs:[],
+    reviews:[],
+    ratings:[],
+    notifications:[],
     termsAccepted: false,
   });
 
@@ -50,27 +55,28 @@ export default function ProfileForm() {
     fetchProfile();
   }, [user, router]);
 
-  // Handle input changes and image upload
+  // Handle change
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked, files } = e.target as HTMLInputElement;
 
     if (name === 'profilePic' && files?.[0]) {
-     try {
-  setUploading(true);
-  const url = await uploadToCloudinary(files[0]); // global Cloudinary
-  setFormData((prev: Profile) => ({ ...prev, profilePic: url }));
-  setPicPreview(url);
-} catch (err) {
-  console.error('Upload failed:', err);
-  alert('Image upload failed. Try again.');
-} finally {
-  setUploading(false);
-}
-} else if (type === 'checkbox') {
-  setFormData((prev: Profile) => ({ ...prev, [name]: checked }));
-} else {
-  setFormData((prev: Profile) => ({ ...prev, [name]: value }));
-}
+      try {
+        setUploading(true);
+        const url = await uploadToCloudinary(files[0]);
+        setFormData((prev: Profile) => ({ ...prev, profilePic: url }));
+        setPicPreview(url);
+      } catch (err) {
+        console.error('Upload failed:', err);
+        alert('Image upload failed. Try again.');
+      } finally {
+        setUploading(false);
+      }
+    } else if (type === 'checkbox') {
+      setFormData((prev: Profile) => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData((prev: Profile) => ({ ...prev, [name]: value }));
+    }
+  };
 
   // Submit profile
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,7 +95,7 @@ export default function ProfileForm() {
         await axios.post('http://localhost:50001/workers', workerData);
       }
 
-      updateUserProfile(workerData); // Update Zustand
+      updateUserProfile(workerData);
       alert('Profile saved!');
       router.push('/worker/dashboard');
     } catch (err) {
@@ -98,12 +104,14 @@ export default function ProfileForm() {
     }
   };
 
-  // Form fields (no explicit types needed)
+  // Fields
   const fields = [
     { label: 'Profession', name: 'profession', type: 'text' },
     { label: 'Mobile', name: 'phone', type: 'tel' },
     {
-      label: 'Gender', name: 'gender', type: 'select',
+      label: 'Gender',
+      name: 'gender',
+      type: 'select',
       options: [
         { value: '', label: '--Select Gender--' },
         { value: 'male', label: 'Male' },
@@ -142,7 +150,7 @@ export default function ProfileForm() {
 
       <h2 className="text-2xl font-bold mb-4 text-center">Worker Profile</h2>
 
-      {/* Form Fields */}
+      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {fields.map((field) => (
           <div key={field.name}>
@@ -180,7 +188,7 @@ export default function ProfileForm() {
           </div>
         ))}
 
-        {/* Terms & Conditions */}
+        {/* Terms */}
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
@@ -207,5 +215,4 @@ export default function ProfileForm() {
       </form>
     </div>
   );
-  }
 }

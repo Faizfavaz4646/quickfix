@@ -5,6 +5,7 @@ import { MdOutlineVerifiedUser, MdOutlineAccessTime } from "react-icons/md";
 import { AiFillStar } from "react-icons/ai";
 import Link from "next/link";
 import Image from "next/image";
+import { fetchAllWorkers } from "@/services/workerService";
 
 export default function FindWorker() {
   const [profession, setProfession] = useState("");
@@ -17,7 +18,7 @@ export default function FindWorker() {
 
     try {
       // Fetch all workers
-      const { data: workersData } = await axios.get("http://localhost:50001/workers");
+      const workersData = await fetchAllWorkers();
 
       // Filter workers by profession and location
       const filteredWorkers = workersData.filter((worker: any) => {

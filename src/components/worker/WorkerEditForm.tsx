@@ -4,17 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import { X, Plus, Camera, UserCircle, RotateCcw } from 'lucide-react';
 import { Profile } from '@/types/user';
+import { createWorker, updateWorker } from '@/services/workerHelperApi';
 import { uploadToCloudinary } from '../../../utils/uploadToCloudinary';
+import { getWorkerProfile } from '@/services/workerService';
 
 const WorkerEditForm = () => {
   const router = useRouter();
   const { user, updateUserProfile } = useAuthStore();
-  const [worker, setWorker] = useState<Profile | null>(null);
+
   const [form, setForm] = useState<Profile>({
-    id: undefined,
     profilePic: '',
     profession: '',
     phone: '',
@@ -25,43 +25,38 @@ const WorkerEditForm = () => {
     schedule: '',
     previousWorkImages: [],
   });
+
   const [uploading, setUploading] = useState(false);
   const [removedImages, setRemovedImages] = useState<string[]>([]);
-
-  // Lightbox
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // Fetch worker profile
+  // ✅ Fetch worker profile from backend if exists
   useEffect(() => {
-    if (!user?.id) return;
-    const fetchWorker = async () => {
+    const loadProfile = async () => {
+      if (!user?.id) return;
       try {
-        const { data } = await axios.get(
-          `http://localhost:50001/workers?userId=${user.id}`
-        );
-        if (data.length > 0) {
-          const workerData = data[0];
-          setWorker(workerData);
+        const workerProfile = await getWorkerProfile(user.id.toString());
+        if (workerProfile) {
           setForm({
-            ...workerData,
-            previousWorkImages: workerData.previousWorkImages || [],
+            ...workerProfile,
+            previousWorkImages: workerProfile.previousWorkImages || [],
           });
         }
       } catch (err) {
-        console.error(err);
-        toast.error('Failed to fetch profile');
+        console.error('Failed to load worker profile', err);
       }
     };
-    fetchWorker();
-  }, [user?.id]);
 
-  // Upload file
+    loadProfile();
+  }, [user]);
+
+  /** ---------- File Upload ---------- */
   const handleFileUpload = async (file: File, key: keyof Profile) => {
     setUploading(true);
     try {
       const url = await uploadToCloudinary(file);
       if (url) {
-        setForm(prev => ({
+        setForm((prev) => ({
           ...prev,
           [key]:
             key === 'previousWorkImages'
@@ -77,23 +72,21 @@ const WorkerEditForm = () => {
     }
   };
 
-  // Profile pic
   const handleProfilePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) handleFileUpload(file, 'profilePic');
   };
 
-  // Multiple previous works
   const handleMultipleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
     setUploading(true);
     try {
       const urls = (
-        await Promise.all(Array.from(files).map(file => uploadToCloudinary(file)))
+        await Promise.all(Array.from(files).map((file) => uploadToCloudinary(file)))
       ).filter(Boolean) as string[];
 
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
         previousWorkImages: [...(prev.previousWorkImages || []), ...urls],
       }));
@@ -105,12 +98,12 @@ const WorkerEditForm = () => {
     }
   };
 
-  // Remove with undo
+  /** ---------- Remove with Undo ---------- */
   const handleRemoveWork = (index: number) => {
-    setForm(prev => {
+    setForm((prev) => {
       const removed = prev.previousWorkImages?.[index];
       if (!removed) return prev;
-      setRemovedImages(old => [...old, removed]);
+      setRemovedImages((old) => [...old, removed]);
       return {
         ...prev,
         previousWorkImages: prev.previousWorkImages?.filter((_, i) => i !== index),
@@ -121,36 +114,35 @@ const WorkerEditForm = () => {
   const handleUndoRemove = () => {
     if (removedImages.length === 0) return;
     const lastRemoved = removedImages[removedImages.length - 1];
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       previousWorkImages: [...(prev.previousWorkImages || []), lastRemoved],
     }));
-    setRemovedImages(prev => prev.slice(0, -1));
+    setRemovedImages((prev) => prev.slice(0, -1));
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  /** ---------- Input Change ---------- */
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  /** ---------- Submit ---------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.id)
-      return toast.error('You are not logged in') && router.push('/auth/login');
+    if (!user?.id) {
+      toast.error('You are not logged in');
+      return router.push('/auth/login');
+    }
 
     try {
-      const response = worker
-        ? await axios.patch(`http://localhost:50001/workers/${worker.id}`, {
-            ...form,
-            userId: user.id,
-          })
-        : await axios.post(`http://localhost:50001/workers`, {
-            userId: user.id,
-            ...form,
-          });
+      const response = form.id
+        ? await updateWorker(form, form.id, user.id)
+        : await createWorker(form, user.id);
 
-      setWorker(response.data);
-      updateUserProfile(form);
+      updateUserProfile(response.data); // update global profile
       toast.success('Profile saved successfully!');
       router.push('/worker/dashboard');
     } catch (err) {
@@ -226,7 +218,7 @@ const WorkerEditForm = () => {
 
         {/* Address */}
         <div className="grid grid-cols-2 gap-4">
-          {['zip', 'state', 'district', 'city'].map(field => (
+          {['zip', 'state', 'district', 'city'].map((field) => (
             <div key={field}>
               <label className="block text-sm font-medium">
                 {field.charAt(0).toUpperCase() + field.slice(1)}

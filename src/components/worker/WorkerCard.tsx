@@ -2,31 +2,26 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import axios from 'axios';
-import { User, Profile } from '@/types/user'; // use global types
+import { Profile } from '@/types/user';
+import { getWorkerProfile } from '@/services/workerService';
 
 const WorkerCard = () => {
   const { user } = useAuthStore();
   const [workerProfile, setWorkerProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
-    const fetchWorkerProfile = async () => {
-      if (!user?.id) return;
+    if (!user?.id) return;
 
-      try {
-        const { data } = await axios.get(`http://localhost:50001/workers?userId=${user.id}`);
-        if (data.length > 0) {
-          setWorkerProfile(data[0]);
-        }
-      } catch (err) {
+    getWorkerProfile(user.id.toString())
+      .then((data) => {
+        if (data) setWorkerProfile(data);
+      })
+      .catch((err) => {
         console.error('Failed to fetch worker profile:', err);
-      }
-    };
-
-    fetchWorkerProfile();
+      });
   }, [user?.id]);
 
-  if (!user || !workerProfile) return null;
+  if (!user || !workerProfile) return null; 
 
   return (
     <div className="flex items-center gap-3 bg-white shadow-md rounded-xl p-3 hover:bg-gray-50 transition">

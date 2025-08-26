@@ -22,6 +22,22 @@
       "email": "saheer@gmail.com",
       "password": "1234567",
       "role": "worker"
+    },
+    {
+      "id": "0b07",
+      "name": "jomy seban",
+      "email": "jomy@gmail.com",
+      "password": "1234567",
+      "role": "client",
+      "profile": {
+        "phone": "7034514646",
+        "gender": "male",
+        "state": "Kerala",
+        "district": "kollam",
+        "city": "kollam",
+        "zip": "673638",
+        "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756204564/o8jvjwi0jvs7e4iotfti.jpg"
+      }
     }
   ],
   "workers": [
@@ -43,14 +59,14 @@
       ],
       "requests": [
         {
-          "id": 1756203396901,
-          "clientId": "e6bd",
+          "id": 1756204655877,
+          "clientId": "0b07",
           "workerId": "1beb",
-          "name": "faizfavaz pm",
+          "name": "jomy seban",
           "contact": "7034514646",
-          "description": "need home plumbing work urgent!!",
+          "description": "need office plumbing work",
           "status": "pending",
-          "date": "2025-08-26T10:16:36.901Z"
+          "date": "2025-08-26T10:37:35.877Z"
         }
       ],
       "completedJobs": [],
@@ -58,13 +74,24 @@
       "ratings": [],
       "notifications": [
         {
-          "id": 1756203396901,
+          "id": 1756204655877,
           "message": "You have a new job request",
           "seen": false,
+          "date": "2025-08-26T10:37:35.877Z"
+        }
+      ],
+      "activeJobs": [
+        {
+          "id": 1756203396901,
+          "clientId": "e6bd",
+          "workerId": "1beb",
+          "name": "faizfavaz pm",
+          "contact": "7034514646",
+          "description": "need home plumbing work urgent!!",
+          "status": "ongoing",
           "date": "2025-08-26T10:16:36.901Z"
         }
       ],
-      "activeJobs": [],
       "termsAccepted": true,
       "name": "Saheer Chungath",
       "email": "saheer@gmail.com",

@@ -12,8 +12,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   // Pages where Navbar & Footer should be hidden
   const hideNavbarAndFooter = [
-    "/publicpages/auth/login",
-    "/publicpages/auth/signup",
+    "/auth/login",
+    "/auth/signup",
   ];
 
   useEffect(() => {

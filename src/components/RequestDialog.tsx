@@ -1,7 +1,7 @@
 "use client";
 
 import { sendRequestToWorker } from "@/services/jobRequestHelper";
-import { useAuthStore } from "@/store/authStore"; // ✅ should import from authStore, not types/user
+import { useAuthStore } from "@/store/authStore"; 
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -35,7 +35,7 @@ export default function RequestDialog({ workerId }: { workerId: number }) {
     try {
       const { newRequest, newNotification } = await sendRequestToWorker(
         workerId,
-        user.id, // ✅ cast to string if needed
+        user.id, // cast to string if needed
         formData.name,
         formData.contact,
         formData.description

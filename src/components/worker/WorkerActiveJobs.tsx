@@ -32,7 +32,7 @@ export default function ActiveJobs() {
         {activeJobCount}
       </p>
 
-      <p className="text-sm text-gray-500">Currently in progress</p>
+      <p className="text-sm text-gray-500">Ongoing </p>
     </div>
   );
 }

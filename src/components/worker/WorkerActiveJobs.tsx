@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { getWorkerProfile, markJobCompleted } from "@/services/workerService";
+import { getWorkerProfile, markJobCompleted, acceptRequest } from "@/services/workerService";
 import { FiBriefcase } from "react-icons/fi";
+import { toast } from "sonner";
 
 export default function ActiveJobs() {
   const user = useAuthStore((state) => state.user);
@@ -11,14 +12,13 @@ export default function ActiveJobs() {
   const completedJobs = useAuthStore((state) => state.completedJobs);
   const setActiveJobs = useAuthStore((state) => state.setActiveJobs);
   const setCompletedJobs = useAuthStore((state) => state.setCompletedJobs);
-  const markJobCompletedLocally = useAuthStore(
-    (state) => state.markJobCompletedLocally
-  );
+  const markJobCompletedLocally = useAuthStore((state) => state.markJobCompletedLocally);
+  const addNewActiveJob = useAuthStore((state) => state.addActiveJob);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Fetch jobs from backend on mount
+  // Fetch jobs from backend
   useEffect(() => {
     if (!user?.id) return;
 
@@ -26,9 +26,19 @@ export default function ActiveJobs() {
       try {
         const profile = await getWorkerProfile(user.id.toString());
         if (profile) {
-          // Sync Zustand store with backend
-          setActiveJobs(profile.activeJobs ?? []);
-          setCompletedJobs(profile.completedJobs ?? []);
+          // Ensure unique IDs (React needs it for lists)
+          const uniqueActiveJobs = (profile.activeJobs ?? []).map((j, idx) => ({
+            ...j,
+            key: j.id ?? `active-${idx}-${Date.now()}`,
+          }));
+
+          const uniqueCompletedJobs = (profile.completedJobs ?? []).map((j, idx) => ({
+            ...j,
+            key: j.id ?? `completed-${idx}-${Date.now()}`,
+          }));
+
+          setActiveJobs(uniqueActiveJobs);
+          setCompletedJobs(uniqueCompletedJobs);
         }
       } catch (error) {
         console.error("Error fetching jobs:", error);
@@ -40,36 +50,43 @@ export default function ActiveJobs() {
     fetchJobs();
   }, [user, setActiveJobs, setCompletedJobs]);
 
-  // Handle completing a job
+  // Complete job
   const handleCompleteJob = async (jobId: number) => {
     if (!user?.id) return;
 
-    // Instant UI update
     markJobCompletedLocally(jobId);
 
     try {
       await markJobCompleted(user.id.toString(), jobId);
+      toast.success("Job marked as completed ✅");
     } catch (error) {
       console.error("Error completing job:", error);
+      toast.error("Failed to complete job ❌");
     }
   };
 
-  // Optional: handle accepting a request
-  const addNewActiveJob = useAuthStore((state) => state.addActiveJob);
-  const handleAcceptRequest = (request: any) => {
-    // Convert request → job
+  // Accept request
+  const handleAcceptRequest = async (request: any) => {
+    if (!user?.id) return;
+
     const newJob = {
       id: request.id,
       clientId: request.clientId,
       name: request.name,
       description: request.description,
       status: "ongoing" as const,
+      key: request.id ?? `new-${Date.now()}`, // unique key
     };
 
-    // Instant UI update
     addNewActiveJob(newJob);
 
-    // Call backend API here (axios.post etc.)
+    try {
+      await acceptRequest(user.id.toString(), request.id);
+      toast.success("Request accepted! ✅");
+    } catch (error) {
+      console.error("Error accepting request:", error);
+      toast.error("Failed to accept request ❌");
+    }
   };
 
   if (loading) {
@@ -82,7 +99,6 @@ export default function ActiveJobs() {
 
   return (
     <>
-      {/* Active Jobs Card */}
       <div
         onClick={() => setModalOpen(true)}
         className="w-auto h-32 rounded-lg p-4 mt-4 hover:shadow-lg transition duration-300 ease-in-out flex flex-col cursor-pointer"
@@ -96,7 +112,6 @@ export default function ActiveJobs() {
         <p className="text-sm text-gray-500">Currently in progress</p>
       </div>
 
-      {/* Active Jobs Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-h-[80vh] overflow-y-auto relative">
@@ -105,8 +120,8 @@ export default function ActiveJobs() {
             {activeJobs.length === 0 ? (
               <p>No active jobs.</p>
             ) : (
-              activeJobs.map((job) => (
-                <div key={job.id} className="border p-3 rounded mb-3">
+              activeJobs.map((job,idx) => (
+                <div key={job.id ?? `-${idx}`} className="border p-3 rounded mb-3">
                   <p className="font-semibold">{job.name}</p>
                   <p className="text-gray-600">{job.description}</p>
                   <button
@@ -118,6 +133,25 @@ export default function ActiveJobs() {
                 </div>
               ))
             )}
+
+            {user?.profile?.requests?.length ? (
+  <>
+    <h3 className="text-lg font-semibold mt-4 mb-2">Pending Requests</h3>
+    {user.profile.requests.map((req, idx) => (
+      <div key={req.id ?? `req-${idx}-${Date.now()}`} className="border p-3 rounded mb-3">
+        <p className="font-semibold">{req.name}</p>
+        <p className="text-gray-600">{req.description}</p>
+        <button
+          onClick={() => handleAcceptRequest(req)}
+          className="mt-2 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+        >
+          Accept Request
+        </button>
+      </div>
+    ))}
+  </>
+) : null
+}
 
             <button
               onClick={() => setModalOpen(false)}

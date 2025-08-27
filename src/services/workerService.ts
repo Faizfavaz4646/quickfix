@@ -104,9 +104,7 @@ export async function acceptRequest(userId: string, requestId: number) {
 
   const updatedRequests = (worker.requests || []).filter((r: any) => r.id !== requestId);
 
-  const updatedActiveJobs = [
-    ...(worker.activeJobs || []),
-    { ...request, status: "ongoing" },
+  const updatedActiveJobs = [ ...(worker.activeJobs || []), { ...request, status: "ongoing" },
   ];
 
   await axios.patch(`${API_URL}/workers/${worker.id}`, {

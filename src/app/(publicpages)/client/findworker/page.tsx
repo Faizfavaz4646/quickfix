@@ -5,7 +5,7 @@ import { MdOutlineVerifiedUser, MdOutlineAccessTime } from "react-icons/md";
 import { AiFillStar } from "react-icons/ai";
 import Link from "next/link";
 import Image from "next/image";
-import { fetchAllWorkers } from "@/services/workerService";
+import { fetchAllWorkers, getWorkerProfile } from "@/services/workerService";
 
 export default function FindWorker() {
   const [profession, setProfession] = useState("");
@@ -33,19 +33,15 @@ export default function FindWorker() {
         return matchesProfession && matchesLocation;
       });
 
-      // Merge user info for each worker
-      const workersWithUserInfo = await Promise.all(
+      // Fetch full profiles for each filtered worker
+      const workersWithProfiles = await Promise.all(
         filteredWorkers.map(async (worker: any) => {
-          try {
-            const { data: userData } = await axios.get(`http://localhost:50001/users/${worker.userId}`);
-            return { ...worker, name: userData.name, email: userData.email };
-          } catch {
-            return { ...worker, name: "Unknown", email: "" };
-          }
+          const profile = await getWorkerProfile(worker.userId);
+          return profile || { ...worker, name: "Unknown", completedJobs: [] };
         })
       );
 
-      setSearchResult(workersWithUserInfo);
+      setSearchResult(workersWithProfiles);
       setShowResults(true);
     } catch (error) {
       console.error("Error fetching workers", error);
@@ -133,30 +129,49 @@ export default function FindWorker() {
                 {searchResult.map((worker, index) => (
                   <li
                     key={index}
-                    className="flex items-center gap-4 py-3 font-medium text-gray-800 hover:bg-gray-50 transition rounded-md px-2 "
+                    className="flex flex-col items-start gap-1 py-3 font-medium text-gray-800 hover:bg-gray-50 transition rounded-md px-2"
                   >
-                    {worker.profilePic?.startsWith("data:image") ? (
-                      <img
-                        src={worker.profilePic}
-                        alt={worker.name || "Worker"}
-                        className="rounded-full object-cover w-12 h-12"
-                      />
-                    ) : (
-                      <Image
-                        src={worker.profilePic || "/images/avatar.avif"}
-                        alt={worker.name || "Worker"}
-                        width={50}
-                        height={50}
-                        className="rounded-full object-cover w-12 h-12"
-                      />
-                    )}
+                    <div className="flex items-center gap-3">
+                      {worker.profilePic?.startsWith("data:image") ? (
+                        <img
+                          src={worker.profilePic}
+                          alt={worker.name || "Worker"}
+                          className="rounded-full object-cover w-12 h-12"
+                        />
+                      ) : (
+                        <Image
+                          src={worker.profilePic || "/images/avatar.avif"}
+                          alt={worker.name || "Worker"}
+                          width={50}
+                          height={50}
+                          className="rounded-full object-cover w-12 h-12"
+                        />
+                      )}
 
-                    <Link
-                      href={`/client/workerprofile/${worker.userId}`}
-                      className="hover:text-blue-600 transition"
-                    >
-                      {worker.name}
-                    </Link>
+                      <div className="flex flex-col">
+                        {/* Dummy Rating Stars Above Name */}
+                        <div className="flex text-yellow-400 text-sm mb-1">
+                          <AiFillStar />
+                          <AiFillStar />
+                          <AiFillStar />
+                          <AiFillStar />
+                          <AiFillStar className="text-gray-300" /> {/* empty star */}
+                        </div>
+
+                        {/* Worker Name */}
+                        <Link
+                          href={`/client/workerprofile/${worker.userId}`}
+                          className="hover:text-blue-600 transition font-semibold"
+                        >
+                          {worker.name}
+                        </Link>
+
+                        {/* Completed Jobs */}
+                        <span className="text-gray-500 text-xs">
+                          {worker.completedJobs?.length ?? 0} Jobs Completed
+                        </span>
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>

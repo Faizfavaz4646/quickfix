@@ -84,6 +84,34 @@
       "email": "jamshil@gmail.com",
       "password": "1234567",
       "role": "worker"
+    },
+    {
+      "id": "b0e7",
+      "name": "virat",
+      "email": "virat@gmail.com",
+      "password": "1234567",
+      "role": "worker"
+    },
+    {
+      "id": "1683",
+      "name": "Harshad",
+      "email": "harshad@gmail.com",
+      "password": "1234567",
+      "role": "worker"
+    },
+    {
+      "id": "d6f8",
+      "name": "Vajid",
+      "email": "vajid@gmail.com",
+      "password": "1234567",
+      "role": "worker"
+    },
+    {
+      "id": "6b1b",
+      "name": "Jasil",
+      "email": "jasil@gmail.com",
+      "password": "1234567",
+      "role": "worker"
     }
   ],
   "workers": [
@@ -108,14 +136,24 @@
       ],
       "requests": [
         {
-          "id": 1756239399644,
+          "id": 1756274530938,
+          "clientId": "c418",
+          "workerId": "1beb",
+          "name": "nefla",
+          "contact": "7736599384",
+          "description": "need plumbing home patch work!!",
+          "status": "pending",
+          "date": "2025-08-27T06:02:10.938Z"
+        },
+        {
+          "id": 1756274611540,
           "clientId": "e6bd",
           "workerId": "1beb",
           "name": "faizfavaz pm",
           "contact": "7034514646",
-          "description": "need plumbing patch work at home",
+          "description": "i need full plumbing work of my new house!!",
           "status": "pending",
-          "date": "2025-08-26T20:16:39.644Z"
+          "date": "2025-08-27T06:03:31.540Z"
         }
       ],
       "completedJobs": [
@@ -194,16 +232,16 @@
       "ratings": [],
       "notifications": [
         {
-          "id": 1756236718301,
+          "id": 1756274530938,
           "message": "You have a new job request",
           "seen": false,
-          "date": "2025-08-26T19:31:58.301Z"
+          "date": "2025-08-27T06:02:10.938Z"
         },
         {
-          "id": 1756239399644,
+          "id": 1756274611540,
           "message": "You have a new job request",
           "seen": false,
-          "date": "2025-08-26T20:16:39.644Z"
+          "date": "2025-08-27T06:03:31.540Z"
         }
       ],
       "activeJobs": [
@@ -216,6 +254,26 @@
           "description": "urgent plumbing work needed",
           "status": "ongoing",
           "date": "2025-08-26T19:31:58.300Z"
+        },
+        {
+          "id": 1756239399644,
+          "clientId": "e6bd",
+          "workerId": "1beb",
+          "name": "faizfavaz pm",
+          "contact": "7034514646",
+          "description": "need plumbing patch work at home",
+          "status": "ongoing",
+          "date": "2025-08-26T20:16:39.644Z"
+        },
+        {
+          "id": 1756269012299,
+          "clientId": "c418",
+          "workerId": "1beb",
+          "name": "nefla",
+          "contact": "7736599384",
+          "description": "need full home plumbing",
+          "status": "ongoing",
+          "date": "2025-08-27T04:30:12.299Z"
         }
       ],
       "termsAccepted": true,
@@ -244,7 +302,48 @@
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1756238746/y5skgtcndvmr1d7vgz6h.jpg",
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1756238759/tz27ofngjg9vlhgp7vn3.jpg"
       ],
-      "requests": [],
+      "requests": [
+        {
+          "id": 1756268716420,
+          "clientId": "e6bd",
+          "workerId": "a894",
+          "name": "faizfavaz pm",
+          "contact": "7034514646",
+          "description": "in need to clean my air conditioner!!",
+          "status": "pending",
+          "date": "2025-08-27T04:25:16.420Z"
+        },
+        {
+          "id": 1756268927166,
+          "clientId": "0b07",
+          "workerId": "a894",
+          "name": "jomy seban",
+          "contact": "7034514646",
+          "description": "my washing machine cant dry clothes",
+          "status": "pending",
+          "date": "2025-08-27T04:28:47.166Z"
+        },
+        {
+          "id": 1756269052981,
+          "clientId": "c418",
+          "workerId": "a894",
+          "name": "nefla",
+          "contact": "7736599384",
+          "description": "my fridge cant get cool",
+          "status": "pending",
+          "date": "2025-08-27T04:30:52.981Z"
+        },
+        {
+          "id": 1756274642989,
+          "clientId": "e6bd",
+          "workerId": "a894",
+          "name": "faizfavaz pm",
+          "contact": "7034514646",
+          "description": "i need to install new AC in my office",
+          "status": "pending",
+          "date": "2025-08-27T06:04:02.989Z"
+        }
+      ],
       "completedJobs": [
         {
           "id": 1756239336131,
@@ -259,7 +358,32 @@
       ],
       "reviews": [],
       "ratings": [],
-      "notifications": [],
+      "notifications": [
+        {
+          "id": 1756268716420,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:25:16.420Z"
+        },
+        {
+          "id": 1756268927166,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:28:47.166Z"
+        },
+        {
+          "id": 1756269052981,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:30:52.981Z"
+        },
+        {
+          "id": 1756274642989,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T06:04:02.989Z"
+        }
+      ],
       "activeJobs": [],
       "termsAccepted": true,
       "name": "Muhammed Yasar",
@@ -287,17 +411,28 @@
       ],
       "requests": [
         {
+          "id": 1756274714442,
+          "clientId": "e6bd",
+          "workerId": "3031",
+          "name": "faizfavaz pm",
+          "contact": "7034514646",
+          "description": "i need full home painting",
+          "status": "pending",
+          "date": "2025-08-27T06:05:14.442Z"
+        }
+      ],
+      "completedJobs": [
+        {
           "id": 1756239368844,
           "clientId": "e6bd",
           "workerId": "3031",
           "name": "faizfavaz pm",
           "contact": "7034514646",
           "description": "urgent needed home full painting work!!",
-          "status": "pending",
+          "status": "completed",
           "date": "2025-08-26T20:16:08.844Z"
         }
       ],
-      "completedJobs": [],
       "reviews": [],
       "ratings": [],
       "notifications": [
@@ -306,12 +441,344 @@
           "message": "You have a new job request",
           "seen": false,
           "date": "2025-08-26T20:16:08.844Z"
+        },
+        {
+          "id": 1756268669571,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:24:29.571Z"
+        },
+        {
+          "id": 1756268955582,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:29:15.582Z"
+        },
+        {
+          "id": 1756274714442,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T06:05:14.442Z"
+        }
+      ],
+      "activeJobs": [
+        {
+          "0": {
+            "id": 1756268955582,
+            "clientId": "0b07",
+            "workerId": "3031",
+            "name": "jomy seban",
+            "contact": "7034514646",
+            "description": "need painting patch work at office",
+            "status": "pending",
+            "date": "2025-08-27T04:29:15.582Z"
+          },
+          "status": "ongoing"
+        },
+        {
+          "id": 1756268955582,
+          "clientId": "0b07",
+          "workerId": "3031",
+          "name": "jomy seban",
+          "contact": "7034514646",
+          "description": "need painting patch work at office",
+          "status": "ongoing",
+          "date": "2025-08-27T04:29:15.582Z"
+        }
+      ],
+      "termsAccepted": true,
+      "name": "jamshil",
+      "email": "jamshil@gmail.com",
+      "Requests": []
+    },
+    {
+      "id": "7a18",
+      "userId": "b0e7",
+      "profession": "Plumber",
+      "phone": "9074326554",
+      "gender": "male",
+      "state": "Kerala",
+      "district": "calicut",
+      "city": "calicut",
+      "zip": "673021",
+      "schedule": "9am  to. 5pm",
+      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267058/jugcos8h2qwgjq6ja5v0.jpg",
+      "previousWorkImages": [
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267139/ygrj4kjfopwlxo2dddsr.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267149/xnryqefwr4b36vf1bntd.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267155/n9evucsmoh0bv8dgznla.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267160/pari4d7ekufu65pbnyaq.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267167/qzhbpgu5byg67aut0llc.jpg"
+      ],
+      "requests": [
+        {
+          "id": 1756268525395,
+          "clientId": "e6bd",
+          "workerId": "7a18",
+          "name": "faizfavaz pm",
+          "contact": "7034514646",
+          "description": "need urgent plumbing work at office",
+          "status": "pending",
+          "date": "2025-08-27T04:22:05.395Z"
+        },
+        {
+          "id": 1756268774835,
+          "clientId": "0b07",
+          "workerId": "7a18",
+          "name": "jomy seban",
+          "contact": "7034514646",
+          "description": "need home plumbing work! (patch work)",
+          "status": "pending",
+          "date": "2025-08-27T04:26:14.835Z"
+        },
+        {
+          "id": 1756274558488,
+          "clientId": "c418",
+          "workerId": "7a18",
+          "name": "nefla",
+          "contact": "7736599384",
+          "description": "urgent need plumbing work at my office",
+          "status": "pending",
+          "date": "2025-08-27T06:02:38.488Z"
+        }
+      ],
+      "completedJobs": [],
+      "reviews": [],
+      "ratings": [],
+      "notifications": [
+        {
+          "id": 1756268525396,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:22:05.396Z"
+        },
+        {
+          "id": 1756268774835,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:26:14.835Z"
+        },
+        {
+          "id": 1756274558488,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T06:02:38.488Z"
         }
       ],
       "activeJobs": [],
       "termsAccepted": true,
-      "name": "jamshil",
-      "email": "jamshil@gmail.com",
+      "name": "virat",
+      "email": "virat@gmail.com",
+      "Requests": []
+    },
+    {
+      "id": "55e3",
+      "userId": "1683",
+      "profession": "Plumber",
+      "phone": "7034514646",
+      "gender": "male",
+      "state": "Kerala",
+      "district": "calicut",
+      "city": "feroke",
+      "zip": "673638",
+      "schedule": "9am  to. 5pm",
+      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267242/ijjqaaecan59qou1mulw.jpg",
+      "previousWorkImages": [
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267285/imfkuz51ayvlul8ltzek.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267290/xlpmzsp4mvqlehy3c4yo.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267295/rgwl0akcuyinvmwvjuha.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267300/qroasivfv13om3nxykg6.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267307/vqh2y0u1pjmjyskc8uym.jpg"
+      ],
+      "requests": [
+        {
+          "id": 1756268813939,
+          "clientId": "0b07",
+          "workerId": "55e3",
+          "name": "jomy seban",
+          "contact": "7034514646",
+          "description": "i have a plumbing patch work in my office!!",
+          "status": "pending",
+          "date": "2025-08-27T04:26:53.939Z"
+        },
+        {
+          "id": 1756269080697,
+          "clientId": "c418",
+          "workerId": "55e3",
+          "name": "nefla",
+          "contact": "7736599384",
+          "description": "need plumbing work in my office are you ready for that",
+          "status": "pending",
+          "date": "2025-08-27T04:31:20.697Z"
+        },
+        {
+          "id": 1756269136929,
+          "clientId": "c418",
+          "workerId": "55e3",
+          "name": "nefla",
+          "contact": "7736599384",
+          "description": "need full home plumbing work",
+          "status": "pending",
+          "date": "2025-08-27T04:32:16.929Z"
+        }
+      ],
+      "completedJobs": [
+        {
+          "id": 1756268563956,
+          "clientId": "e6bd",
+          "workerId": "55e3",
+          "name": "faizfavaz pm",
+          "contact": "7034514646",
+          "description": "need full new home plumbing work!!",
+          "status": "completed",
+          "date": "2025-08-27T04:22:43.956Z"
+        }
+      ],
+      "reviews": [],
+      "ratings": [],
+      "notifications": [
+        {
+          "id": 1756268563956,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:22:43.956Z"
+        },
+        {
+          "id": 1756268813939,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:26:53.939Z"
+        },
+        {
+          "id": 1756269080697,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:31:20.697Z"
+        },
+        {
+          "id": 1756269136929,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:32:16.929Z"
+        }
+      ],
+      "activeJobs": [],
+      "termsAccepted": true,
+      "name": "Harshad",
+      "email": "harshad@gmail.com",
+      "Requests": []
+    },
+    {
+      "id": "c63e",
+      "userId": "d6f8",
+      "profession": "Plumber",
+      "phone": "7034514646",
+      "gender": "male",
+      "state": "Kerala",
+      "district": "malappuram",
+      "city": "kottakkal",
+      "zip": "675641",
+      "schedule": "9am  to. 5pm",
+      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267420/fyvy7pl9e2ydbell8vc3.jpg",
+      "previousWorkImages": [
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267461/q6u6pdujrc13ekmzyqih.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267466/lhn4sn2k3x3amaqb741r.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267471/rvrxv36cqyt9cbpghzxh.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267477/bnb3nbfuwgnxnvmqwjna.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267483/dwqllj919fv7y1bbqz4z.jpg"
+      ],
+      "requests": [
+        {
+          "id": 1756268845301,
+          "clientId": "0b07",
+          "workerId": "c63e",
+          "name": "jomy seban",
+          "contact": "7034514646",
+          "description": "need new bathroom plumbing work",
+          "status": "pending",
+          "date": "2025-08-27T04:27:25.301Z"
+        }
+      ],
+      "completedJobs": [],
+      "reviews": [],
+      "ratings": [],
+      "notifications": [
+        {
+          "id": 1756268637374,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:23:57.374Z"
+        },
+        {
+          "id": 1756268845301,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:27:25.301Z"
+        }
+      ],
+      "activeJobs": [
+        {
+          "id": 1756268637374,
+          "clientId": "e6bd",
+          "workerId": "c63e",
+          "name": "faizfavaz pm",
+          "contact": "7034514646",
+          "description": "urgent need  plumbing patch work!!",
+          "status": "ongoing",
+          "date": "2025-08-27T04:23:57.374Z"
+        }
+      ],
+      "termsAccepted": true,
+      "name": "Vajid",
+      "email": "vajid@gmail.com",
+      "Requests": []
+    },
+    {
+      "id": "03d7",
+      "userId": "6b1b",
+      "profession": "Plumber",
+      "phone": "7736599384",
+      "gender": "male",
+      "state": "Kerala",
+      "district": "calicut",
+      "city": "chungam",
+      "zip": "675641",
+      "schedule": "9am  to. 5pm",
+      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267540/u0vevjmicipbgzaerjcu.jpg",
+      "previousWorkImages": [
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267576/hek2zgxhtw2mxrgsoonv.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267580/aakt6jt58pqpxsc3trqi.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267584/gtp6ncd6un8mxl32jyal.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267588/ibwbl403kkwxrdpo1zlf.jpg",
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1756267594/ex0bmi7xsnis1czddf5e.jpg"
+      ],
+      "requests": [
+        {
+          "id": 1756268892250,
+          "clientId": "0b07",
+          "workerId": "03d7",
+          "name": "jomy seban",
+          "contact": "7034514646",
+          "description": "i need full  home plumbing work are you ready",
+          "status": "pending",
+          "date": "2025-08-27T04:28:12.250Z"
+        }
+      ],
+      "completedJobs": [],
+      "reviews": [],
+      "ratings": [],
+      "notifications": [
+        {
+          "id": 1756268892250,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-08-27T04:28:12.250Z"
+        }
+      ],
+      "activeJobs": [],
+      "termsAccepted": true,
+      "name": "Jasil",
+      "email": "jasil@gmail.com",
       "Requests": []
     }
   ]

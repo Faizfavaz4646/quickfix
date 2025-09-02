@@ -136,16 +136,6 @@
       ],
       "requests": [
         {
-          "id": 1756274530938,
-          "clientId": "c418",
-          "workerId": "1beb",
-          "name": "nefla",
-          "contact": "7736599384",
-          "description": "need plumbing home patch work!!",
-          "status": "pending",
-          "date": "2025-08-27T06:02:10.938Z"
-        },
-        {
           "id": 1756274611540,
           "clientId": "e6bd",
           "workerId": "1beb",
@@ -154,6 +144,16 @@
           "description": "i need full plumbing work of my new house!!",
           "status": "pending",
           "date": "2025-08-27T06:03:31.540Z"
+        },
+        {
+          "id": 1756279058560,
+          "clientId": "e6bd",
+          "workerId": "1beb",
+          "name": "faizfavaz pm",
+          "contact": "7034514646",
+          "description": "xcv",
+          "status": "pending",
+          "date": "2025-08-27T07:17:38.560Z"
         }
       ],
       "completedJobs": [
@@ -226,25 +226,7 @@
           "description": "neededcplumbing work",
           "status": "completed",
           "date": "2025-08-26T18:54:41.400Z"
-        }
-      ],
-      "reviews": [],
-      "ratings": [],
-      "notifications": [
-        {
-          "id": 1756274530938,
-          "message": "You have a new job request",
-          "seen": false,
-          "date": "2025-08-27T06:02:10.938Z"
         },
-        {
-          "id": 1756274611540,
-          "message": "You have a new job request",
-          "seen": false,
-          "date": "2025-08-27T06:03:31.540Z"
-        }
-      ],
-      "activeJobs": [
         {
           "id": 1756236718300,
           "clientId": "e6bd",
@@ -252,7 +234,7 @@
           "name": "faizfavaz pm",
           "contact": "7034514646",
           "description": "urgent plumbing work needed",
-          "status": "ongoing",
+          "status": "completed",
           "date": "2025-08-26T19:31:58.300Z"
         },
         {
@@ -262,9 +244,27 @@
           "name": "faizfavaz pm",
           "contact": "7034514646",
           "description": "need plumbing patch work at home",
-          "status": "ongoing",
+          "status": "completed",
           "date": "2025-08-26T20:16:39.644Z"
+        }
+      ],
+      "reviews": [],
+      "ratings": [],
+      "notifications": [
+        {
+          "id": 1756274611540,
+          "message": "You have a new job request",
+          "seen": true,
+          "date": "2025-08-27T06:03:31.540Z"
         },
+        {
+          "id": 1756279058560,
+          "message": "You have a new job request",
+          "seen": true,
+          "date": "2025-08-27T07:17:38.560Z"
+        }
+      ],
+      "activeJobs": [
         {
           "id": 1756269012299,
           "clientId": "c418",
@@ -274,6 +274,36 @@
           "description": "need full home plumbing",
           "status": "ongoing",
           "date": "2025-08-27T04:30:12.299Z"
+        },
+        {
+          "id": 1756274530938,
+          "clientId": "c418",
+          "workerId": "1beb",
+          "name": "nefla",
+          "contact": "7736599384",
+          "description": "need plumbing home patch work!!",
+          "status": "ongoing",
+          "date": "2025-08-27T06:02:10.938Z"
+        },
+        {
+          "id": 1756802021245,
+          "clientId": "e6bd",
+          "workerId": "1beb",
+          "name": "faizfavaz pm",
+          "contact": "7034514646",
+          "description": "njsx",
+          "status": "ongoing",
+          "date": "2025-09-02T08:33:41.245Z"
+        },
+        {
+          "id": 1756276871092,
+          "clientId": "e6bd",
+          "workerId": "1beb",
+          "name": "faizfavaz pm",
+          "contact": "7034514646",
+          "description": "urgent need plumbing work at home",
+          "status": "ongoing",
+          "date": "2025-08-27T06:41:11.092Z"
         }
       ],
       "termsAccepted": true,
@@ -303,16 +333,6 @@
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1756238759/tz27ofngjg9vlhgp7vn3.jpg"
       ],
       "requests": [
-        {
-          "id": 1756268716420,
-          "clientId": "e6bd",
-          "workerId": "a894",
-          "name": "faizfavaz pm",
-          "contact": "7034514646",
-          "description": "in need to clean my air conditioner!!",
-          "status": "pending",
-          "date": "2025-08-27T04:25:16.420Z"
-        },
         {
           "id": 1756268927166,
           "clientId": "0b07",
@@ -384,7 +404,18 @@
           "date": "2025-08-27T06:04:02.989Z"
         }
       ],
-      "activeJobs": [],
+      "activeJobs": [
+        {
+          "id": 1756268716420,
+          "clientId": "e6bd",
+          "workerId": "a894",
+          "name": "faizfavaz pm",
+          "contact": "7034514646",
+          "description": "in need to clean my air conditioner!!",
+          "status": "ongoing",
+          "date": "2025-08-27T04:25:16.420Z"
+        }
+      ],
       "termsAccepted": true,
       "name": "Muhammed Yasar",
       "email": "yasar@gmail.com",
@@ -437,27 +468,9 @@
       "ratings": [],
       "notifications": [
         {
-          "id": 1756239368844,
-          "message": "You have a new job request",
-          "seen": false,
-          "date": "2025-08-26T20:16:08.844Z"
-        },
-        {
-          "id": 1756268669571,
-          "message": "You have a new job request",
-          "seen": false,
-          "date": "2025-08-27T04:24:29.571Z"
-        },
-        {
-          "id": 1756268955582,
-          "message": "You have a new job request",
-          "seen": false,
-          "date": "2025-08-27T04:29:15.582Z"
-        },
-        {
           "id": 1756274714442,
           "message": "You have a new job request",
-          "seen": false,
+          "seen": true,
           "date": "2025-08-27T06:05:14.442Z"
         }
       ],
@@ -637,12 +650,6 @@
       "reviews": [],
       "ratings": [],
       "notifications": [
-        {
-          "id": 1756268563956,
-          "message": "You have a new job request",
-          "seen": false,
-          "date": "2025-08-27T04:22:43.956Z"
-        },
         {
           "id": 1756268813939,
           "message": "You have a new job request",

@@ -1,5 +1,5 @@
 "use client";
-import axios from "axios";
+
 import { useState } from "react";
 import { MdOutlineVerifiedUser, MdOutlineAccessTime } from "react-icons/md";
 import { AiFillStar } from "react-icons/ai";
@@ -12,6 +12,8 @@ export default function FindWorker() {
   const [location, setLocation] = useState("");
   const [searchResult, setSearchResult] = useState<any[]>([]);
   const [showResults, setShowResults] = useState(false);
+
+
 
   const handleSearch = async () => {
     if (!profession) return;

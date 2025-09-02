@@ -18,7 +18,7 @@ export default function ActiveJobs() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Fetch jobs from backend
+  // Fetch jobs from backend json
   useEffect(() => {
     if (!user?.id) return;
 

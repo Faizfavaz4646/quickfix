@@ -1,13 +1,15 @@
 "use client";
 
 import { sendRequestToWorker } from "@/services/jobRequestHelper";
-import { useAuthStore } from "@/store/authStore"; 
+import { useAuthStore } from "@/store/authStore";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function RequestDialog({ workerId }: { workerId: number }) {
   const [open, setOpen] = useState(false);
   const { user } = useAuthStore();
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -26,8 +28,14 @@ export default function RequestDialog({ workerId }: { workerId: number }) {
   const handleSendRequest = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user || user.role !== "client") {
-      toast.error("Please login as a client to send requests");
+    if (!user) {
+      toast.info("Please login first!");
+      router.push("/auth/login");
+      return;
+    }
+
+    if (user.role !== "client") {
+      toast.error("Only clients can send requests!");
       return;
     }
 
@@ -35,7 +43,7 @@ export default function RequestDialog({ workerId }: { workerId: number }) {
     try {
       const { newRequest, newNotification } = await sendRequestToWorker(
         workerId,
-        user.id, // cast to string if needed
+        user.id,
         formData.name,
         formData.contact,
         formData.description
@@ -44,7 +52,11 @@ export default function RequestDialog({ workerId }: { workerId: number }) {
       toast.success("Request sent! Worker notified ✅");
       console.log("Request:", newRequest, "Notification:", newNotification);
 
-      setFormData({ name: user?.name || "", contact: user?.profile?.phone || "", description: "" });
+      setFormData({
+        name: user?.name || "",
+        contact: user?.profile?.phone || "",
+        description: "",
+      });
       setOpen(false);
     } catch (err) {
       console.error("Error sending request:", err);
@@ -56,15 +68,22 @@ export default function RequestDialog({ workerId }: { workerId: number }) {
 
   return (
     <div className="relative inline-block">
-      {/* Button to toggle form */}
-      {user?.role === "client" && (
-        <button
-          onClick={() => setOpen((prev) => !prev)}
-          className="bg-yellow-500 text-white px-4 py-2 rounded-md"
-        >
-          Request Service
-        </button>
-      )}
+      {/* Always show button */}
+      <button
+        onClick={() => {
+          if (!user) {
+            toast.info("Please login first!");
+            router.push("/auth/login");
+          } else if (user.role !== "client") {
+            toast.error("Only clients can request services!");
+          } else {
+            setOpen((prev) => !prev);
+          }
+        }}
+        className="bg-yellow-500 text-white px-4 py-2 rounded-md"
+      >
+        Request Service
+      </button>
 
       {open && (
         <div className="absolute top-full right-0 mt-2 bg-white border rounded-lg shadow-lg p-4 w-72 z-20">

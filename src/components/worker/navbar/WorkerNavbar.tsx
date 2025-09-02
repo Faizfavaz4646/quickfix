@@ -2,20 +2,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { toast } from 'sonner';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, X, Menu, LogOut } from "lucide-react";
 import WorkerCard from "@/components/worker/WorkerCard";
 import { FaTools } from "react-icons/fa";
-import { useAuthStore } from "@/store/authStore";
-import { useRouter } from "next/navigation";
 import {useNotificationStore}from "@/store/authStore";
 
 export default function WorkerNavbar() {
   const count=useNotificationStore((state)=>state.count)
-   const logout = useAuthStore((state) => state.logout);
-     const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -42,23 +37,7 @@ export default function WorkerNavbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [menuOpen]);
-const handleLogout = () => {
-    toast("Are you sure you want to logout?", {
-      action: {
-        label: "Yes",
-        onClick: () => {
-          logout();
-          router.push("/auth/login");
-          toast.success("You have been logged out.");
-        },
-      },
-      cancel: {
-        label: "No",
-        onClick: () => toast.dismiss(),
-      },
-      duration: 10000,
-    });
-  };
+
   return (
     <>
     <nav className="w-full flex items-center justify-between bg-white shadow px-6 py-3 sticky z-40 top-0">
@@ -97,11 +76,6 @@ const handleLogout = () => {
             {link.label}
           </Link>
         ))}
-        <button
-        onClick={handleLogout}
-         className="text-red-600 font-semibold hover:underline flex items-center gap-1">
-          <LogOut size={16} /> Logout
-        </button>
       </div>
 
       {/* Right section (Desktop only) */}
@@ -117,7 +91,7 @@ const handleLogout = () => {
          
           </Link> 
         </div>
-      <Link href="/worker/edit"><WorkerCard /></Link> 
+     <WorkerCard /> 
       </div>
 
       {/* Mobile Sidebar Menu */}
@@ -148,15 +122,6 @@ const handleLogout = () => {
                   {link.label}
                 </Link>
               ))}
-            </div>
-
-            {/* Logout Button */}
-            <div className="mt-auto">
-              <button
-              onClick={handleLogout}
-               className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 flex items-center justify-center gap-2">
-                <LogOut size={18} /> Logout
-              </button>
             </div>
           </div>
         </div>

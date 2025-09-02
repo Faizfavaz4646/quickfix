@@ -29,24 +29,24 @@ export default function WorkerDashboard() {
       {/* ===== Main Grid ===== */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* === Top Row === */}
-        <div className="bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6  border-t border-blue-500">
+        <div className="bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6">
           <WorkerRating />
         </div>
 
-        <div className="bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6  border-t border-blue-500">
+        <div className="bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6">
           <WorkerCompletedJobs />
         </div>
 
-        <div className="bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6  border-t border-blue-500">
+        <div className="bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6">
           <WorkerNewJobRequest />
         </div>
 
         {/* === Second Row (2 cards) === */}
-        <div className="bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6  border-t border-blue-500">
+        <div className="bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6">
           <WorkerProfileCompletation />
         </div>
 
-        <div className="bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6  border-t border-blue-500">
+        <div className="bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6">
           <WorkerActiveJobs />
         </div>
 
@@ -54,7 +54,7 @@ export default function WorkerDashboard() {
         <div className="hidden lg:block"></div>
 
         {/* === Reviews Full Width === */}
-        <div className="lg:col-span-3 bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6  border-t border-blue-500">
+        <div className="lg:col-span-3 bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6">
           <WorkerReviews />
         </div>
       </div>

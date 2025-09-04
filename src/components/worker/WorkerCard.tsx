@@ -6,6 +6,9 @@ import { Profile } from "@/types/user";
 import { getWorkerProfile } from "@/services/workerService";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { IoMdSettings } from "react-icons/io";
+import { RiAccountPinCircleFill } from "react-icons/ri";
+import { FaSignOutAlt } from "react-icons/fa";
 
 const WorkerCard = () => {
   const { user } = useAuthStore();
@@ -110,7 +113,7 @@ const WorkerCard = () => {
                 }}
                 className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
               >
-                Your Profile
+         <span className="flex gap-1"><RiAccountPinCircleFill className="text-xl" />Your Profile</span>    
               </button>
             </li>
             <li>
@@ -121,7 +124,7 @@ const WorkerCard = () => {
                 }}
                 className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
               >
-                Settings
+           <span className="flex gap-1"><IoMdSettings className="text-xl" />Settings</span>  
               </button>
             </li>
             <li>
@@ -129,7 +132,7 @@ const WorkerCard = () => {
                 onClick={handleLogout}
                 className="w-full text-left px-3 py-2 rounded-md hover:bg-red-100 text-red-600"
               >
-                Sign out
+            <span className=" flex gap-1"> <FaSignOutAlt className="text-xl" /> Sign out</span>  
               </button>
             </li>
           </ul>

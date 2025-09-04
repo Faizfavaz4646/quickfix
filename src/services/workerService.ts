@@ -9,7 +9,7 @@ export async function fetchAllWorkers(): Promise<Profile[]> {
   return data;
 }
 
-// ---------- Get worker profile (merge user + worker info) ----------
+// ---------- Get worker profile ----------
 export async function getWorkerProfile(userId: string): Promise<Profile | null> {
   const { data: workerData } = await axios.get(`${API_URL}/workers?userId=${userId}`);
   if (!workerData.length) return null;
@@ -27,9 +27,9 @@ export async function getWorkerProfile(userId: string): Promise<Profile | null> 
     profilePic: workerInfo.profilePic,
     previousWorkImages: workerInfo.previousWorkImages || [],
     notifications: workerInfo.notifications || [],
-    Requests: workerInfo.requests || [],
+    requests: workerInfo.requests || [],
     activeJobs: workerInfo.activeJobs || [],
-    completedJobs: workerInfo.completedJobs || [], // 👈 ensure completed jobs exist
+    completedJobs: workerInfo.completedJobs || [],
   };
 
   return profile;
@@ -56,7 +56,7 @@ export async function markNotificationSeen(
   return updatedNotifications;
 }
 
-// ---------- Delete notification ----------
+// ---------- Delete Notifications ----------
 export async function deleteNotification(
   userId: string,
   notificationId: number
@@ -81,14 +81,11 @@ export async function deleteNotification(
 export async function declineRequest(userId: string, requestId: number) {
   const { data: workerData } = await axios.get(`${API_URL}/workers?userId=${userId}`);
   if (!workerData.length) return null;
-
   const worker = workerData[0];
 
   const updatedRequests = (worker.requests || []).filter((r: any) => r.id !== requestId);
 
-  await axios.patch(`${API_URL}/workers/${worker.id}`, {
-    requests: updatedRequests,
-  });
+  await axios.patch(`${API_URL}/workers/${worker.id}`, { requests: updatedRequests });
 
   return await getWorkerProfile(userId);
 }
@@ -97,19 +94,41 @@ export async function declineRequest(userId: string, requestId: number) {
 export async function acceptRequest(userId: string, requestId: number) {
   const { data: workerData } = await axios.get(`${API_URL}/workers?userId=${userId}`);
   if (!workerData.length) return null;
-
   const worker = workerData[0];
+
   const request = (worker.requests || []).find((r: any) => r.id === requestId);
   if (!request) return await getWorkerProfile(userId);
 
   const updatedRequests = (worker.requests || []).filter((r: any) => r.id !== requestId);
+  const updatedActiveJobs = [...(worker.activeJobs || []), { ...request, status: "ongoing" }];
 
-  const updatedActiveJobs = [ ...(worker.activeJobs || []), { ...request, status: "ongoing" },
-  ];
-
+  // Update worker
   await axios.patch(`${API_URL}/workers/${worker.id}`, {
     requests: updatedRequests,
     activeJobs: updatedActiveJobs,
+  });
+
+  // Update client
+  const { data: client } = await axios.get(`${API_URL}/users/${request.clientId}`);
+  const updatedClientRequests = (client.profile?.requests || []).filter((r: any) => r.id !== requestId);
+  const updatedClientActiveJobs = [
+    ...(client.profile?.activeJobs || []),
+    {
+      id:request.id,
+      workerId: worker.userId,
+      workerName: worker.name,
+      profession: worker.profession,
+      status: "ongoing",
+      date: request.date,
+    },
+  ];
+
+  await axios.patch(`${API_URL}/users/${client.id}`, {
+    profile: {
+      ...client.profile,
+      requests: updatedClientRequests,
+      activeJobs: updatedClientActiveJobs,
+    },
   });
 
   return await getWorkerProfile(userId);
@@ -117,27 +136,56 @@ export async function acceptRequest(userId: string, requestId: number) {
 
 // ---------- Mark job as completed ----------
 export async function markJobCompleted(userId: string, jobId: number) {
+  // Fetch worker
   const { data: workerData } = await axios.get(`${API_URL}/workers?userId=${userId}`);
   if (!workerData.length) return null;
-
   const worker = workerData[0];
 
-  // Find the job in activeJobs
+  // Find job
   const jobToComplete = (worker.activeJobs || []).find((job: any) => job.id === jobId);
   if (!jobToComplete) return null;
 
-  // Remove from activeJobs
+  // Update worker (full details stay here)
   const updatedActiveJobs = (worker.activeJobs || []).filter((job: any) => job.id !== jobId);
+  const updatedCompletedJobs = [
+    ...(worker.completedJobs || []),
+    { ...jobToComplete, status: "completed" },
+  ];
 
-  // Add to completedJobs (initialize if doesn't exist)
-  const updatedCompletedJobs = [...(worker.completedJobs || []), { ...jobToComplete, status: "completed" }];
-
-  // Patch the worker
   await axios.patch(`${API_URL}/workers/${worker.id}`, {
     activeJobs: updatedActiveJobs,
     completedJobs: updatedCompletedJobs,
   });
 
-  // Return updated profile
+  // Update client (only summary)
+  const clientId = jobToComplete.clientId;
+  if (clientId) {
+    const { data: client } = await axios.get(`${API_URL}/users/${clientId}`);
+    if (client?.profile) {
+      const updatedClientActiveJobs = (client.profile.activeJobs || []).filter(
+        (job: any) => job.id !== jobId
+      );
+
+      const updatedClientCompletedJobs = [
+        ...(client.profile.completedJobs || []),
+        {
+          workerId: worker.userId,
+          workerName: worker.name,
+          profession: worker.profession,
+          status: "completed",
+          date: new Date().toISOString(),
+        },
+      ];
+
+      await axios.patch(`${API_URL}/users/${client.id}`, {
+        profile: {
+          ...client.profile,
+          activeJobs: updatedClientActiveJobs,
+          completedJobs: updatedClientCompletedJobs,
+        },
+      });
+    }
+  }
+
   return await getWorkerProfile(userId);
 }

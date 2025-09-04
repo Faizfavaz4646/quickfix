@@ -11,6 +11,7 @@ import axios from 'axios';
 import { RiAccountPinCircleFill } from "react-icons/ri";
 import { IoMdSettings } from "react-icons/io";
 import { MdOutlineRateReview } from "react-icons/md";
+import { FaSignOutAlt } from "react-icons/fa";
 
 interface Profile {
   id: string;
@@ -208,7 +209,7 @@ export default function Navbar() {
                   onClick={() => { handleLogout(); setShowModal(false); }}
                   className="w-full text-left px-3 py-2 rounded-md hover:bg-red-100 text-red-600"
                 >
-                  Logout
+               <span className='flex gap-1'><FaSignOutAlt className='text-xl' /> signout</span>  
                 </button>
               </li>
             </ul>

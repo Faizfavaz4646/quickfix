@@ -21,6 +21,10 @@ export default function ProfileForm() {
     city: "",
     zip: "",
     profilePic: "",
+    requests: [],
+    completedJobs: [],
+    activeJobs: [],
+
   });
 
   // separate state for root-level name
@@ -40,6 +44,9 @@ export default function ProfileForm() {
       city: user.profile?.city || "",
       zip: user.profile?.zip || "",
       profilePic: user.profile?.profilePic || "",
+      requests: user.profile?.requests || [],
+      completedJobs:user.profile?.completedJobs || [],
+      activeJobs : user.profile?.activeJobs || [],
     });
 
     setName(user.name);
@@ -85,7 +92,7 @@ export default function ProfileForm() {
       updateUserProfile(payload.profile, payload.name);
       useAuthStore.setState({ user: payload });
       alert("Profile updated!");
-      router.push("/client/dashboard");
+      router.push("/client/clientdashboard");
     } catch (err) {
       alert("Failed to update profile.");
     }

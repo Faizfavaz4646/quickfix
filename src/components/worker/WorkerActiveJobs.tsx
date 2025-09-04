@@ -51,19 +51,26 @@ export default function ActiveJobs() {
   }, [user, setActiveJobs, setCompletedJobs]);
 
   // Complete job
-  const handleCompleteJob = async (jobId: number) => {
-    if (!user?.id) return;
+ const handleCompleteJob = async (jobId: number) => {
+  if (!user?.id) return;
 
-    markJobCompletedLocally(jobId);
+  try {
+    await markJobCompleted(user.id.toString(), jobId);
 
-    try {
-      await markJobCompleted(user.id.toString(), jobId);
-      toast.success("Job marked as completed ✅");
-    } catch (error) {
-      console.error("Error completing job:", error);
-      toast.error("Failed to complete job ❌");
+    // re-fetch worker profile
+    const profile = await getWorkerProfile(user.id.toString());
+    if (profile) {
+      setActiveJobs(profile.activeJobs ?? []);
+      setCompletedJobs(profile.completedJobs ?? []);
     }
-  };
+
+    toast.success("Job marked as completed ✅");
+  } catch (error) {
+    console.error("Error completing job:", error);
+    toast.error("Failed to complete job ❌");
+  }
+};
+
 
   // Accept request
   const handleAcceptRequest = async (request: any) => {

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export default function RequestDialog({ workerId }: { workerId: number }) {
+export default function RequestDialog({ workerId }: { workerId: string }) {
   const [open, setOpen] = useState(false);
   const { user } = useAuthStore();
   const router = useRouter();
@@ -41,16 +41,19 @@ export default function RequestDialog({ workerId }: { workerId: number }) {
 
     setLoading(true);
     try {
-      const { newRequest, newNotification } = await sendRequestToWorker(
-        workerId,
-        user.id,
-        formData.name,
-        formData.contact,
-        formData.description
-      );
+      const { newRequest, clientRequest, newNotification } =
+        await sendRequestToWorker(
+          workerId.toString(),
+          user.id.toString(),
+          formData.name,
+          formData.contact,
+          formData.description
+        );
 
       toast.success("Request sent! Worker notified ✅");
-      console.log("Request:", newRequest, "Notification:", newNotification);
+      console.log("Worker Request:", newRequest);
+      console.log("Client Request:", clientRequest);
+      console.log("Notification:", newNotification);
 
       setFormData({
         name: user?.name || "",
@@ -68,7 +71,7 @@ export default function RequestDialog({ workerId }: { workerId: number }) {
 
   return (
     <div className="relative inline-block">
-      {/* Always show button */}
+      {/* Request button */}
       <button
         onClick={() => {
           if (!user) {

@@ -6,6 +6,7 @@ import WorkerLayout from "./WorkerLayout";
 
 export default function LayoutSwitcher({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  console.log("🔍 Current pathname:", pathname);
 
   // ✅ Match only actual worker routes (exact /worker or anything under /worker/)
   // ✅ Match only /publicpages/worker or anything under it

@@ -12,6 +12,7 @@ import { RiAccountPinCircleFill } from "react-icons/ri";
 import { IoMdSettings } from "react-icons/io";
 import { MdOutlineRateReview } from "react-icons/md";
 import { FaSignOutAlt } from "react-icons/fa";
+import { MdDashboardCustomize } from "react-icons/md";
 
 interface Profile {
   id: string;
@@ -185,6 +186,15 @@ export default function Navbar() {
                   className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
                 >
                <span className='flex gap-1'><RiAccountPinCircleFill className='text-xl' /> Your Profile</span> 
+ 
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => { router.push("/client/clientdashboard"); setShowModal(false); }}
+                  className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
+                >
+               <span className='flex gap-1'><MdDashboardCustomize className='text-xl' /> Dashboard</span> 
  
                 </button>
               </li>

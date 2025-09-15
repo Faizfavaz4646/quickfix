@@ -8,7 +8,7 @@ export default function GraphCard({ title, children }: GraphCardProps) {
     <div className="bg-white p-6 rounded-2xl shadow">
       <h3 className="text-lg font-semibold mb-4">{title}</h3>
       <div className="h-80 flex items-center justify-center">
-        {children ?? <p className="text-gray-400">[Graph Component Here]</p>}
+        {children ?? <p className="text-gray-400"></p>}
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ export default function JobGraph({ jobs }: JobGraphProps) {
   const completed = jobs.filter(j => j.status === "completed").length;
 
   const data = {
-    labels: ["Jobs Overview"],
+    labels: ["Requests Overview"],
     datasets: [
       {
         label: "Pending",
@@ -53,7 +53,7 @@ export default function JobGraph({ jobs }: JobGraphProps) {
       },
       title: {
         display: true,
-        text: "Jobs Status Overview",
+        text: "Requests Status Overview",
       },
     },
     scales: {

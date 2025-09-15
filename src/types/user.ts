@@ -5,15 +5,25 @@ import { persist, createJSONStorage } from "zustand/middleware";
 
 // ---------- TYPES ----------
 
-export interface Job {
+export interface Review {
   id: number;
-  clientId?: string;
-  name: string;
-  contact?: string;
-  description: string;
-  status: "ongoing" | "completed";
-  date?: string;
+  clientId: string | number;
+  clientName: string;
+  jobId: number;
+  review: string;
+  rating: number;
+  date: string;
 }
+
+export interface RatingInput {
+  clientId: string | number;
+  workerId: string | number;
+  jobId: number;
+  rating: number;
+  review: string;
+  clientName: string;
+}
+
 export interface Request {
   id: number;
   clientId: string;
@@ -24,6 +34,23 @@ export interface Request {
   status: string;
   date: string;
 }
+
+
+export interface Job {
+  id: number;
+  clientId: string;
+  clientName?: string;
+  workerId: string;   // 👈 required
+  workerName?: string;
+  profession?: string;
+  description?: string;
+  status: "pending" | "ongoing" | "completed";
+  date: string;       // 👈 required
+  reviewed?: boolean;
+  name?:string;
+  contact?:string;
+}
+
 export interface Field<T> {
   name: keyof T; // ensures only keys from T are valid
   label: string;
@@ -59,8 +86,12 @@ export interface Profile {
   requests?: Request[];
   termsAccepted?: boolean;
   name?: string;
-  activeJobs?:Job[];
-  completedJobs?:Job[];
+  reviews?: Review[];      // ← Add this for workers
+  ratings?: number[];      // ← Add this for workers
+  avgRating?: number;      // ← Optional average rating
+   activeJobs?: Job[];
+  completedJobs?: Job[];
+ 
 }
 
 export interface User {
@@ -70,6 +101,7 @@ export interface User {
   role: "client" | "worker";
   token?: string;
   profile?: Profile;
+  profession?: string;
 }
 
 // ---------- AUTH STORE ----------

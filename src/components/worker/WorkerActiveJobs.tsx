@@ -5,7 +5,7 @@ import { useAuthStore } from "@/store/authStore";
 import { getWorkerProfile, markJobCompleted, acceptRequest } from "@/services/workerService";
 import { FiBriefcase } from "react-icons/fi";
 import { toast } from "sonner";
-
+import { Job } from "@/types/user";
 export default function ActiveJobs() {
   const user = useAuthStore((state) => state.user);
   const activeJobs = useAuthStore((state) => state.activeJobs);
@@ -73,28 +73,33 @@ export default function ActiveJobs() {
 
 
   // Accept request
-  const handleAcceptRequest = async (request: any) => {
-    if (!user?.id) return;
+const handleAcceptRequest = async (request: any) => {
+  if (!user?.id) return;
 
-    const newJob = {
-      id: request.id,
-      clientId: request.clientId,
-      name: request.name,
-      description: request.description,
-      status: "ongoing" as const,
-      key: request.id ?? `new-${Date.now()}`, // unique key
-    };
-
-    addNewActiveJob(newJob);
-
-    try {
-      await acceptRequest(user.id.toString(), request.id);
-      toast.success("Request accepted! ✅");
-    } catch (error) {
-      console.error("Error accepting request:", error);
-      toast.error("Failed to accept request ❌");
-    }
+  const newJob: Job = {
+    id: request.id,
+    clientId: request.clientId.toString(),
+    clientName: request.clientName ?? request.name, // if request has clientName, else fallback
+    workerId: user.id.toString(), // ✅ required
+    workerName: user.name,        // optional
+    profession: user.profession,  // optional
+    description: request.description,
+    status: "ongoing",
+    date: new Date().toISOString(), // ✅ required
+    reviewed: false,
   };
+
+  addNewActiveJob(newJob);
+
+  try {
+    await acceptRequest(user.id.toString(), request.id);
+    toast.success("Request accepted! ✅");
+  } catch (error) {
+    console.error("Error accepting request:", error);
+    toast.error("Failed to accept request ❌");
+  }
+};
+
 
   if (loading) {
     return (

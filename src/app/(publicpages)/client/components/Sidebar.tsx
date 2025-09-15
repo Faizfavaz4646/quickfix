@@ -1,39 +1,61 @@
+"use client";
+
 import { MdDashboard } from "react-icons/md";
-import { FaBriefcase, FaListAlt, FaBell, FaWallet, FaCog, FaHome } from "react-icons/fa";
+import {
+  FaBriefcase,
+  FaListAlt,
+  FaBell,
+  FaWallet,
+  FaCog,
+  FaHome,
+} from "react-icons/fa";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const menu = [
-  { key: "dashboard", label: "Dashboard", icon: <MdDashboard className="text-xl" /> },
-  { key: "jobs", label: "Jobs", icon: <FaBriefcase className="text-lg" /> },
-  { key: "requests", label: "Requests", icon: <FaListAlt className="text-lg" /> },
-  { key: "notifications", label: "Notifications", icon: <FaBell className="text-lg" /> },
-  { key: "payments", label: "Payments", icon: <FaWallet className="text-lg" /> },
-  { key: "settings", label: "Settings", icon: <FaCog className="text-lg" /> },
+  { key: "dashboard", label: "Dashboard", icon: <MdDashboard className="text-xl" />, path: "/client/clientdashboard" },
+  { key: "jobs", label: "Jobs", icon: <FaBriefcase className="text-lg" />, path: "/client/clientdashboard/jobs" },
+  { key: "requests", label: "Requests", icon: <FaListAlt className="text-lg" />, path: "/client/clientdashboard/requests" },
+  { key: "notifications", label: "Notifications", icon: <FaBell className="text-lg" />, path: "/client/clientdashboard/notifications" },
+  { key: "payments", label: "Payments", icon: <FaWallet className="text-lg" />, path: "/client/clientdashboard/payments" },
+  { key: "settings", label: "Settings", icon: <FaCog className="text-lg" />, path: "/client/clientdashboard/settings" },
 ];
 
 export default function Sidebar() {
+  const pathname = usePathname(); // detect active route
+
   return (
-<aside className="fixed top-6 left-6 w-20 md:w-64 bg-white rounded-2xl p-6 shadow-lg h-[700px] -ml-3 z-30 mt-15">
+    <aside className="fixed top-6 left-6 w-20 md:w-64 bg-white rounded-2xl p-6 shadow-lg h-[700px] -ml-3 z-30 mt-15">
       <div className="flex flex-col h-full justify-between">
         {/* Logo */}
         <div>
-          <h1 className="hidden md:block text-4xl font-bold text-sky-600 mb-8 mx-20"><FaHome /></h1>
+          <h1 className="hidden md:block text-4xl font-bold text-sky-600 mb-8 mx-20">
+            <FaHome />
+          </h1>
           <nav className="flex flex-col gap-4">
-            {menu.map((item) => (
-              <button
-                key={item.key}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
-              >
-                {item.icon}
-                <span className="hidden md:block">{item.label}</span>
-              </button>
-            ))}
+            {menu.map((item) => {
+              const isActive = pathname === item.path;
+              return (
+                <Link
+                  key={item.key}
+                  href={item.path}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg ${
+                    isActive
+                      ? "bg-sky-100 text-sky-600 font-semibold"
+                      : "hover:bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  {item.icon}
+                  <span className="hidden md:block">{item.label}</span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
         {/* Help Section */}
         <div className="hidden md:flex flex-col items-center text-sm text-gray-500">
-          {/* Small Image */}
           <Image
             src="/images/folderimage.jpg"
             alt="Help Icon"

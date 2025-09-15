@@ -1,6 +1,7 @@
 "use client";
 
-import { useAuthStore, Request, Profile } from "@/store/authStore";
+import { useAuthStore } from "@/store/authStore";
+import { Request,Profile } from "@/types/user";
 import { useEffect, useState } from "react";
 import {
   getWorkerProfile,

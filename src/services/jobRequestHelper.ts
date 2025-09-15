@@ -3,8 +3,8 @@ import axios from "axios";
 const API_URL = "http://localhost:50001";
 
 export const sendRequestToWorker = async (
-  workerId: string,   // worker.id in DB (not userId)
-  clientId: string,   // user.id in DB
+  workerId: string,
+  clientId: string,
   name: string,
   contact: string,
   description: string
@@ -27,14 +27,14 @@ export const sendRequestToWorker = async (
     date: new Date().toISOString(),
   };
 
-  // ---------- 1. Fetch worker ----------
+  // Fetch worker
   const { data: worker } = await axios.get(`${API_URL}/workers/${workerId}`);
 
-  // ---------- 2. Fetch client ----------
+  // Fetch client
   const { data: client } = await axios.get(`${API_URL}/users/${clientId}`);
 
-  // ---------- 3. Append request for worker ----------
-  const updatedWorkerRequests = [...(worker.requests || []), newRequest];
+  // Append request for worker safely
+  const updatedWorkerRequests = [...(worker.requests || worker.Requests || []), newRequest];
   const updatedNotifications = [...(worker.notifications || []), newNotification];
 
   await axios.patch(`${API_URL}/workers/${workerId}`, {
@@ -42,7 +42,7 @@ export const sendRequestToWorker = async (
     notifications: updatedNotifications,
   });
 
-  // ---------- 4. Save simplified request for client ----------
+  // Prepare request for client
   const clientRequest = {
     id: newRequest.id,
     workerId,
@@ -52,10 +52,7 @@ export const sendRequestToWorker = async (
     date: newRequest.date,
   };
 
-  const updatedClientRequests = [
-    ...(client.profile?.requests || []),
-    clientRequest,
-  ];
+  const updatedClientRequests = [...(client.profile?.requests || []), clientRequest];
 
   await axios.patch(`${API_URL}/users/${clientId}`, {
     profile: {

@@ -1,68 +1,9 @@
+// src/store/authStore.ts
 "use client";
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-
-// ---------- TYPES ----------
-export interface Request {
-  id: number;
-  clientId: string;
-  workerId: string;
-  name: string;
-  contact: string;
-  description: string;
-  status: string;
-  date: string;
-}
-
-export interface Job {
-  id: number;
-  clientId?: string;
-  name: string;
-  contact?: string;
-  description: string;
-  status: "ongoing" | "completed";
-  date?: string;
-}
-
-export interface Notification {
-  id: number;
-  message: string;
-  date: string;
-  seen: boolean;
-  name?: string;
-  contact?: string;
-  description?: string;
-}
-
-export interface Profile {
-  id?: number;
-  profilePic?: string;
-  state?: string;
-  district?: string;
-  city?: string;
-  schedule?: string;
-  phone?: string;
-  gender?: string;
-  zip?: string;
-  profession?: string;
-  previousWorkImages?: string[];
-  notifications?: Notification[];
-  requests?: Request[];
-  activeJobs?: Job[];
-  completedJobs?: Job[];
-  termsAccepted?: boolean;
-  name?: string;
-}
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: "client" | "worker";
-  token?: string;
-  profile?: Profile;
-}
+import { User, Profile, Job } from "@/types/user";
 
 // ---------- AUTH STORE ----------
 interface AuthState {
@@ -79,7 +20,7 @@ interface AuthState {
   setActiveJobs: (jobs: Job[]) => void;
   setCompletedJobs: (jobs: Job[]) => void;
   markJobCompletedLocally: (jobId: number) => void;
-  addActiveJob: (job: Job) => void; // ✅ add instant active job
+  addActiveJob: (job: Job) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -94,7 +35,6 @@ export const useAuthStore = create<AuthState>()(
       setActiveJobs: (jobs) => set({ activeJobs: jobs }),
       setCompletedJobs: (jobs) => set({ completedJobs: jobs }),
 
-      // Optimistic UI update: move a job from active → completed
       markJobCompletedLocally: (jobId: number) => {
         const job = get().activeJobs.find((j) => j.id === jobId);
         if (!job) return;
@@ -104,8 +44,7 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      // Optimistic UI update: add a new active job
-      addActiveJob: (job: Job) => {
+      addActiveJob: (job) => {
         set({ activeJobs: [...get().activeJobs, job] });
       },
 
@@ -129,7 +68,13 @@ export const useAuthStore = create<AuthState>()(
 
       setIsLogin: (value) => set({ isLogin: value }),
 
-      logout: () => set({ user: null, isLogin: false, activeJobs: [], completedJobs: [] }),
+      logout: () =>
+        set({
+          user: null,
+          isLogin: false,
+          activeJobs: [],
+          completedJobs: [],
+        }),
     }),
     {
       name: "quickfix-user",

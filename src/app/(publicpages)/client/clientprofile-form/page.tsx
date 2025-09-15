@@ -24,6 +24,9 @@ export default function ProfileForm() {
     requests: [],
     completedJobs: [],
     activeJobs: [],
+    notifications:[],
+    ratings:[],
+    reviews:[],
 
   });
 
@@ -47,6 +50,7 @@ export default function ProfileForm() {
       requests: user.profile?.requests || [],
       completedJobs:user.profile?.completedJobs || [],
       activeJobs : user.profile?.activeJobs || [],
+      notifications:user.profile?.notifications || [],
     });
 
     setName(user.name);

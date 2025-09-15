@@ -9,6 +9,7 @@ import RequestCard from "@/app/(publicpages)/client/components/RequestCard";
 import { useEffect, useState } from "react";
 import { Job,Notification } from "@/types/user";
 import axios from "axios";
+import JobGraph from "../components/JobGraph";
 
 export default function DashboardLayout() {
   const { user } = useAuthStore();
@@ -76,10 +77,8 @@ export default function DashboardLayout() {
 
           {/* Graph Section */}
           <section className="mt-10">
-            <GraphCard title="Sales Overview">
-              <p className="text-gray-500 text-center sm:text-left">
-                Line chart will go here 📈
-              </p>
+            <GraphCard title="Requests Overview">
+              <JobGraph jobs={requests} />
             </GraphCard>
           </section>
 

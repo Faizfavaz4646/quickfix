@@ -13,17 +13,30 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const menu = [
-  { key: "dashboard", label: "Dashboard", icon: <MdDashboard className="text-xl" />, path: "/client/clientdashboard" },
-  { key: "jobs", label: "Jobs", icon: <FaBriefcase className="text-lg" />, path: "/client/clientdashboard/jobs" },
-  { key: "requests", label: "Requests", icon: <FaListAlt className="text-lg" />, path: "/client/clientdashboard/requests" },
-  { key: "notifications", label: "Notifications", icon: <FaBell className="text-lg" />, path: "/client/clientdashboard/notifications" },
-  { key: "payments", label: "Payments", icon: <FaWallet className="text-lg" />, path: "/client/clientdashboard/payments" },
-  { key: "settings", label: "Settings", icon: <FaCog className="text-lg" />, path: "/client/clientdashboard/settings" },
-];
+interface Notification {
+  id: number;
+  message: string;
+  seen: boolean;
+  date: string;
+}
 
-export default function Sidebar() {
+interface SidebarProps {
+  notifications?: Notification[]; // pass notifications as prop
+}
+
+export default function Sidebar({ notifications = [] }: SidebarProps) {
   const pathname = usePathname(); // detect active route
+
+  const unreadCount = notifications.filter((n) => !n.seen).length;
+
+  const menu = [
+    { key: "dashboard", label: "Dashboard", icon: <MdDashboard className="text-xl" />, path: "/client/clientdashboard" },
+    { key: "jobs", label: "Jobs", icon: <FaBriefcase className="text-lg" />, path: "/client/clientdashboard/jobs" },
+    { key: "requests", label: "Requests", icon: <FaListAlt className="text-lg" />, path: "/client/clientdashboard/requests" },
+    { key: "notifications", label: "Notifications", icon: <FaBell className="text-lg" />, path: "/client/clientdashboard/notifications", count: unreadCount },
+    { key: "payments", label: "Payments", icon: <FaWallet className="text-lg" />, path: "/client/clientdashboard/payments" },
+    { key: "settings", label: "Settings", icon: <FaCog className="text-lg" />, path: "/client/clientdashboard/settings" },
+  ];
 
   return (
     <aside className="fixed top-6 left-6 w-20 md:w-64 bg-white rounded-2xl p-6 shadow-lg h-[700px] -ml-3 z-30 mt-15">
@@ -40,7 +53,7 @@ export default function Sidebar() {
                 <Link
                   key={item.key}
                   href={item.path}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg ${
+                  className={`relative flex items-center gap-3 px-3 py-2 rounded-lg ${
                     isActive
                       ? "bg-sky-100 text-sky-600 font-semibold"
                       : "hover:bg-gray-100 text-gray-700"
@@ -48,6 +61,13 @@ export default function Sidebar() {
                 >
                   {item.icon}
                   <span className="hidden md:block">{item.label}</span>
+
+                  {/* Notification badge */}
+                  {item.key === "notifications" && item.count && item.count > 0 && (
+                    <span className="absolute right-3 top-2 md:top-1 bg-red-500 text-white text-xs font-semibold rounded-full  px-2 mt-2">
+                      {item.count}
+                    </span>
+                  )}
                 </Link>
               );
             })}

@@ -47,14 +47,6 @@
             "profession": "Painter",
             "status": "ongoing",
             "date": "2025-09-13T04:49:28.256Z"
-          },
-          {
-            "id": 1757908293607,
-            "workerId": "e0d9",
-            "workerName": "Saheer Chungath",
-            "profession": "plumber",
-            "status": "ongoing",
-            "date": "2025-09-15T03:51:33.607Z"
           }
         ],
         "completedJobs": [
@@ -73,6 +65,14 @@
             "profession": "plumber",
             "status": "completed",
             "date": "2025-09-15T03:52:22.772Z"
+          },
+          {
+            "id": 1757908293607,
+            "workerId": "e0d9",
+            "workerName": "Saheer Chungath",
+            "profession": "plumber",
+            "status": "completed",
+            "date": "2025-09-15T08:13:21.649Z"
           }
         ],
         "notifications": [
@@ -115,7 +115,7 @@
     },
     {
       "id": "c418",
-      "name": "nefla",
+      "name": "Ayisha Nefla",
       "email": "nefla@gmail.com",
       "password": "1234567",
       "role": "client",
@@ -126,7 +126,56 @@
         "district": "malappuram",
         "city": "kondotty",
         "zip": "675641",
-        "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756232451/tnwq9itgbwvwlopky8cp.jpg"
+        "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1757923812/kmdcbf8rhisykk2kalaq.jpg",
+        "requests": [
+          {
+            "id": 1757923912567,
+            "workerId": "a894",
+            "workerName": "Muhammed Yasar",
+            "profession": "HVAC Technician",
+            "status": "pending",
+            "date": "2025-09-15T08:11:52.567Z"
+          }
+        ],
+        "completedJobs": [
+          {
+            "id": 1757923874335,
+            "workerId": "e0d9",
+            "workerName": "Saheer Chungath",
+            "profession": "plumber",
+            "status": "completed",
+            "date": "2025-09-15T08:13:15.247Z",
+            "reviewed": true
+          }
+        ],
+        "activeJobs": [
+          {
+            "id": 1757924451580,
+            "workerId": "b0e7",
+            "workerName": "virat",
+            "profession": "Plumber",
+            "status": "ongoing",
+            "date": "2025-09-15T08:20:51.580Z"
+          },
+          {
+            "id": 1757923954317,
+            "workerId": "9562",
+            "workerName": "jamshil",
+            "profession": "Painter",
+            "status": "ongoing",
+            "date": "2025-09-15T08:12:34.317Z"
+          }
+        ],
+        "notifications": [
+          {
+            "id": 1757925142381,
+            "message": "jamshil accepted your job request. Please chat or call to confirm.",
+            "seen": true,
+            "date": "2025-09-15T08:32:22.381Z"
+          }
+        ],
+        "ratings": [],
+        "reviews": []
       }
     },
     {
@@ -220,7 +269,17 @@
             "workerName": "jamshil",
             "profession": "Painter",
             "status": "completed",
-            "date": "2025-09-06T06:08:35.588Z"
+            "date": "2025-09-06T06:08:35.588Z",
+            "reviewed": true
+          },
+          {
+            "id": 1757923085735,
+            "workerId": "1683",
+            "workerName": "Harshad",
+            "profession": "Plumber",
+            "status": "completed",
+            "date": "2025-09-15T07:58:29.196Z",
+            "reviewed": true
           }
         ],
         "activeJobs": [
@@ -239,6 +298,12 @@
             "message": "jamshil accepted your job request. Please chat or call to confirm.",
             "seen": true,
             "date": "2025-09-06T06:07:15.306Z"
+          },
+          {
+            "id": 1757923104978,
+            "message": "Harshad accepted your job request. Please chat or call to confirm.",
+            "seen": false,
+            "date": "2025-09-15T07:58:24.978Z"
           }
         ]
       }
@@ -285,12 +350,17 @@
           "description": "need full plumbing work",
           "status": "completed",
           "date": "2025-09-13T05:17:30.234Z"
-        }
-      ],
-      "reviews": [],
-      "ratings": [],
-      "notifications": [],
-      "activeJobs": [
+        },
+        {
+          "id": 1757923874335,
+          "clientId": "c418",
+          "workerId": "1beb",
+          "name": "Ayisha Nefla",
+          "contact": "7736599384",
+          "description": "i need full home plumbing work",
+          "status": "completed",
+          "date": "2025-09-15T08:11:14.335Z"
+        },
         {
           "id": 1757908293607,
           "clientId": "0b07",
@@ -298,14 +368,31 @@
           "name": "jomy seban",
           "contact": "7034514646",
           "description": "sms,cs",
-          "status": "ongoing",
+          "status": "completed",
           "date": "2025-09-15T03:51:33.607Z"
         }
       ],
+      "reviews": [
+        {
+          "id": 1757924136589,
+          "clientId": "c418",
+          "clientName": "Ayisha Nefla",
+          "jobId": 1757923874335,
+          "review": "he did well.very professional work.also very low charge",
+          "rating": 3,
+          "date": "2025-09-15T08:15:36.589Z"
+        }
+      ],
+      "ratings": [
+        3
+      ],
+      "notifications": [],
+      "activeJobs": [],
       "termsAccepted": true,
       "name": "Saheer Chungath",
       "email": "saheer@gmail.com",
-      "Requests": []
+      "Requests": [],
+      "avgRating": 3
     },
     {
       "userId": "17b5",
@@ -348,6 +435,16 @@
           "description": "i need to fix a new ac",
           "status": "pending",
           "date": "2025-09-13T05:17:58.067Z"
+        },
+        {
+          "id": 1757923912567,
+          "clientId": "c418",
+          "workerId": "a894",
+          "name": "Ayisha Nefla",
+          "contact": "7736599384",
+          "description": "i need fit a new ac in my home",
+          "status": "pending",
+          "date": "2025-09-15T08:11:52.567Z"
         }
       ],
       "completedJobs": [],
@@ -365,6 +462,12 @@
           "message": "You have a new job request",
           "seen": false,
           "date": "2025-09-13T05:17:58.067Z"
+        },
+        {
+          "id": 1757923912567,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-09-15T08:11:52.567Z"
         }
       ],
       "activeJobs": [],
@@ -415,22 +518,20 @@
           "date": "2025-09-06T05:50:57.090Z"
         }
       ],
-      "reviews": [],
-      "ratings": [],
-      "notifications": [
+      "reviews": [
         {
-          "id": 1757138481621,
-          "message": "You have a new job request",
-          "seen": false,
-          "date": "2025-09-06T06:01:21.621Z"
-        },
-        {
-          "id": 1757738968257,
-          "message": "You have a new job request",
-          "seen": false,
-          "date": "2025-09-13T04:49:28.257Z"
+          "id": 1757916562825,
+          "clientId": "0f49",
+          "clientName": "faiz favaz",
+          "review": "very cleaned work .he completed work very fast",
+          "rating": 2,
+          "date": "2025-09-15T06:09:22.825Z"
         }
       ],
+      "ratings": [
+        2
+      ],
+      "notifications": [],
       "activeJobs": [
         {
           "id": 1757738968256,
@@ -441,12 +542,23 @@
           "description": "i need full home panting",
           "status": "ongoing",
           "date": "2025-09-13T04:49:28.256Z"
+        },
+        {
+          "id": 1757923954317,
+          "clientId": "c418",
+          "workerId": "3031",
+          "name": "Ayisha Nefla",
+          "contact": "7736599384",
+          "description": "i need painting patchwork in my room",
+          "status": "ongoing",
+          "date": "2025-09-15T08:12:34.317Z"
         }
       ],
       "termsAccepted": true,
       "name": "jamshil",
       "email": "jamshil@gmail.com",
-      "Requests": []
+      "Requests": [],
+      "avgRating": 2
     },
     {
       "id": "7a18",
@@ -483,7 +595,18 @@
       "reviews": [],
       "ratings": [],
       "notifications": [],
-      "activeJobs": [],
+      "activeJobs": [
+        {
+          "id": 1757924451580,
+          "clientId": "c418",
+          "workerId": "7a18",
+          "name": "Ayisha Nefla",
+          "contact": "7736599384",
+          "description": "i need plumbing work at my home,urgently",
+          "status": "ongoing",
+          "date": "2025-09-15T08:20:51.580Z"
+        }
+      ],
       "termsAccepted": true,
       "name": "virat",
       "email": "virat@gmail.com",
@@ -519,6 +642,16 @@
           "description": "nees plumbing work at my house",
           "status": "completed",
           "date": "2025-09-04T03:59:12.880Z"
+        },
+        {
+          "id": 1757923085735,
+          "clientId": "0f49",
+          "workerId": "55e3",
+          "name": "faiz favaz",
+          "contact": "9074326554",
+          "description": "need plumbing full work at home",
+          "status": "completed",
+          "date": "2025-09-15T07:58:05.735Z"
         }
       ],
       "reviews": [
@@ -529,10 +662,20 @@
           "review": "very clean and perfect work.he completed full work on right time",
           "rating": 5,
           "date": "2025-09-13T05:35:48.738Z"
+        },
+        {
+          "id": 1757923235040,
+          "clientId": "0f49",
+          "clientName": "faiz favaz",
+          "jobId": 1757923085735,
+          "review": "perfect worker.very comfortable charge",
+          "rating": 4,
+          "date": "2025-09-15T08:00:35.040Z"
         }
       ],
       "ratings": [
-        5
+        5,
+        4
       ],
       "notifications": [],
       "activeJobs": [],
@@ -540,7 +683,7 @@
       "name": "Harshad",
       "email": "harshad@gmail.com",
       "Requests": [],
-      "avgRating": 5
+      "avgRating": 4.5
     },
     {
       "id": "c63e",

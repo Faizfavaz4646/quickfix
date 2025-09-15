@@ -93,8 +93,8 @@ export default function RequestCard({ requests, refreshRequests }: Props) {
 
             {/* Worker Info */}
             <div className="mt-3">
-              <h3 className="text-lg font-semibold">{job.name || "N/A"}</h3>
-              <p className="text-gray-600 text-sm">{job.contact || "N/A"}</p>
+              <h3 className="text-lg font-semibold">{job.workerName || "N/A"}</h3>
+              <p className="text-gray-600 text-sm">{job.profession || "N/A"}</p>
               <p className="text-gray-400 text-xs mt-1">
                 Date: {job.date ? new Date(job.date).toLocaleDateString() : "N/A"}
               </p>

@@ -10,6 +10,7 @@ import { useAuthStore } from "@/store/authStore";
 
 export default function WorkerDashboard() {
   const { user } = useAuthStore();
+    const userId = user?.id;
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-12 py-10">
@@ -30,7 +31,7 @@ export default function WorkerDashboard() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* === Top Row === */}
         <div className="bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6">
-          <WorkerRating />
+          <WorkerRating userId={String(userId)} />
         </div>
 
         <div className="bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6">
@@ -54,9 +55,16 @@ export default function WorkerDashboard() {
         <div className="hidden lg:block"></div>
 
         {/* === Reviews Full Width === */}
-        <div className="lg:col-span-3 bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6">
-          <WorkerReviews />
-        </div>
+ <div className="lg:col-span-3 bg-white shadow-sm hover:shadow-md transition-all rounded-2xl p-6">
+        
+      {userId ? (
+        <WorkerReviews userId={String(userId)} />
+      ) : (
+        <p className="text-sm text-gray-500">No worker data available.</p>
+      )}
+    </div>
+
+
       </div>
     </main>
   );

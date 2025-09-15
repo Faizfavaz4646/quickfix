@@ -7,12 +7,14 @@ import GraphCard from "@/app/(publicpages)/client/components/GraphCard";
 import { useAuthStore } from "@/store/authStore";
 import RequestCard from "@/app/(publicpages)/client/components/RequestCard";
 import { useEffect, useState } from "react";
-import { Job } from "@/types/user";
+import { Job,Notification } from "@/types/user";
 import axios from "axios";
 
 export default function DashboardLayout() {
   const { user } = useAuthStore();
   const [requests, setRequests] = useState<Job[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+ 
 
   // Fetch client requests and merge all jobs
   const refreshRequests = async () => {
@@ -30,11 +32,15 @@ export default function DashboardLayout() {
       ];
 
       setRequests(allJobs);
+        // Fetch notifications
+      setNotifications(profile?.notifications || []);
     } catch (err: any) {
       console.error("Error fetching requests:", err);
       setRequests([]);
+      setNotifications([]);
     }
   };
+  
 
   useEffect(() => {
     refreshRequests();
@@ -58,7 +64,7 @@ export default function DashboardLayout() {
       <div className="flex flex-1">
         {/* Sidebar (collapses on small screens) */}
         <div className="hidden md:block">
-          <Sidebar />
+          <Sidebar notifications={notifications}  />
         </div>
 
         {/* Main content */}

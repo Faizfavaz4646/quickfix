@@ -139,9 +139,9 @@ export default function RequestCard({ requests, refreshRequests }: Props) {
                 ) : (
                   <button
                     onClick={() => setSelectedJobId(job.id)}
-                    className="mt-3 text-sm bg-sky-100 text-sky-600 px-3 py-1 rounded-md"
+                    className="mt-3 text-sm bg-sky-100 text-sky-600 px-3 py-1 rounded-md flex gap-2 cursor-pointer"
                   >
-                    Add Rating / Review
+                   < FaStar className=" mt-0.5" /> Add Rating / Review
                   </button>
                 )}
               </div>

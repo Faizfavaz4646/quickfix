@@ -35,6 +35,26 @@ export default function Navbar() {
   const router = useRouter();
   const modalRef = useRef<HTMLDivElement>(null);
 
+
+  // Inside Navbar component
+const handleJoinProfessional = () => {
+  if (!user) {
+    router.push("/auth/signup?role=worker");
+    return;
+  }
+
+  if (profile?.role === "client") {
+    toast.error("You are registered as a client. Please logout to register as a worker.");
+    return;
+  }
+
+  if (profile?.role === "worker") {
+    toast("You are already registered as a professional.");
+    return;
+  }
+};
+
+
   useEffect(() => {
     setIsMounted(true);
 
@@ -114,7 +134,7 @@ export default function Navbar() {
           <Link href="/services" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">Services</Link>
           <Link href="/contact" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">Contact</Link>
           <Link href="/client/findworker" className="font-semibold hover:underline">Find a Professional</Link>
-          <button onClick={() => router.push("/auth/signup?role=worker")} className="font-semibold hover:underline">Join as a Professional</button>
+          <button onClick={handleJoinProfessional} className="font-semibold hover:underline">Join as a Professional</button>
 
           {user ? (
             <div onClick={() => setShowModal(true)}>
@@ -142,7 +162,7 @@ export default function Navbar() {
             <Link href="/services" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">Services</Link>
             <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">Contact</Link>
             <Link href="/client/findworker" onClick={() => setIsOpen(false)} className="text-blue-600 font-semibold">Find a Professional</Link>
-            <button onClick={() => { router.push("/auth/signup?role=worker"); setIsOpen(false); }} className="text-green-600 font-semibold text-left">Join as a Professional</button>
+            <button onClick={handleJoinProfessional} className="text-green-600 font-semibold text-left">Join as a Professional</button>
 
             {user ? (
               <div onClick={() => { setShowModal(true); setIsOpen(false); }}>

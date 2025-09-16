@@ -1,12 +1,12 @@
-'use client';
-import { toast } from 'sonner';
-import { useFormik } from 'formik';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
+"use client";
+import { toast } from "sonner";
+import { useFormik } from "formik";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { API_URL } from "../../../../lib/constants";
-import { FaTools } from 'react-icons/fa';
-import Link from 'next/link';
+import { FaTools } from "react-icons/fa";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,54 +14,70 @@ export default function LoginPage() {
 
   const formik = useFormik({
     initialValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
     onSubmit: async (values, { setSubmitting, setErrors }) => {
       try {
-        // Fetch user by email
-        const res = await axios.get(`${API_URL}/users?email=${values.email}`);
-        if (res.data.length === 0) {
-          setErrors({ email: 'Email not found' });
+        // 1️⃣ Check if admin
+        const adminRes = await axios.get(
+          `${API_URL}/admins?email=${values.email}`
+        );
+
+        if (adminRes.data.length > 0) {
+          const admin = adminRes.data[0];
+          if (admin.password !== values.password) {
+            setErrors({ password: "Incorrect password" });
+            return;
+          }
+
+          toast.success("Admin login successful");
+          sessionStorage.setItem("admin", JSON.stringify(admin));
+          router.push("/admin/dashboard");
+          return; // stop here if admin
+        }
+
+        // 2️⃣ Otherwise check user
+        const userRes = await axios.get(
+          `${API_URL}/users?email=${values.email}`
+        );
+        if (userRes.data.length === 0) {
+          setErrors({ email: "Email not found" });
           return;
         }
 
-        const user = res.data[0];
+        const user = userRes.data[0];
 
-        // Password check
         if (user.password !== values.password) {
-          setErrors({ password: 'Incorrect password' });
+          setErrors({ password: "Incorrect password" });
           return;
         }
 
-        // ✅ Fetch full user with profile (to avoid empty fields later)
+        // ✅ Fetch full user with profile
         const fullUserRes = await axios.get(`${API_URL}/users/${user.id}`);
         const fullUser = fullUserRes.data;
 
-        // Save user in store (includes profile)
         setUser(fullUser);
+        toast.success("Login successful");
 
-        toast.success('Login successful');
-
-        // Redirect based on role
-        if (fullUser.role === 'worker') {
+        // Redirect by role
+        if (fullUser.role === "worker") {
           const isProfileComplete =
             fullUser.profile &&
             fullUser.profile.profession &&
             fullUser.profile.phone;
 
           if (isProfileComplete) {
-            router.push('/worker/dashboard');
+            router.push("/worker/dashboard");
           } else {
-            router.push('/worker/profile');
+            router.push("/worker/profile");
           }
         } else {
-          router.push('/'); // client homepage
+          router.push("/"); // client homepage
         }
-
       } catch (error) {
         console.error(error);
-        alert('Something went wrong');
+        toast.error("Something went wrong. Try again.");
       } finally {
         setSubmitting(false);
       }
@@ -74,7 +90,7 @@ export default function LoginPage() {
         onSubmit={formik.handleSubmit}
         className="bg-white p-6 rounded shadow-md w-96"
       >
-        <h1 className='flex gap-2 justify-center text-2xl font-bold mb-4'>
+        <h1 className="flex gap-2 justify-center text-2xl font-bold mb-4">
           <FaTools className="text-blue-600 mt-1" /> QuickFix
         </h1>
 
@@ -109,10 +125,10 @@ export default function LoginPage() {
           disabled={formik.isSubmitting}
           className="bg-blue-500 text-white w-full p-2 rounded hover:bg-blue-600 cursor-pointer"
         >
-          {formik.isSubmitting ? 'Logging in...' : 'Login'}
+          {formik.isSubmitting ? "Logging in..." : "Login"}
         </button>
 
-        <Link className='text-blue-600 flex justify-end mt-3' href="/auth/signup">
+        <Link className="text-blue-600 flex justify-end mt-3" href="/auth/signup">
           Signup
         </Link>
       </form>

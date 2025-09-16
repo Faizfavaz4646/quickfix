@@ -64,7 +64,7 @@ export default function Sidebar({ notifications = [] }: SidebarProps) {
 
                   {/* Notification badge */}
                   {item.key === "notifications" && item.count && item.count > 0 && (
-                    <span className="absolute right-3 top-2 md:top-1 bg-red-500 text-white text-xs font-semibold rounded-full  px-2 mt-2">
+                    <span className="absolute right-3 top-2 md:top-1 bg-red-500 text-white text-xs font-semibold rounded-full  px-1.5 mt-2">
                       {item.count}
                     </span>
                   )}

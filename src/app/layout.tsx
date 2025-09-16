@@ -30,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="bg-white text-gray-900 antialiased">
-        <Toaster richColors position="top-right" />
+        <Toaster richColors position="top-right" duration={3000} />
         {/* Client-side decides which layout to render */}
         <LayoutSwitcher>{children}</LayoutSwitcher>
       </body>

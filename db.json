@@ -75,26 +75,7 @@
             "date": "2025-09-15T08:13:21.649Z"
           }
         ],
-        "notifications": [
-          {
-            "id": 1757908331351,
-            "message": "Saheer Chungath accepted your job request. Please chat or call to confirm.",
-            "seen": true,
-            "date": "2025-09-15T03:52:11.351Z"
-          },
-          {
-            "id": 1757741000580,
-            "message": "Saheer Chungath accepted your job request. Please chat or call to confirm.",
-            "seen": true,
-            "date": "2025-09-13T05:23:20.580Z"
-          },
-          {
-            "id": 1757739554036,
-            "message": "jamshil accepted your job request. Please chat or call to confirm.",
-            "seen": true,
-            "date": "2025-09-13T04:59:14.036Z"
-          }
-        ]
+        "notifications": []
       }
     },
     {
@@ -280,6 +261,14 @@
             "status": "completed",
             "date": "2025-09-15T07:58:29.196Z",
             "reviewed": true
+          },
+          {
+            "id": 1758003369840,
+            "workerId": "e0d9",
+            "workerName": "Saheer Chungath",
+            "profession": "plumber",
+            "status": "completed",
+            "date": "2025-09-16T06:17:01.206Z"
           }
         ],
         "activeJobs": [
@@ -294,16 +283,22 @@
         ],
         "notifications": [
           {
-            "id": 1757138835306,
-            "message": "jamshil accepted your job request. Please chat or call to confirm.",
+            "id": 1758003409036,
+            "message": "Saheer Chungath accepted your job request. Please chat or call to confirm.",
             "seen": true,
-            "date": "2025-09-06T06:07:15.306Z"
+            "date": "2025-09-16T06:16:49.036Z"
           },
           {
             "id": 1757923104978,
             "message": "Harshad accepted your job request. Please chat or call to confirm.",
-            "seen": false,
+            "seen": true,
             "date": "2025-09-15T07:58:24.978Z"
+          },
+          {
+            "id": 1757138835306,
+            "message": "jamshil accepted your job request. Please chat or call to confirm.",
+            "seen": true,
+            "date": "2025-09-06T06:07:15.306Z"
           }
         ]
       }
@@ -370,6 +365,16 @@
           "description": "sms,cs",
           "status": "completed",
           "date": "2025-09-15T03:51:33.607Z"
+        },
+        {
+          "id": 1758003369840,
+          "clientId": "0f49",
+          "workerId": "1beb",
+          "name": "faiz favaz",
+          "contact": "9074326554",
+          "description": "nvx",
+          "status": "completed",
+          "date": "2025-09-16T06:16:09.840Z"
         }
       ],
       "reviews": [
@@ -779,6 +784,14 @@
       "name": "Jasil",
       "email": "jasil@gmail.com",
       "Requests": []
+    }
+  ],
+  "admins": [
+    {
+      "id": "100",
+      "email": "admin@quickfix.com",
+      "password": "admin123",
+      "role": "admin"
     }
   ]
 }

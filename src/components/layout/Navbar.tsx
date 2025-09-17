@@ -20,7 +20,7 @@ interface Profile {
   email: string;
   role: string;
   profile?: {
-    profilePic?: string;
+  profilePic?: string;
   };
 }
 
@@ -29,12 +29,10 @@ export default function Navbar() {
   const [isMounted, setIsMounted] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [showModal, setShowModal] = useState(false);
-
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const router = useRouter();
   const modalRef = useRef<HTMLDivElement>(null);
-
 
   // Inside Navbar component
 const handleJoinProfessional = () => {
@@ -124,7 +122,7 @@ const handleJoinProfessional = () => {
           href="/"
           className="flex items-center gap-2 text-xl font-bold text-black dark:text-white"
         >
-          <FaTools className="text-blue-600" />
+        <FaTools className="text-blue-600" />
           QuickFix
         </Link>
 
@@ -135,7 +133,7 @@ const handleJoinProfessional = () => {
           <Link href="/contact" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">Contact</Link>
           <Link href="/client/findworker" className="font-semibold hover:underline">Find a Professional</Link>
           <button onClick={handleJoinProfessional} className="font-semibold hover:underline">Join as a Professional</button>
-
+          
           {user ? (
             <div onClick={() => setShowModal(true)}>
               {renderProfilePic()}

@@ -5,7 +5,8 @@
       "name": "Saheer Chungath",
       "email": "saheer@gmail.com",
       "password": "1234567",
-      "role": "worker"
+      "role": "worker",
+      "status": "active"
     },
     {
       "id": "0b07",

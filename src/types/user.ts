@@ -102,7 +102,9 @@ export interface User {
   token?: string;
   profile?: Profile;
   profession?: string;
+  status?: "active" | "online" | "offline" | "blocked"; // ← Add this
 }
+
 
 // ---------- AUTH STORE ----------
 interface AuthState {

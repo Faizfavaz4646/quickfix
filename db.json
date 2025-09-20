@@ -77,7 +77,8 @@
           }
         ],
         "notifications": []
-      }
+      },
+      "status": "active"
     },
     {
       "id": "4c47",
@@ -172,7 +173,8 @@
       "name": "jamshil",
       "email": "jamshil@gmail.com",
       "password": "1234567",
-      "role": "worker"
+      "role": "worker",
+      "status": "active"
     },
     {
       "id": "b0e7",

@@ -1,4 +1,5 @@
 'use client';
+
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { useFormik } from 'formik';
@@ -9,10 +10,12 @@ import { useRouter } from 'next/navigation';
 import { FaEye, FaEyeSlash, FaTools } from 'react-icons/fa';
 import { API_URL } from '../../../../lib/constants';
 
+type Role = 'client' | 'worker';
+
 const SignupPage = () => {
   const { setUser } = useAuthStore();
   const router = useRouter();
-  const [role, setRole] = useState<'client' | 'worker'>('client');
+  const [role, setRole] = useState<Role>('client');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -31,77 +34,77 @@ const SignupPage = () => {
         .oneOf([Yup.ref('password')], 'Passwords must match')
         .required('Confirm password is required'),
     }),
-    // inside onSubmit
-onSubmit: async (values, { setSubmitting }) => {
-  try {
-    const email = values.email.toLowerCase();
+    onSubmit: async (values, { setSubmitting }) => {
+      setSubmitting(true);
+      try {
+        const email = values.email.toLowerCase();
 
-    // Check if email exists
-    const existing = await axios.get(`${API_URL}/users?email=${email}`);
-    if (existing.data.length > 0) {
-      toast.info('Email already registered');
-      return;
-    }
+        // Check if email exists
+        const existing = await axios.get(`${API_URL}/users?email=${email}`);
+        if (existing.data.length > 0) {
+          toast.info('Email already registered');
+          setSubmitting(false);
+          return;
+        }
 
-    // Build payload
-    const payload: any = {
-      name: values.name,
-      email,
-      password: values.password,
-      role
-    };
+        // Build payload with status
+        const payload = {
+          name: values.name,
+          email,
+          password: values.password,
+          role,
+          status: 'active', // <-- new user is active by default
+        };
 
+        // Create user
+        const response = await axios.post(`${API_URL}/users`, payload);
+        const newUser = response.data;
 
-    // Create user
-    const response = await axios.post(`${API_URL}/users`, payload);
-    const newUser = response.data;
+        // Auto-login after signup
+        setUser({
+          id: newUser.id ?? newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          token: newUser.token ?? '', // optional token
+        });
 
-    // Auto-login after signup
-    setUser({
-      id: newUser.id ?? newUser._id,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-      token: newUser.token
-    });
+        toast.success('Account created and logged in');
 
-    toast.success('Account created and logged in');
-
-    // Redirect based on role
-    if (role === 'worker') {
-      router.push('/worker/profile');
-    } else {
-      router.push('/auth/login');
-    }
-
-  } catch (err) {
-    toast.error('Signup failed');
-  } finally {
-    setSubmitting(false);
-  }
-}
-
+        // Redirect based on role
+        if (role === 'worker') {
+          router.push('/worker/profile');
+        } else {
+          router.push('/auth/login');
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error('Signup failed');
+      } finally {
+        setSubmitting(false);
+      }
+    },
   });
 
- 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-md bg-white p-6 sm:p-8 rounded-xl shadow-lg">
-         <h1 className='flex gap-2 justify-center text-3xl font-bold mb-4'> <FaTools className="text-blue-600 mt-1" />
-                        QuickFix</h1>
-               
+        <h1 className="flex gap-2 justify-center text-3xl font-bold mb-4">
+          <FaTools className="text-blue-600 mt-1" /> QuickFix
+        </h1>
+
         <h2 className="text-2xl font-bold mb-6 text-center">Signup</h2>
 
         {/* Role Selection */}
         <div className="flex justify-center gap-4 mb-6">
-          {['client', 'worker'].map((r) => (
+          {(['client', 'worker'] as Role[]).map((r) => (
             <button
               key={r}
               type="button"
               className={`px-4 py-2 rounded-lg border ${
                 role === r ? 'bg-blue-600 text-white' : 'bg-white'
               }`}
-              onClick={() => setRole(r as 'client' | 'worker')}
+              onClick={() => setRole(r)}
             >
               {r.charAt(0).toUpperCase() + r.slice(1)}
             </button>

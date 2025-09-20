@@ -19,11 +19,8 @@ export default function LoginPage() {
     },
     onSubmit: async (values, { setSubmitting, setErrors }) => {
       try {
-        // 1️⃣ Check if admin
-        const adminRes = await axios.get(
-          `${API_URL}/admins?email=${values.email}`
-        );
-
+        // 1️⃣ Check admin first
+        const adminRes = await axios.get(`${API_URL}/admins?email=${values.email}`);
         if (adminRes.data.length > 0) {
           const admin = adminRes.data[0];
           if (admin.password !== values.password) {
@@ -34,13 +31,11 @@ export default function LoginPage() {
           toast.success("Admin login successful");
           sessionStorage.setItem("admin", JSON.stringify(admin));
           router.push("/admin/dashboard");
-          return; // stop here if admin
+          return;
         }
 
         // 2️⃣ Otherwise check user
-        const userRes = await axios.get(
-          `${API_URL}/users?email=${values.email}`
-        );
+        const userRes = await axios.get(`${API_URL}/users?email=${values.email}`);
         if (userRes.data.length === 0) {
           setErrors({ email: "Email not found" });
           return;
@@ -53,19 +48,26 @@ export default function LoginPage() {
           return;
         }
 
-        // ✅ Fetch full user with profile
-        const fullUserRes = await axios.get(`${API_URL}/users/${user.id}`);
-        const fullUser = fullUserRes.data;
+        if (user.status === "blocked") {
+          toast.error("Your account is blocked. Contact admin.");
+          return;
+        }
 
-        setUser(fullUser);
+        // ✅ Update user status to "online"
+        const updatedUserRes = await axios.patch(`${API_URL}/users/${user.id}`, {
+          status: "online",
+        });
+        const updatedUser = updatedUserRes.data;
+
+        setUser(updatedUser);
         toast.success("Login successful");
 
         // Redirect by role
-        if (fullUser.role === "worker") {
+        if (updatedUser.role === "worker") {
           const isProfileComplete =
-            fullUser.profile &&
-            fullUser.profile.profession &&
-            fullUser.profile.phone;
+            updatedUser.profile &&
+            updatedUser.profile.profession &&
+            updatedUser.profile.phone;
 
           if (isProfileComplete) {
             router.push("/worker/dashboard");

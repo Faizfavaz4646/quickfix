@@ -3,7 +3,9 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { User, Profile, Job } from "@/types/user";
+import { User, Profile, Job, Notification } from "@/types/user";
+import axios from "axios";
+import { API_URL } from "@/lib/constants";
 
 // ---------- AUTH STORE ----------
 interface AuthState {
@@ -14,7 +16,7 @@ interface AuthState {
   setIsLogin: (value: boolean) => void;
   logout: () => void;
 
-  // Shared Jobs State
+  // Jobs State
   activeJobs: Job[];
   completedJobs: Job[];
   setActiveJobs: (jobs: Job[]) => void;
@@ -48,7 +50,11 @@ export const useAuthStore = create<AuthState>()(
         set({ activeJobs: [...get().activeJobs, job] });
       },
 
-      setUser: (user) => set({ user, isLogin: true }),
+      setUser: (user) => {
+        // Mark user online if not blocked
+        const status = user.status === "blocked" ? "blocked" : "online";
+        set({ user: { ...user, status }, isLogin: true });
+      },
 
       updateUserProfile: (profile, name) => {
         const currentUser = get().user;
@@ -68,13 +74,24 @@ export const useAuthStore = create<AuthState>()(
 
       setIsLogin: (value) => set({ isLogin: value }),
 
-      logout: () =>
+      logout: () => {
+        const currentUser = get().user;
+        if (currentUser && currentUser.status !== "blocked") {
+          // Update backend status to offline
+          axios
+            .patch(`${API_URL}/users/${currentUser.id}`, { status: "offline" })
+            .catch(console.error);
+        }
+
         set({
-          user: null,
+          user: currentUser
+            ? { ...currentUser, status: currentUser.status === "blocked" ? "blocked" : "offline" }
+            : null,
           isLogin: false,
           activeJobs: [],
           completedJobs: [],
-        }),
+        });
+      },
     }),
     {
       name: "quickfix-user",
@@ -88,6 +105,7 @@ export const useAuthStore = create<AuthState>()(
               role: state.user.role,
               token: state.user.token,
               profile: state.user.profile,
+              status: state.user.status, // persist status
             }
           : null,
         isLogin: state.isLogin,
@@ -100,13 +118,20 @@ export const useAuthStore = create<AuthState>()(
 
 // ---------- NOTIFICATION STORE ----------
 interface NotificationState {
+  notifications: Notification[];
   count: number;
-  setCount: (c: number) => void;
+  setNotifications: (notifs: Notification[]) => void;
+  addNotification: (notif: Notification) => void;
   resetCount: () => void;
+  incrementCount: () => void;
 }
 
-export const useNotificationStore = create<NotificationState>((set) => ({
+export const useNotificationStore = create<NotificationState>((set, get) => ({
+  notifications: [],
   count: 0,
-  setCount: (c) => set({ count: c }),
+
+  setNotifications: (notifs) => set({ notifications: notifs }),
+  addNotification: (notif) => set({ notifications: [...get().notifications, notif], count: get().count + 1 }),
   resetCount: () => set({ count: 0 }),
+  incrementCount: () => set({ count: get().count + 1 }),
 }));

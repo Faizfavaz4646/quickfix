@@ -91,6 +91,7 @@ export interface Profile {
   avgRating?: number;      // ← Optional average rating
    activeJobs?: Job[];
   completedJobs?: Job[];
+  
  
 }
 

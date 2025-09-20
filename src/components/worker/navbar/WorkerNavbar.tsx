@@ -17,7 +17,7 @@ export default function WorkerNavbar() {
 
   const links = [
     { href: "/worker/dashboard", label: "Dashboard" },
-    {href: "/worker/posts", label: "Posts"},
+    {href: "/worker/dashboard/jobposts", label: "Posts"},
     { href: "/worker/reviews", label: "Reviews" },
     { href: "/worker/messages", label: "Messages" },
     { href: "/worker/settings", label: "Settings" },

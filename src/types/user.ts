@@ -35,20 +35,33 @@ export interface Request {
   date: string;
 }
 
+export interface Comment {
+  id: number;
+  userId: string;
+  userName: string;
+  text: string;
+  date: string;
+  clientName:string;
+}
+
 
 export interface Job {
   id: number;
   clientId: string;
   clientName?: string;
-  workerId: string;   // 👈 required
+  workerId: string;   // required
   workerName?: string;
   profession?: string;
   description?: string;
   status: "pending" | "ongoing" | "completed";
-  date: string;       // 👈 required
+  date: string;       //  required
   reviewed?: boolean;
   name?:string;
   contact?:string;
+  location?:string;
+  images?: string[];
+  likes?:string[];      // ✅number of likes
+  comments?: Comment[];
 }
 
 export interface Field<T> {
@@ -91,6 +104,7 @@ export interface Profile {
   avgRating?: number;      // ← Optional average rating
    activeJobs?: Job[];
   completedJobs?: Job[];
+
   
  
 }
@@ -103,7 +117,12 @@ export interface User {
   token?: string;
   profile?: Profile;
   profession?: string;
-  status?: "active" | "online" | "offline" | "blocked"; // ← Add this
+  status?: "active" | "online" | "offline" | "blocked";
+  location?: string; // ← Add this
+  profilePic?:string;
+  state?:string;
+  district?:string;
+  city?:string;
 }
 
 

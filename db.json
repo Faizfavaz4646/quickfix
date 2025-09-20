@@ -6,7 +6,7 @@
       "email": "saheer@gmail.com",
       "password": "1234567",
       "role": "worker",
-      "status": "active"
+      "status": "offline"
     },
     {
       "id": "0b07",
@@ -78,7 +78,23 @@
         ],
         "notifications": []
       },
-      "status": "active"
+      "status": "offline",
+      "posts": [
+        {
+          "id": 1758396544423,
+          "clientId": "0b07",
+          "clientName": "jomy seban",
+          "description": "Urgently needed painting workers !!..\nplease contact immediatly\n#+917034514646\n",
+          "images": [
+            "https://res.cloudinary.com/dazg1dppg/image/upload/v1758396396/yzzpclavyccmnh3nlzat.jpg"
+          ],
+          "date": "2025-09-20T19:29:04.423Z",
+          "status": "pending",
+          "workerId": "",
+          "likes":[],
+          "comments":[]
+        }
+      ]
     },
     {
       "id": "4c47",
@@ -159,7 +175,22 @@
         ],
         "ratings": [],
         "reviews": []
-      }
+      },
+      "status": "offline",
+      "posts": [
+        {
+          "id": 1758396033987,
+          "clientId": "c418",
+          "clientName": "Ayisha Nefla",
+          "description": "Need AC workers urgently!!..\nfor new fittings at home",
+          "images": [
+            "https://res.cloudinary.com/dazg1dppg/image/upload/v1758395946/jnzuyxpk3mhcnvso3hx7.jpg"
+          ],
+          "date": "2025-09-20T19:20:33.987Z",
+          "status": "pending",
+          "workerId": ""
+        }
+      ]
     },
     {
       "id": "17b5",
@@ -174,7 +205,7 @@
       "email": "jamshil@gmail.com",
       "password": "1234567",
       "role": "worker",
-      "status": "active"
+      "status": "online"
     },
     {
       "id": "b0e7",
@@ -795,6 +826,32 @@
       "email": "admin@quickfix.com",
       "password": "admin123",
       "role": "admin"
+    }
+  ],
+  "jobs": [
+    {
+      "id": 1758396033987,
+      "clientId": "c418",
+      "clientName": "Ayisha Nefla",
+      "description": "Need AC workers urgently!!..\nfor new fittings at home",
+      "images": [
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1758395946/jnzuyxpk3mhcnvso3hx7.jpg"
+      ],
+      "date": "2025-09-20T19:20:33.987Z",
+      "status": "pending",
+      "workerId": ""
+    },
+    {
+      "id": 1758396544423,
+      "clientId": "0b07",
+      "clientName": "jomy seban",
+      "description": "Urgently needed painting workers !!..\nplease contact immediatly\n#+917034514646\n",
+      "images": [
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1758396396/yzzpclavyccmnh3nlzat.jpg"
+      ],
+      "date": "2025-09-20T19:29:04.423Z",
+      "status": "pending",
+      "workerId": ""
     }
   ]
 }

@@ -96,7 +96,7 @@ export default function WorkerNavbar() {
 
       {/* Mobile Sidebar Menu */}
       {menuOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50">
+        <div className="fixed inset-0 bg-black/40 z-50">
           <div
             ref={menuRef}
             className="absolute top-0 left-0 w-64 h-full bg-white shadow-lg flex flex-col p-4"

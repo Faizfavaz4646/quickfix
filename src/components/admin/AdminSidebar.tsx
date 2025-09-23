@@ -44,13 +44,13 @@ export default function AdminSidebar() {
       {/* Mobile Burger Menu Button (top-left) */}
       <button
         onClick={toggleSidebar}
-        className="md:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200"
+        className="md:hidden fixed top-4 left-4 z-[100] bg-white p-2 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200"
       >
         <HiOutlineMenu className="h-6 w-6 text-gray-700" />
       </button>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex fixed top-0 left-0 h-full w-64 bg-white text-gray-800 border-r border-gray-200 z-40 flex-col">
+      <aside className="hidden md:flex fixed top-0  left-0 h-full w-64 bg-white text-gray-800 border-r border-gray-200 z-40 flex-col">
         <div className="flex items-center justify-center h-16 border-b border-gray-200">
           <span className="font-bold text-lg text-gray-900">QuickFix Admin</span>
         </div>
@@ -77,7 +77,7 @@ export default function AdminSidebar() {
 
       {/* Mobile Sidebar Overlay */}
       <div
-        className={`fixed inset-0 z-40 md:hidden transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-0 z-[110]md:hidden transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

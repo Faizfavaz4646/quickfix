@@ -80,12 +80,12 @@
           {
             "id": 1758518528097,
             "message": "Vajid accepted your job request. Please chat or call to confirm.",
-            "seen": false,
+            "seen": true,
             "date": "2025-09-22T05:22:08.097Z"
           }
         ]
       },
-      "status": "offline",
+      "status": "online",
       "posts": [
         {
           "id": 1758396544423,
@@ -370,7 +370,7 @@
       "city": "athavanadu",
       "zip": "673021",
       "schedule": "9am  to. 5pm",
-      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756203232/syhqqwmimwiedeztjxib.jpg",
+      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1758649928/oqmv5vrwnp2oo9sbb6ol.jpg",
       "previousWorkImages": [
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1756238430/likcnwcgrtn27tqulrjd.jpg",
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1756238451/xk4u54docpwtrfajfxgg.jpg",

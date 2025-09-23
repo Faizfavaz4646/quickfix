@@ -48,14 +48,14 @@ export default function DashboardHeader() {
   return (
     <header className="bg-white shadow-md px-6 py-8 sm:py-6 min-h-[150px] relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       {/* Heading */}
-      <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mt-8">Admin Dashboard</h1>
 
       {/* Search */}
       <div className="w-full sm:max-w-md">
         <input
           type="text"
           placeholder="Search..."
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 mt-8"
         />
       </div>
 
@@ -63,7 +63,7 @@ export default function DashboardHeader() {
       <div ref={menuRef} className="absolute top-6 right-6 sm:relative sm:top-0 sm:right-0 z-50">
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="w-12 h-12 bg-blue-600 text-white font-bold flex items-center justify-center rounded-full z-50"
+          className="w-12 h-12 bg-blue-600 text-white font-bold flex items-center justify-center rounded-full z-50 mt-8"
         >
           AD
         </button>

@@ -33,15 +33,18 @@ export const fetchActiveJobs = async (): Promise<any[]> => {
   return activeJobs;
 };
 
+
 // ✅ Fetch completed jobs from all workers
 export const fetchCompletedJobs = async (): Promise<any[]> => {
   const { data: workers } = await axios.get<Profile[]>(`${API_URL}/workers`);
   let completedJobs: any[] = [];
+  
   workers.forEach((worker) => {
     if (Array.isArray(worker.completedJobs)) {
       completedJobs = [...completedJobs, ...worker.completedJobs];
     }
   });
+
   return completedJobs;
 };
 

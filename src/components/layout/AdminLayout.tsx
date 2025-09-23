@@ -8,14 +8,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-full lg:w-64 flex-shrink-0">
+      <div className="w-full lg:w-64 flex-shrink-0 z-[70]">
         <AdminSidebar />
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="w-full bg-white shadow">
+        <div className="w-full bg-white shadow sticky top-0 z-50">
           <DashboardHeader />
         </div>
 

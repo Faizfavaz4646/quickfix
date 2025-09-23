@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { MdDashboard } from "react-icons/md";
 import {
   FaBriefcase,
@@ -8,6 +9,8 @@ import {
   FaWallet,
   FaCog,
   FaHome,
+  FaBars,
+  FaTimes,
 } from "react-icons/fa";
 import Image from "next/image";
 import Link from "next/link";
@@ -21,11 +24,12 @@ interface Notification {
 }
 
 interface SidebarProps {
-  notifications?: Notification[]; // pass notifications as prop
+  notifications?: Notification[];
 }
 
 export default function Sidebar({ notifications = [] }: SidebarProps) {
-  const pathname = usePathname(); // detect active route
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
   const unreadCount = notifications.filter((n) => !n.seen).length;
 
@@ -39,54 +43,82 @@ export default function Sidebar({ notifications = [] }: SidebarProps) {
   ];
 
   return (
-    <aside className="fixed top-6 left-6 w-20 md:w-64 bg-white rounded-2xl p-6 shadow-lg h-[700px] -ml-3 z-30 mt-15">
-      <div className="flex flex-col h-full justify-between">
-        {/* Logo */}
-        <div>
-          <h1 className="hidden md:block text-4xl font-bold text-sky-600 mb-8 mx-20">
-            <FaHome />
-          </h1>
-          <nav className="flex flex-col gap-4">
-            {menu.map((item) => {
-              const isActive = pathname === item.path;
-              return (
-                <Link
-                  key={item.key}
-                  href={item.path}
-                  className={`relative flex items-center gap-3 px-3 py-2 rounded-lg ${
-                    isActive
-                      ? "bg-sky-100 text-sky-600 font-semibold"
-                      : "hover:bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {item.icon}
-                  <span className="hidden md:block">{item.label}</span>
+    <>
+      {/* Burger Icon for Mobile */}
+      <button
+        className="md:hidden fixed top-6 left-6 z-50 p-2 rounded-lg bg-white shadow-md mt-10"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {isOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
+      </button>
 
-                  {/* Notification badge */}
-                  {item.key === "notifications" && item.count && item.count > 0 && (
-                    <span className="absolute right-3 top-2 md:top-1 bg-red-500 text-white text-xs font-semibold rounded-full  px-1.5 mt-2">
-                      {item.count}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+      {/* Sidebar */}
+      <aside
+        className={`
+          fixed top-0 left-0 h-full bg-white shadow-lg z-40 mt-10
+          w-64 p-6 transform transition-transform duration-300
+          md:translate-x-0 md:top-6 md:left-6 md:w-64 md:rounded-2xl md:h-[700px]
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
+      >
+        <div className="flex flex-col h-full justify-between">
+          {/* Logo + Menu */}
+          <div>
+            <h1 className="text-4xl font-bold text-sky-600 mb-8 flex items-center justify-center">
+              <FaHome />
+            </h1>
+            <nav className="flex flex-col gap-4">
+              {menu.map((item) => {
+                const isActive = pathname === item.path;
+                return (
+                  <Link
+                    key={item.key}
+                    href={item.path}
+                    className={`relative flex items-center gap-3 px-3 py-2 rounded-lg ${
+                      isActive
+                        ? "bg-sky-100 text-sky-600 font-semibold"
+                        : "hover:bg-gray-100 text-gray-700"
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.icon}
+                    {/* Always show label */}
+                    <span>{item.label}</span>
 
-        {/* Help Section */}
-        <div className="hidden md:flex flex-col items-center text-sm text-gray-500">
-          <Image
-            src="/images/folderimage.jpg"
-            alt="Help Icon"
-            width={90}
-            height={90}
-            className="mb-3 w-40"
-          />
-          <p className="font-medium">Need help?</p>
-          <p>Please check our docs.</p>
+                    {/* Notification badge */}
+                    {item.key === "notifications" && item.count && item.count > 0 && (
+                      <span className="absolute right-3 top-2 bg-red-500 text-white text-xs font-semibold rounded-full px-1.5 mt-2">
+                        {item.count}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Help Section */}
+          <div className="flex flex-col items-center text-sm text-gray-500">
+            <Image
+              src="/images/folderimage.jpg"
+              alt="Help Icon"
+              width={90}
+              height={90}
+              className="mb-3 w-40"
+            />
+            <p className="font-medium">Need help?</p>
+            <p>Please check our docs.</p>
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+
+      {/* Overlay for Mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black opacity-30 z-30 md:hidden"
+          onClick={() => setIsOpen(false)}
+        ></div>
+      )}
+    </>
   );
 }

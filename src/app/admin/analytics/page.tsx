@@ -1,9 +1,9 @@
-// components/AnalyticsPage.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { Bar, Pie } from "react-chartjs-2";
 import { User } from "@/types/user";
+import { FaUsers, FaBriefcase, FaCheckCircle, FaStar } from "react-icons/fa";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -18,6 +18,7 @@ import {
   fetchAllUsers,
   fetchAllWorkers,
   fetchActiveJobs,
+  fetchCompletedJobs,
   fetchClientSatisfaction,
 } from "@/services/adminService";
 
@@ -35,6 +36,7 @@ export default function AnalyticsPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [workers, setWorkers] = useState<User[]>([]);
   const [activeJobs, setActiveJobs] = useState<any[]>([]);
+  const [completedJobs, setCompletedJobs] = useState<any[]>([]);
   const [avgSatisfaction, setAvgSatisfaction] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -44,11 +46,13 @@ export default function AnalyticsPage() {
         const allUsers = await fetchAllUsers();
         const allWorkers = await fetchAllWorkers();
         const activeJobsData = await fetchActiveJobs();
+        const completedJobsData = await fetchCompletedJobs();
         const satisfaction = await fetchClientSatisfaction();
 
         setUsers(allUsers);
         setWorkers(allWorkers);
         setActiveJobs(activeJobsData);
+        setCompletedJobs(completedJobsData);
         setAvgSatisfaction(satisfaction ?? 0);
       } catch (error) {
         console.error("Failed to fetch analytics:", error);
@@ -62,17 +66,10 @@ export default function AnalyticsPage() {
 
   if (loading) return <p className="text-center mt-10">Loading...</p>;
 
-  // Summary numbers
   const totalUsers = users.length;
   const totalWorkers = workers.length;
   const totalClients = users.filter((u) => u.role === "client").length;
 
-  // Completed jobs: safely get from profile
-  const completedJobs = workers.flatMap(
-    (w) => w.profile?.completedJobs ?? []
-  );
-
-  // Avg ratings per worker
   const avgRatings = workers.map((w) => {
     const ratings = w.profile?.ratings ?? [];
     const avgRating = ratings.length
@@ -85,7 +82,6 @@ export default function AnalyticsPage() {
     };
   });
 
-  // Pie chart data
   const pieData = {
     labels: ["Workers", "Clients"],
     datasets: [
@@ -97,7 +93,6 @@ export default function AnalyticsPage() {
     ],
   };
 
-  // Bar chart data
   const barData = {
     labels: avgRatings.map((r) => r.name),
     datasets: [
@@ -113,19 +108,28 @@ export default function AnalyticsPage() {
     <div className="max-w-6xl mx-auto p-5">
       <h1 className="text-3xl font-bold mb-6">Admin Analytics Dashboard</h1>
 
-      {/* Summary Cards */}
+      {/* Summary Cards with Icons */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-white shadow rounded p-4 text-center">
-          <h2 className="text-gray-500">Total Users</h2>
-          <p className="text-2xl font-bold">{totalUsers}</p>
+        <div className="bg-white shadow rounded p-4 flex items-center gap-3">
+          <FaUsers className="text-blue-500 w-6 h-6" />
+          <div>
+            <h2 className="text-gray-500">Total Users</h2>
+            <p className="text-2xl font-bold">{totalUsers}</p>
+          </div>
         </div>
-        <div className="bg-white shadow rounded p-4 text-center">
-          <h2 className="text-gray-500">Active Jobs</h2>
-          <p className="text-2xl font-bold">{activeJobs.length}</p>
+        <div className="bg-white shadow rounded p-4 flex items-center gap-3">
+          <FaBriefcase className="text-green-500 w-6 h-6" />
+          <div>
+            <h2 className="text-gray-500">Active Jobs</h2>
+            <p className="text-2xl font-bold">{activeJobs.length}</p>
+          </div>
         </div>
-        <div className="bg-white shadow rounded p-4 text-center">
-          <h2 className="text-gray-500">Completed Jobs</h2>
-          <p className="text-2xl font-bold">{completedJobs.length}</p>
+        <div className="bg-white shadow rounded p-4 flex items-center gap-3">
+          <FaCheckCircle className="text-purple-500 w-6 h-6" />
+          <div>
+            <h2 className="text-gray-500">Completed Jobs</h2>
+            <p className="text-2xl font-bold">{completedJobs.length}</p>
+          </div>
         </div>
       </div>
 
@@ -142,10 +146,13 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Client Satisfaction */}
-      <div className="mt-10 bg-white shadow rounded p-5 text-center">
-        <h2 className="font-bold mb-2">Average Client Satisfaction</h2>
-        <p className="text-xl font-semibold">{avgSatisfaction}/5</p>
+      {/* Client Satisfaction with Star */}
+      <div className="mt-10 bg-white shadow rounded p-5 flex items-center gap-3 justify-center">
+        <FaStar className="text-yellow-400 w-6 h-6 -mt-10" />
+        <div className="text-center">
+          <h2 className="font-bold mb-2">Average Client Satisfaction</h2>
+          <p className="text-xl font-semibold">{avgSatisfaction}/5</p>
+        </div>
       </div>
     </div>
   );

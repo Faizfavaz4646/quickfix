@@ -1,13 +1,11 @@
 import axios from "axios";
-import { User } from "@/types/user";
-import { Profile } from "@/types/user";
+import { User, Profile } from "@/types/user";
 
 const API_URL = "http://localhost:50001";
 
 // ✅ Fetch all users (workers + clients + admins)
 export const fetchAllUsers = async (): Promise<User[]> => {
   const { data } = await axios.get<User[]>(`${API_URL}/users`);
-  // Ensure status is always defined
   return data.map((u) => ({ ...u, status: u.status ?? "active" }));
 };
 
@@ -25,24 +23,50 @@ export const fetchAllClients = async (): Promise<User[]> => {
 
 // ✅ Fetch active jobs from all workers
 export const fetchActiveJobs = async (): Promise<any[]> => {
-  const { data: workers } = await axios.get(`${API_URL}/workers`);
+  const { data: workers } = await axios.get<Profile[]>(`${API_URL}/workers`);
   let activeJobs: any[] = [];
-
-  workers.forEach((worker:any) => {
+  workers.forEach((worker) => {
     if (Array.isArray(worker.activeJobs)) {
       activeJobs = [...activeJobs, ...worker.activeJobs];
     }
   });
-
   return activeJobs;
 };
 
+// ✅ Fetch completed jobs from all workers
+export const fetchCompletedJobs = async (): Promise<any[]> => {
+  const { data: workers } = await axios.get<Profile[]>(`${API_URL}/workers`);
+  let completedJobs: any[] = [];
+  workers.forEach((worker) => {
+    if (Array.isArray(worker.completedJobs)) {
+      completedJobs = [...completedJobs, ...worker.completedJobs];
+    }
+  });
+  return completedJobs;
+};
 
-// ✅ Fetch average client satisfaction (from workers' ratings)
-
-export const fetchClientSatisfaction = async (): Promise<number | null> => {
+// ✅ Fetch worker average ratings individually
+export const fetchWorkerRatings = async (): Promise<{ name: string; avgRating: number }[]> => {
   const { data: workers } = await axios.get<Profile[]>(`${API_URL}/workers`);
 
+  return workers.map((w) => {
+    const avgRating =
+      w.avgRating ??
+      (Array.isArray(w.ratings) && w.ratings.length > 0
+        ? w.ratings.reduce((a, b) => a + b, 0) / w.ratings.length
+        : 0);
+
+    return {
+      name: w.name || "Unknown", // <-- fallback for undefined
+      avgRating: Number(avgRating.toFixed(1)),
+    };
+  });
+};
+
+
+// ✅ Fetch overall client satisfaction (average of all ratings)
+export const fetchClientSatisfaction = async (): Promise<number | null> => {
+  const { data: workers } = await axios.get<Profile[]>(`${API_URL}/workers`);
   let ratings: number[] = [];
 
   workers.forEach((worker) => {
@@ -57,15 +81,35 @@ export const fetchClientSatisfaction = async (): Promise<number | null> => {
   return Number(avg.toFixed(1));
 };
 
-// ✅ Toggle block/unblock any user
+// ✅ Toggle block/unblock user
 export const toggleUserStatus = async (user: User): Promise<User> => {
   if (!user?.id) throw new Error("Invalid user");
-
   const newStatus = user.status === "blocked" ? "active" : "blocked";
+  const { data } = await axios.patch<User>(`${API_URL}/users/${user.id}`, { status: newStatus });
+  return data;
+};
 
-  const { data } = await axios.patch<User>(`${API_URL}/users/${user.id}`, {
-    status: newStatus,
-  });
+// ✅ Fetch users distribution (for pie chart)
+export const fetchUsersDistribution = async (): Promise<{ workers: number; clients: number }> => {
+  const [workers, clients] = await Promise.all([fetchAllWorkers(), fetchAllClients()]);
+  return { workers: workers.length, clients: clients.length };
+};
 
-  return data; // return updated user
+// ✅ Fetch dashboard summary (all counts + jobs)
+export const fetchDashboardSummary = async () => {
+  const [users, activeJobs, completedJobs, ratings] = await Promise.all([
+    fetchAllUsers(),
+    fetchActiveJobs(),
+    fetchCompletedJobs(),
+    fetchWorkerRatings(),
+  ]);
+
+  const totalUsers = users.length;
+
+  return {
+    totalUsers,
+    activeJobsCount: activeJobs.length,
+    completedJobsCount: completedJobs.length,
+    avgRatings: ratings,
+  };
 };

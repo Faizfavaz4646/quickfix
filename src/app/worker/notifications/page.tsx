@@ -10,10 +10,11 @@ import {
 import {
   useAuthStore,
   useNotificationStore,
-  Profile,
-  Notification,
-  Request,
+  
+ 
+ 
 } from "@/store/authStore";
+import {Profile,  Notification,  Request, } from "@\/types/user"
 import { toast } from "sonner";
 
 type EnrichedNotification = Notification & {

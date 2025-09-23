@@ -36,13 +36,16 @@ export interface Request {
 }
 
 export interface Comment {
-  id: number;
+  id: number | string;
   userId: string;
   userName: string;
   text: string;
   date: string;
-  clientName:string;
+  clientName: string;
+  userProfile?: User;
+  profilePic?:string;
 }
+
 
 
 export interface Job {
@@ -123,6 +126,8 @@ export interface User {
   state?:string;
   district?:string;
   city?:string;
+ 
+
 }
 
 

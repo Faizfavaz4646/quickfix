@@ -124,6 +124,7 @@ interface NotificationState {
   addNotification: (notif: Notification) => void;
   resetCount: () => void;
   incrementCount: () => void;
+  setCount: (value: number) => void;   // ✅ add this
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
@@ -131,7 +132,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   count: 0,
 
   setNotifications: (notifs) => set({ notifications: notifs }),
-  addNotification: (notif) => set({ notifications: [...get().notifications, notif], count: get().count + 1 }),
+  addNotification: (notif) =>
+    set({
+      notifications: [...get().notifications, notif],
+      count: get().count + 1,
+    }),
   resetCount: () => set({ count: 0 }),
   incrementCount: () => set({ count: get().count + 1 }),
+  setCount: (value) => set({ count: value }),   // ✅ implement
 }));
+  

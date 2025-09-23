@@ -30,7 +30,7 @@ export default function LoginPage() {
 
           toast.success("Admin login successful");
           sessionStorage.setItem("admin", JSON.stringify(admin));
-          router.push("/admin/dashboard");
+          router.push("/admin");
           return;
         }
 

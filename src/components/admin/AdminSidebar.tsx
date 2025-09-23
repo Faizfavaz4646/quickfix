@@ -25,7 +25,7 @@ export default function AdminSidebar() {
   if (!mounted) return null;
 
   const links = [
-    { name: "Dashboard", icon: <MdDashboardCustomize />, href: "/admin/dashboard" },
+    { name: "Dashboard", icon: <MdDashboardCustomize />, href: "/admin" },
     { name: "Clients & Workers", icon: <FaUsers />, href: "/admin/service_workers" },
     { name: "Jobs & Requests", icon: <RiShoppingCartLine />, href: "/admin/jobs" },
     { name: "Service Categories", icon: <MdCategory />, href: "/admin/categories" },

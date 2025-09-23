@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import MainLayout from "./MainLayout";
 import WorkerLayout from "./WorkerLayout";
-import AdminLayout from "@/app/admin/layout";
+import AdminLayout from "@/components/layout/AdminLayout";
 
 
 export default function LayoutSwitcher({ children }: { children: React.ReactNode }) {

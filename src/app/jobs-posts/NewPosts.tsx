@@ -83,7 +83,7 @@ const JobPostButton: React.FC = () => {
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 border-2 font-semibold border-blue-500 text-blue-500 rounded-full hover:bg-blue-50 transition"
+        className="flex items-center gap-2 px-4 py-2 border-2 font-semibold border-gray-100 text-blue-500 rounded-full hover:bg-blue-50 transition"
       >
         <FaPencilAlt /> Post a Job
       </button>

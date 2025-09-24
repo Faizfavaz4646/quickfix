@@ -44,9 +44,9 @@ export default function Sidebar({ notifications = [] }: SidebarProps) {
 
   return (
     <>
-      {/* Burger Icon for Mobile */}
+      {/* Burger Button - Mobile only */}
       <button
-        className="md:hidden fixed top-6 left-6 z-50 p-2 rounded-lg bg-white shadow-md mt-10"
+        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-md"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
@@ -55,9 +55,9 @@ export default function Sidebar({ notifications = [] }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full bg-white shadow-lg z-40 mt-10
+          fixed top-0 left-0 h-full bg-white shadow-lg z-40
           w-64 p-6 transform transition-transform duration-300
-          md:translate-x-0 md:top-6 md:left-6 md:w-64 md:rounded-2xl md:h-[700px]
+          md:translate-x-0 md:top-6 md:left-6 md:rounded-2xl md:h-[700px]
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
@@ -74,7 +74,7 @@ export default function Sidebar({ notifications = [] }: SidebarProps) {
                   <Link
                     key={item.key}
                     href={item.path}
-                    className={`relative flex items-center gap-3 px-3 py-2 rounded-lg ${
+                    className={`relative flex items-center gap-3 px-3 py-2 rounded-lg transition ${
                       isActive
                         ? "bg-sky-100 text-sky-600 font-semibold"
                         : "hover:bg-gray-100 text-gray-700"
@@ -82,12 +82,11 @@ export default function Sidebar({ notifications = [] }: SidebarProps) {
                     onClick={() => setIsOpen(false)}
                   >
                     {item.icon}
-                    {/* Always show label */}
                     <span>{item.label}</span>
 
                     {/* Notification badge */}
                     {item.key === "notifications" && item.count && item.count > 0 && (
-                      <span className="absolute right-3 top-2 bg-red-500 text-white text-xs font-semibold rounded-full px-1.5 mt-2">
+                      <span className="absolute right-3 top-2 bg-red-500 text-white text-xs font-semibold rounded-full px-1.5">
                         {item.count}
                       </span>
                     )}
@@ -98,13 +97,13 @@ export default function Sidebar({ notifications = [] }: SidebarProps) {
           </div>
 
           {/* Help Section */}
-          <div className="flex flex-col items-center text-sm text-gray-500">
+          <div className="flex flex-col items-center text-sm text-gray-500 mt-8">
             <Image
               src="/images/folderimage.jpg"
               alt="Help Icon"
               width={90}
               height={90}
-              className="mb-3 w-40"
+              className="mb-3 w-32"
             />
             <p className="font-medium">Need help?</p>
             <p>Please check our docs.</p>
@@ -117,7 +116,7 @@ export default function Sidebar({ notifications = [] }: SidebarProps) {
         <div
           className="fixed inset-0 bg-black opacity-30 z-30 md:hidden"
           onClick={() => setIsOpen(false)}
-        ></div>
+        />
       )}
     </>
   );

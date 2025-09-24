@@ -43,42 +43,43 @@ export default function DashboardLayout() {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar */}
-      <Sidebar notifications={notifications} />
+    <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row">
+  {/* Sidebar */}
+  <Sidebar notifications={notifications} />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <Header>
-          <div className="flex flex-col items-center justify-center py-6 md:py-8">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white text-center">
-              👋 Welcome back, {user?.name}
-            </h2>
-            <p className="text-white/90 text-center mt-2 text-sm sm:text-base">
-              Here’s your dashboard overview
-            </p>
-          </div>
-        </Header>
-
-        {/* Main area */}
-        <main className="flex-1 p-4 sm:p-6 overflow-auto">
-          {/* Stat Cards */}
-          <StatCard />
-
-          {/* Graph Section */}
-          <section className="mt-10">
-            <GraphCard title="Requests Overview">
-              <JobGraph jobs={requests} />
-            </GraphCard>
-          </section>
-
-          {/* Requests Section */}
-          <section className="mt-10">
-            <RequestCard requests={requests} refreshRequests={refreshRequests} />
-          </section>
-        </main>
+  {/* Main Content */}
+  <div className="flex-1 flex flex-col">
+    {/* Header */}
+    <Header>
+      <div className="flex flex-col items-center justify-center py-6 md:py-8">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white text-center">
+          👋 Welcome back, {user?.name}
+        </h2>
+        <p className="text-white/90 text-center mt-2 text-sm sm:text-base">
+          Here’s your dashboard overview
+        </p>
       </div>
-    </div>
+    </Header>
+
+    {/* Main area */}
+    <main className="flex-1 p-4 sm:p-6 overflow-auto">
+      {/* Stat Cards */}
+      <StatCard />
+
+      {/* Graph Section */}
+      <section className="mt-10">
+        <GraphCard title="Requests Overview">
+          <JobGraph jobs={requests} />
+        </GraphCard>
+      </section>
+
+      {/* Requests Section */}
+      <section className="mt-10">
+        <RequestCard requests={requests} refreshRequests={refreshRequests} />
+      </section>
+    </main>
+  </div>
+</div>
+
   );
 }

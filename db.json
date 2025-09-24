@@ -85,7 +85,7 @@
           }
         ]
       },
-      "status": "online",
+      "status": "offline",
       "posts": [
         {
           "id": 1758396544423,
@@ -98,6 +98,18 @@
           "date": "2025-09-20T19:29:04.423Z",
           "status": "pending",
           "workerId": ""
+        },
+        {
+          "id": 1758695114833,
+          "clientId": "0b07",
+          "clientName": "jomy seban",
+          "description": "i need urgent!..\nelectrical work at my office.\nanybody has interest please contact me\n#7736442323",
+          "images": [],
+          "date": "2025-09-24T06:25:14.833Z",
+          "status": "pending",
+          "workerId": "",
+          "likes": [],
+          "comments": []
         }
       ]
     },
@@ -115,7 +127,24 @@
         "city": "feroke",
         "zip": "673021",
         "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756232260/cdpob8s4acsr1jogzqep.gif"
-      }
+      },
+      "status": "offline",
+      "posts": [
+        {
+          "id": 1758697650747,
+          "clientId": "4c47",
+          "clientName": "Vincent",
+          "description": "Need an house cleaner. Urgently",
+          "images": [
+            "https://res.cloudinary.com/dazg1dppg/image/upload/v1758697645/a3xuypuy0aks5zlxdl7w.jpg"
+          ],
+          "date": "2025-09-24T07:07:30.747Z",
+          "status": "pending",
+          "workerId": "",
+          "likes": [],
+          "comments": []
+        }
+      ]
     },
     {
       "id": "c418",
@@ -181,7 +210,7 @@
         "ratings": [],
         "reviews": []
       },
-      "status": "offline",
+      "status": "online",
       "posts": [
         {
           "id": 1758396033987,
@@ -217,7 +246,8 @@
       "name": "virat",
       "email": "virat@gmail.com",
       "password": "1234567",
-      "role": "worker"
+      "role": "worker",
+      "status": "offline"
     },
     {
       "id": "1683",
@@ -330,6 +360,12 @@
         "activeJobs": [],
         "notifications": [
           {
+            "id": 1758451584558,
+            "message": "Saheer Chungath accepted your job request. Please chat or call to confirm.",
+            "seen": true,
+            "date": "2025-09-21T10:46:24.558Z"
+          },
+          {
             "id": 1758003409036,
             "message": "Saheer Chungath accepted your job request. Please chat or call to confirm.",
             "seen": true,
@@ -346,16 +382,24 @@
             "message": "jamshil accepted your job request. Please chat or call to confirm.",
             "seen": true,
             "date": "2025-09-06T06:07:15.306Z"
-          },
-          {
-            "id": 1758451584558,
-            "message": "Saheer Chungath accepted your job request. Please chat or call to confirm.",
-            "seen": false,
-            "date": "2025-09-21T10:46:24.558Z"
           }
         ]
       },
-      "status": "offline"
+      "status": "offline",
+      "posts": [
+        {
+          "id": "1758702788499",
+          "clientId": "0f49",
+          "clientName": "faiz favaz",
+          "description": "I need a pulmber worker for my house plumbing works.its Urgent!..\nplease contact #9987653432",
+          "images": [],
+          "date": "2025-09-24T08:33:08.499Z",
+          "status": "pending",
+          "workerId": "",
+          "likes": [],
+          "comments": []
+        }
+      ]
     }
   ],
   "workers": [
@@ -865,18 +909,13 @@
       "workerId": "",
       "likes": [
         "e0d9",
-        "d6f8"
+        "d6f8",
+        "0b07",
+        "4c47",
+        "0f49",
+        "c418"
       ],
-      "comments": [
-        {
-          "id": "1758473704679",
-          "userId": "e0d9",
-          "userName": "Saheer Chungath",
-          "profilePic": "/default-avatar.png",
-          "text": "i am a experienced ac worker i am intrested",
-          "date": "2025-09-21T16:55:04.679Z"
-        }
-      ]
+      "comments": []
     },
     {
       "id": "1758396544423",
@@ -891,18 +930,82 @@
       "workerId": "",
       "likes": [
         "d6f8",
-        "e0d9"
+        "e0d9",
+        "0b07",
+        "4c47",
+        "0f49",
+        "c418"
       ],
       "comments": [
         {
-          "id": "1758518359234",
-          "userId": "d6f8",
-          "userName": "Vajid",
-          "profilePic": "/default-avatar.png",
-          "text": "👍",
-          "date": "2025-09-22T05:19:19.234Z"
+          "id": "1758707903881",
+          "userId": "0b07",
+          "userName": "jomy seban",
+          "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756204564/o8jvjwi0jvs7e4iotfti.jpg",
+          "text": "❤️",
+          "date": "2025-09-24T09:58:23.881Z"
         }
       ]
+    },
+    {
+      "id": "1758695114833",
+      "clientId": "0b07",
+      "clientName": "jomy seban",
+      "description": "i need urgent!..\nelectrical work at my office.\nanybody has interest please contact me\n#7736442323",
+      "images": [],
+      "date": "2025-09-24T06:25:14.833Z",
+      "status": "pending",
+      "workerId": "",
+      "likes": [
+        "b0e7",
+        "0f49",
+        "0b07",
+        "c418"
+      ],
+      "comments": []
+    },
+    {
+      "id": "1758697650747",
+      "clientId": "4c47",
+      "clientName": "Vincent",
+      "description": "Need an house cleaner. Urgently",
+      "images": [
+        "https://res.cloudinary.com/dazg1dppg/image/upload/v1758697645/a3xuypuy0aks5zlxdl7w.jpg"
+      ],
+      "date": "2025-09-24T07:07:30.747Z",
+      "status": "pending",
+      "workerId": "",
+      "likes": [
+        "b0e7",
+        "0f49",
+        "0b07",
+        "c418"
+      ],
+      "comments": [
+        {
+          "id": "1758707729143",
+          "userId": "0f49",
+          "userName": "faiz favaz",
+          "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1757138394/zfncpsx5xsayn2thvxxm.png",
+          "text": "👍",
+          "date": "2025-09-24T09:55:29.143Z"
+        }
+      ]
+    },
+    {
+      "id": "1758702788499",
+      "clientId": "0f49",
+      "clientName": "faiz favaz",
+      "description": "I need a pulmber worker for my house plumbing works.its Urgent!..\nplease contact #9987653432",
+      "images": [],
+      "date": "2025-09-24T08:33:08.499Z",
+      "status": "pending",
+      "workerId": "",
+      "likes": [
+        "0f49",
+        "0b07"
+      ],
+      "comments": []
     }
   ]
 }

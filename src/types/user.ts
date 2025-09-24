@@ -49,7 +49,7 @@ export interface Comment {
 
 
 export interface Job {
-  id: number;
+  id: number | string;
   clientId: string;
   clientName?: string;
   workerId: string;   // required

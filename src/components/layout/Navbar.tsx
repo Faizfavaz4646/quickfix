@@ -158,9 +158,9 @@ const handleJoinProfessional = () => {
           <div className="flex flex-col gap-4 mt-2">
             <Link href="/publicpages/about" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">About</Link>
             <Link href="/services" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">Services</Link>
-            <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">Contact</Link>
-            <Link href="/client/findworker" onClick={() => setIsOpen(false)} className="text-blue-600 font-semibold">Find a Professional</Link>
-            <button onClick={handleJoinProfessional} className="text-green-600 font-semibold text-left">Join as a Professional</button>
+            <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-700  dark:text-gray-300">Contact</Link>
+            <Link href="/client/findworker" onClick={() => setIsOpen(false)} className="font-semibold">Find a Professional</Link>
+            <button onClick={handleJoinProfessional} className="font-semibold text-left">Join as a Professional</button>
 
             {user ? (
               <div onClick={() => { setShowModal(true); setIsOpen(false); }}>
@@ -191,7 +191,12 @@ const handleJoinProfessional = () => {
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 {renderProfilePic()}
-                <span className="font-medium">{profile?.name || user?.name}</span>
+                <div className="flex flex-col leading-tight">
+                   <span className="font-medium">{profile?.name || user?.name}</span>
+                <span className="text-sm text-blue-600">{user?.email}</span>
+
+                </div>
+               
               </div>
               <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700">✖</button>
             </div>

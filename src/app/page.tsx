@@ -3,6 +3,8 @@ import TopRatedProfessionals from "@/components/ui/TopRatedProfessionals";
 import WorkerCategories from "@/components/ui/WorkerCategories";
 
 import JobPostWrapper from "./jobs-posts/JobPostWrapper";
+import ClientPostsPage from "./jobs-posts/ClientPostsPage";
+
 
 
 export default function Home() {
@@ -10,8 +12,8 @@ export default function Home() {
   return (
     <>
       <Hero />
-
       <JobPostWrapper />
+      <ClientPostsPage />
       <WorkerCategories />
       <TopRatedProfessionals />
     </>

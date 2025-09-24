@@ -5,6 +5,7 @@ import { Job, User } from "@/types/user";
 const API_URL = "http://localhost:50001";
 const JOBS_ENDPOINT = `${API_URL}/jobs`;
 const USERS_ENDPOINT = `${API_URL}/users`;
+const WORKERS_ENDPOINT = `${API_URL}/workers`;
 
 export type JobWithClientProfile = Job & {
   clientProfile?: User; // profilePic, state, city, district
@@ -20,6 +21,7 @@ export const postJob = async (
   try {
     const jobToPost: Job = {
       ...job,
+      id: Date.now().toString(),
       likes: job.likes || [],
       comments: job.comments || [],
     };
@@ -74,7 +76,7 @@ export const fetchJobs = async (): Promise<JobWithClientProfile[]> => {
 };
 
 /**
- * Fetch jobs for workers
+ * Fetch jobs for workers (optional filtering by status)
  */
 export const fetchJobsForWorkers = async (
   status?: string
@@ -85,7 +87,7 @@ export const fetchJobsForWorkers = async (
 };
 
 /**
- * Fetch jobs/posts for a specific client
+ * Fetch posts for a specific client
  */
 export const fetchClientPosts = async (
   clientId: string | number
@@ -113,7 +115,8 @@ export const likeJob = async (
   userId: string | number
 ): Promise<boolean> => {
   try {
-    const { data: job } = await axios.get<Job>(`${JOBS_ENDPOINT}/${jobId}`);
+    const jobIdStr = String(jobId);
+    const { data: job } = await axios.get<Job>(`${JOBS_ENDPOINT}/${jobIdStr}`);
     const likes: string[] = Array.isArray(job.likes) ? job.likes : [];
 
     if (likes.includes(String(userId))) {
@@ -122,53 +125,13 @@ export const likeJob = async (
     }
 
     const updatedLikes = [...likes, String(userId)];
-    await axios.patch(`${JOBS_ENDPOINT}/${jobId}`, { likes: updatedLikes });
+    await axios.patch(`${JOBS_ENDPOINT}/${jobIdStr}`, { likes: updatedLikes });
 
     toast.success("Job liked!");
     return true;
   } catch (error) {
     console.error(error);
     toast.error("Failed to like job.");
-    return false;
-  }
-};
-
-/**
- * Add a comment to a job (with user info)
- */
-export const commentOnJob = async (
-  jobId: string | number,
-  userId: string | number,
-  text: string
-): Promise<boolean> => {
-  try {
-    // Fetch job
-    const { data: job } = await axios.get<Job>(`${JOBS_ENDPOINT}/${jobId}`);
-    const comments: any[] = Array.isArray(job.comments) ? job.comments : [];
-
-    // Fetch user details
-    const { data: user } = await axios.get<User>(`${USERS_ENDPOINT}/${userId}`);
-
-    const newComment = {
-      id: Date.now().toString(),
-      userId: String(userId),
-      userName: user.name ?? "Unknown",
-      profilePic: user.profilePic ?? "/default-avatar.png",
-      text,
-      date: new Date().toISOString(),
-    };
-
-    const updatedComments = [...comments, newComment];
-
-    await axios.patch(`${JOBS_ENDPOINT}/${jobId}`, {
-      comments: updatedComments,
-    });
-
-    toast.success("Comment added!");
-    return true;
-  } catch (error) {
-    console.error(error);
-    toast.error("Failed to add comment.");
     return false;
   }
 };
@@ -181,7 +144,8 @@ export const unlikeJob = async (
   userId: string | number
 ): Promise<boolean> => {
   try {
-    const { data: job } = await axios.get<Job>(`${JOBS_ENDPOINT}/${jobId}`);
+    const jobIdStr = String(jobId);
+    const { data: job } = await axios.get<Job>(`${JOBS_ENDPOINT}/${jobIdStr}`);
     const likes: string[] = Array.isArray(job.likes) ? job.likes : [];
 
     if (!likes.includes(String(userId))) {
@@ -190,7 +154,7 @@ export const unlikeJob = async (
     }
 
     const updatedLikes = likes.filter((id) => id !== String(userId));
-    await axios.patch(`${JOBS_ENDPOINT}/${jobId}`, { likes: updatedLikes });
+    await axios.patch(`${JOBS_ENDPOINT}/${jobIdStr}`, { likes: updatedLikes });
 
     toast.success("Like removed!");
     return true;
@@ -202,19 +166,131 @@ export const unlikeJob = async (
 };
 
 /**
- * Delete a job (removes from jobs + client's posts)
+ * Add a comment to a job (checks both users & workers for profilePic)
+ */
+export const commentOnJob = async (
+  jobId: string | number,
+  userId: string | number,
+  text: string
+): Promise<boolean> => {
+  try {
+    const jobIdStr = String(jobId);
+    const { data: job } = await axios.get<Job>(`${JOBS_ENDPOINT}/${jobIdStr}`);
+    const comments: any[] = Array.isArray(job.comments) ? job.comments : [];
+
+    let userName = "Unknown";
+    let profilePic = "/default-avatar.png";
+
+    try {
+      // Try client (users)
+      const { data: user } = await axios.get(`${USERS_ENDPOINT}/${userId}`);
+      userName = user?.name ?? "Unknown";
+      profilePic = user?.profile?.profilePic || "/default-avatar.png";
+    } catch {
+      try {
+        // Try worker
+        const { data: worker } = await axios.get(`${WORKERS_ENDPOINT}/${userId}`);
+        userName = worker?.name ?? "Unknown";
+        profilePic = worker?.profilePic || "/default-avatar.png";
+      } catch {
+        console.warn("User not found in users or workers");
+      }
+    }
+
+    const newComment = {
+      id: Date.now().toString(),
+      userId: String(userId),
+      userName,
+      profilePic,
+      text,
+      date: new Date().toISOString(),
+    };
+
+    const updatedComments = [...comments, newComment];
+    await axios.patch(`${JOBS_ENDPOINT}/${jobIdStr}`, { comments: updatedComments });
+
+    toast.success("Comment added!");
+    return true;
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to add comment.");
+    return false;
+  }
+};
+
+/**
+ * Delete a comment (any user)
+ */
+export const deleteComment = async (
+  jobId: string | number,
+  commentId: string | number
+) => {
+  try {
+    const jobIdStr = String(jobId);
+    const { data: job } = await axios.get<Job>(`${JOBS_ENDPOINT}/${jobIdStr}`);
+    const updatedComments = (job.comments ?? []).filter((c) => c.id !== String(commentId));
+
+    const { data: updatedJob } = await axios.patch<Job>(
+      `${JOBS_ENDPOINT}/${jobIdStr}`,
+      { comments: updatedComments }
+    );
+
+    toast.success("Comment deleted!");
+    return updatedJob;
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to delete comment.");
+    return null;
+  }
+};
+
+/**
+ * Delete a comment by client on their own post
+ */
+export const deleteCommentByClient = async (
+  jobId: string | number,
+  commentId: string | number,
+  clientId: string | number
+) => {
+  try {
+    const jobIdStr = String(jobId);
+    const { data: job } = await axios.get<Job>(`${JOBS_ENDPOINT}/${jobIdStr}`);
+
+    if (job.clientId !== String(clientId)) {
+      toast.error("You can only delete comments on your own posts.");
+      return null;
+    }
+
+    const updatedComments = (job.comments ?? []).filter((c) => c.id !== String(commentId));
+    const { data: updatedJob } = await axios.patch<Job>(
+      `${JOBS_ENDPOINT}/${jobIdStr}`,
+      { comments: updatedComments }
+    );
+
+    toast.success("Comment deleted!");
+    return updatedJob;
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to delete comment.");
+    return null;
+  }
+};
+
+/**
+ * Delete a job (any client)
  */
 export const deleteJob = async (
   jobId: string | number,
   clientId: string | number
 ): Promise<boolean> => {
   try {
-    await axios.delete(`${JOBS_ENDPOINT}/${jobId}`);
+    const jobIdStr = String(jobId);
+    await axios.delete(`${JOBS_ENDPOINT}/${jobIdStr}`);
 
     const { data: client } = await axios.get(`${USERS_ENDPOINT}/${clientId}`);
     const clientPosts: Job[] = Array.isArray(client.posts) ? client.posts : [];
+    const updatedPosts = clientPosts.filter((p) => String(p.id) !== jobIdStr);
 
-    const updatedPosts = clientPosts.filter((p) => p.id !== jobId);
     await axios.patch(`${USERS_ENDPOINT}/${clientId}`, { posts: updatedPosts });
 
     toast.success("Job deleted successfully!");
@@ -225,22 +301,36 @@ export const deleteJob = async (
     return false;
   }
 };
-// ✅ Delete comment (by rewriting comments array)
-export const deleteComment = async (
+
+/**
+ * Delete a client’s own post
+ */
+export const deleteClientPost = async (
   jobId: string | number,
-  commentId: string | number
-) => {
-  const { data: job } = await axios.get<Job>(`${API_URL}/jobs/${jobId}`);
+  clientId: string | number
+): Promise<boolean> => {
+  try {
+    const jobIdStr = String(jobId);
+    const { data: job } = await axios.get<Job>(`${JOBS_ENDPOINT}/${jobIdStr}`);
 
-  // ✅ safe fallback to []
-  const updatedComments = (job.comments ?? []).filter(
-    (c) => c.id !== commentId
-  );
+    if (job.clientId !== String(clientId)) {
+      toast.error("You can only delete your own posts.");
+      return false;
+    }
 
-  const { data: updatedJob } = await axios.patch<Job>(
-    `${API_URL}/jobs/${jobId}`,
-    { comments: updatedComments }
-  );
+    await axios.delete(`${JOBS_ENDPOINT}/${jobIdStr}`);
 
-  return updatedJob;
+    const { data: client } = await axios.get(`${USERS_ENDPOINT}/${clientId}`);
+    const clientPosts: Job[] = Array.isArray(client.posts) ? client.posts : [];
+    const updatedPosts = clientPosts.filter((p) => String(p.id) !== jobIdStr);
+
+    await axios.patch(`${USERS_ENDPOINT}/${clientId}`, { posts: updatedPosts });
+
+    toast.success("Post deleted successfully!");
+    return true;
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to delete post.");
+    return false;
+  }
 };

@@ -6,7 +6,7 @@
       "email": "saheer@gmail.com",
       "password": "1234567",
       "role": "worker",
-      "status": "offline"
+      "status": "active"
     },
     {
       "id": "0b07",
@@ -22,16 +22,7 @@
         "city": "kollam",
         "zip": "673638",
         "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756204564/o8jvjwi0jvs7e4iotfti.jpg",
-        "requests": [
-          {
-            "id": 1757740678067,
-            "workerId": "a894",
-            "workerName": "Muhammed Yasar",
-            "profession": "HVAC Technician",
-            "status": "pending",
-            "date": "2025-09-13T05:17:58.067Z"
-          }
-        ],
+        "requests": [],
         "activeJobs": [
           {
             "id": 1757738968256,
@@ -74,6 +65,14 @@
             "profession": "Plumber",
             "status": "completed",
             "date": "2025-09-22T05:22:24.713Z"
+          },
+          {
+            "id": 1757740678067,
+            "workerId": "17b5",
+            "workerName": "Muhammed Yasar",
+            "profession": "HVAC Technician",
+            "status": "completed",
+            "date": "2025-09-25T04:57:00.702Z"
           }
         ],
         "notifications": [
@@ -82,6 +81,12 @@
             "message": "Vajid accepted your job request. Please chat or call to confirm.",
             "seen": true,
             "date": "2025-09-22T05:22:08.097Z"
+          },
+          {
+            "id": 1758776194641,
+            "message": "Muhammed Yasar accepted your job request. Please chat or call to confirm.",
+            "seen": false,
+            "date": "2025-09-25T04:56:34.641Z"
           }
         ]
       },
@@ -160,16 +165,7 @@
         "city": "kondotty",
         "zip": "675641",
         "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1757923812/kmdcbf8rhisykk2kalaq.jpg",
-        "requests": [
-          {
-            "id": 1757923912567,
-            "workerId": "a894",
-            "workerName": "Muhammed Yasar",
-            "profession": "HVAC Technician",
-            "status": "pending",
-            "date": "2025-09-15T08:11:52.567Z"
-          }
-        ],
+        "requests": [],
         "completedJobs": [
           {
             "id": 1757923874335,
@@ -179,6 +175,14 @@
             "status": "completed",
             "date": "2025-09-15T08:13:15.247Z",
             "reviewed": true
+          },
+          {
+            "id": 1757923912567,
+            "workerId": "17b5",
+            "workerName": "Muhammed Yasar",
+            "profession": "HVAC Technician",
+            "status": "completed",
+            "date": "2025-09-25T04:57:03.667Z"
           }
         ],
         "activeJobs": [
@@ -205,12 +209,18 @@
             "message": "jamshil accepted your job request. Please chat or call to confirm.",
             "seen": true,
             "date": "2025-09-15T08:32:22.381Z"
+          },
+          {
+            "id": 1758776200901,
+            "message": "Muhammed Yasar accepted your job request. Please chat or call to confirm.",
+            "seen": false,
+            "date": "2025-09-25T04:56:40.901Z"
           }
         ],
         "ratings": [],
         "reviews": []
       },
-      "status": "online",
+      "status": "offline",
       "posts": [
         {
           "id": 1758396033987,
@@ -231,7 +241,8 @@
       "name": "Muhammed Yasar",
       "email": "yasar@gmail.com",
       "password": "1234567",
-      "role": "worker"
+      "role": "worker",
+      "status": "offline"
     },
     {
       "id": "9562",
@@ -355,6 +366,15 @@
             "profession": "plumber",
             "status": "completed",
             "date": "2025-09-21T10:46:34.846Z"
+          },
+          {
+            "id": 1758781481083,
+            "workerId": "e0d9",
+            "workerName": "Saheer Chungath",
+            "profession": "plumber",
+            "status": "completed",
+            "date": "2025-09-25T06:25:12.779Z",
+            "reviewed": true
           }
         ],
         "activeJobs": [],
@@ -382,10 +402,16 @@
             "message": "jamshil accepted your job request. Please chat or call to confirm.",
             "seen": true,
             "date": "2025-09-06T06:07:15.306Z"
+          },
+          {
+            "id": 1758781503493,
+            "message": "Saheer Chungath accepted your job request. Please chat or call to confirm.",
+            "seen": false,
+            "date": "2025-09-25T06:25:03.493Z"
           }
         ]
       },
-      "status": "offline",
+      "status": "online",
       "posts": [
         {
           "id": "1758702788499",
@@ -483,6 +509,16 @@
           "description": "i need urgent plumbing work at home\n",
           "status": "completed",
           "date": "2025-09-21T10:45:49.514Z"
+        },
+        {
+          "id": 1758781481083,
+          "clientId": "0f49",
+          "workerId": "1beb",
+          "name": "faiz favaz",
+          "contact": "9074326554",
+          "description": "zbmxbzm",
+          "status": "completed",
+          "date": "2025-09-25T06:24:41.083Z"
         }
       ],
       "reviews": [
@@ -494,10 +530,20 @@
           "review": "he did well.very professional work.also very low charge",
           "rating": 3,
           "date": "2025-09-15T08:15:36.589Z"
+        },
+        {
+          "id": 1758781598137,
+          "clientId": "0f49",
+          "clientName": "faiz favaz",
+          "jobId": 1758781481083,
+          "review": "he did well ",
+          "rating": 2,
+          "date": "2025-09-25T06:26:38.137Z"
         }
       ],
       "ratings": [
-        3
+        3,
+        2
       ],
       "notifications": [
         {
@@ -505,6 +551,12 @@
           "message": "You have a new job request",
           "seen": false,
           "date": "2025-09-21T10:45:49.514Z"
+        },
+        {
+          "id": 1758781481083,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-09-25T06:24:41.083Z"
         }
       ],
       "activeJobs": [],
@@ -512,7 +564,7 @@
       "name": "Saheer Chungath",
       "email": "saheer@gmail.com",
       "Requests": [],
-      "avgRating": 3
+      "avgRating": 2.5
     },
     {
       "userId": "17b5",
@@ -535,7 +587,8 @@
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1756238746/y5skgtcndvmr1d7vgz6h.jpg",
         "https://res.cloudinary.com/dazg1dppg/image/upload/v1756238759/tz27ofngjg9vlhgp7vn3.jpg"
       ],
-      "requests": [
+      "requests": [],
+      "completedJobs": [
         {
           "id": 1756894038520,
           "clientId": "e6bd",
@@ -543,7 +596,7 @@
           "name": "faizfavaz pm",
           "contact": "7034514646",
           "description": "hvhgv",
-          "status": "pending",
+          "status": "completed",
           "date": "2025-09-03T10:07:18.520Z"
         },
         {
@@ -553,7 +606,7 @@
           "name": "jomy seban",
           "contact": "7034514646",
           "description": "i need to fix a new ac",
-          "status": "pending",
+          "status": "completed",
           "date": "2025-09-13T05:17:58.067Z"
         },
         {
@@ -563,11 +616,10 @@
           "name": "Ayisha Nefla",
           "contact": "7736599384",
           "description": "i need fit a new ac in my home",
-          "status": "pending",
+          "status": "completed",
           "date": "2025-09-15T08:11:52.567Z"
         }
       ],
-      "completedJobs": [],
       "reviews": [],
       "ratings": [],
       "notifications": [
@@ -913,9 +965,27 @@
         "0b07",
         "4c47",
         "0f49",
-        "c418"
+        "c418",
+        "17b5"
       ],
-      "comments": []
+      "comments": [
+        {
+          "id": "1758712875583",
+          "userId": "d6f8",
+          "userName": "Vajid",
+          "profilePic": "/default-avatar.png",
+          "text": "👍",
+          "date": "2025-09-24T11:21:15.583Z"
+        },
+        {
+          "id": "1758776285431",
+          "userId": "17b5",
+          "userName": "Muhammed Yasar",
+          "profilePic": "/default-avatar.png",
+          "text": "where is the exact location?",
+          "date": "2025-09-25T04:58:05.431Z"
+        }
+      ]
     },
     {
       "id": "1758396544423",
@@ -934,7 +1004,8 @@
         "0b07",
         "4c47",
         "0f49",
-        "c418"
+        "c418",
+        "17b5"
       ],
       "comments": [
         {
@@ -960,7 +1031,9 @@
         "b0e7",
         "0f49",
         "0b07",
-        "c418"
+        "c418",
+        "d6f8",
+        "17b5"
       ],
       "comments": []
     },
@@ -979,7 +1052,8 @@
         "b0e7",
         "0f49",
         "0b07",
-        "c418"
+        "c418",
+        "17b5"
       ],
       "comments": [
         {
@@ -989,6 +1063,14 @@
           "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1757138394/zfncpsx5xsayn2thvxxm.png",
           "text": "👍",
           "date": "2025-09-24T09:55:29.143Z"
+        },
+        {
+          "id": "1758775476701",
+          "userId": "e0d9",
+          "userName": "Saheer Chungath",
+          "profilePic": "/default-avatar.png",
+          "text": "i am interested👋",
+          "date": "2025-09-25T04:44:36.701Z"
         }
       ]
     },
@@ -1003,9 +1085,20 @@
       "workerId": "",
       "likes": [
         "0f49",
-        "0b07"
+        "0b07",
+        "c418",
+        "d6f8"
       ],
-      "comments": []
+      "comments": [
+        {
+          "id": "1758708552299",
+          "userId": "c418",
+          "userName": "Ayisha Nefla",
+          "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1757923812/kmdcbf8rhisykk2kalaq.jpg",
+          "text": "👍",
+          "date": "2025-09-24T10:09:12.299Z"
+        }
+      ]
     }
   ]
 }

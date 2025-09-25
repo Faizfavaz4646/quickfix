@@ -65,6 +65,8 @@ export interface Job {
   images?: string[];
   likes?:string[];      // ✅number of likes
   comments?: Comment[];
+    profilePic?: string;
+
 }
 
 export interface Field<T> {
@@ -107,6 +109,7 @@ export interface Profile {
   avgRating?: number;      // ← Optional average rating
    activeJobs?: Job[];
   completedJobs?: Job[];
+  location?:string;
 
   
  

@@ -8,5 +8,10 @@ export default function JobPostWrapper() {
 
   if (!user) return null; // or show a "Login to post a job" message
 
-  return <JobPostButton />;
+  return (
+    <main className="bg-gray-50">
+      <JobPostButton />
+    </main>
+
+  )
 }

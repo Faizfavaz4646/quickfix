@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { FaThumbsUp } from "react-icons/fa";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { useAuthStore } from "@/store/authStore";
+import { TfiReload } from "react-icons/tfi";
 import {
   fetchJobsForWorkers,
   likeJob,
@@ -282,9 +283,9 @@ export default function ClientPostsPage() {
           <div className="text-center">
             <button
               onClick={() => setVisibleCount((prev) => prev + 3)}
-              className="text-blue-600 font-medium hover:underline"
+              className="text-gray-600 font-medium cursor-pointer"
             >
-              Load more posts
+        <span className="flex gap-2">Load more <TfiReload className="mt-1" /></span>      
             </button>
           </div>
         )}

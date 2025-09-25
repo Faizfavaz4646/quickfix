@@ -1,20 +1,33 @@
 "use client";
 
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useEffect } from "react";
 import { FaPencilAlt, FaImage, FaTimes } from "react-icons/fa";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
-import { Job } from "@/types/user";
+import { Job, Profile } from "@/types/user";
 import { postJob } from "@/services/JobsService";
 import { uploadToCloudinary } from "../../../utils/uploadToCloudinary";
+import { getWorkerProfile } from "@/services/workerService";
 
-const JobPostButton: React.FC = () => {
+const WorkerJobPostButton: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [description, setDescription] = useState("");
-  const [images, setImages] = useState<string[]>([]); // multiple image URLs
+  const [images, setImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+   const [workerProfile, setWorkerProfile] = useState<Profile | null>(null);
 
   const { user } = useAuthStore();
+    useEffect(() => {
+      if (!user?.id) return;
+  
+      getWorkerProfile(user.id.toString())
+        .then((data) => {
+          if (data) setWorkerProfile(data);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch worker profile:", err);
+        });
+    }, [user?.id]);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -38,7 +51,7 @@ const JobPostButton: React.FC = () => {
   };
 
   const removeImage = (url: string) => {
-    setImages(images.filter((img) => img !== url));
+    setImages((prev) => prev.filter((img) => img !== url));
   };
 
   const handlePost = async () => {
@@ -53,28 +66,25 @@ const JobPostButton: React.FC = () => {
     }
 
     const newJob: Job = {
-      id: Date.now(),
-      clientId: String(user?.id),
-      clientName: user?.name || "Anonymous",
+      id: Date.now().toString(),
+      clientId: String(user.id),
+      clientName: user.name || "Worker",
+      profilePic: user?.profile?.profilePic || "/default-avatar.png", // ✅ store worker pic
       description,
-      location: user?.location,
-      images, //  store multiple images
+      location: user?.profile?.location || user.location || "",
+      images,
       date: new Date().toISOString(),
       status: "pending",
       workerId: "",
-      likes: [], 
+      likes: [],
       comments: [],
     };
 
-    try {
-      await postJob(newJob, user.id);
-      toast.success("Job posted!");
+    const success = await postJob(newJob, user.id);
+    if (success) {
       setDescription("");
       setImages([]);
       setIsOpen(false);
-    } catch (error) {
-      console.error("Error posting job:", error);
-      toast.error("Job post failed");
     }
   };
 
@@ -83,7 +93,7 @@ const JobPostButton: React.FC = () => {
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 border-2  border-gray-100 text-blue-500 rounded-full hover:bg-blue-50 transition"
+        className="flex items-center gap-2 px-4 py-2 border-2 border-gray-100 text-blue-500 rounded-full hover:bg-blue-50 transition"
       >
         <FaPencilAlt /> Post a Job
       </button>
@@ -98,7 +108,7 @@ const JobPostButton: React.FC = () => {
             className="bg-white rounded-2xl shadow-lg w-full max-w-2xl p-8 relative mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
+            {/* Close Button */}
             <button
               onClick={() => setIsOpen(false)}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -106,24 +116,23 @@ const JobPostButton: React.FC = () => {
               <FaTimes size={20} />
             </button>
 
-            {/* User info */}
+            {/* Worker Info */}
             <div className="flex items-center gap-3 mb-5">
-              {user?.profile?.profilePic && (
+             
                 <img
-                  src={user.profile.profilePic}
-                  alt={user.name}
-                  className="w-12 h-12 rounded-full border"
+                  src={workerProfile?.profilePic  || "/default-avatar.png"}
+                  alt={user?.name}
+                  className="w-12 h-12 rounded-full border object-cover"
                 />
-              )}
               <span className="font-medium text-gray-700 text-lg">
-                {user?.name || "Client"}
+                {user?.name || "Worker"}
               </span>
             </div>
 
             {/* Textarea */}
             <textarea
               className="w-full rounded-lg p-4 focus:ring-0 text-base outline-none resize-none"
-              placeholder="Describe the job..."
+              placeholder="make your post here..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={5}
@@ -182,4 +191,4 @@ const JobPostButton: React.FC = () => {
   );
 };
 
-export default JobPostButton;
+export default WorkerJobPostButton;

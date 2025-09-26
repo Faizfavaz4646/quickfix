@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { FaThumbsUp, FaComment } from "react-icons/fa";
-import { BsThreeDotsVertical } from "react-icons/bs";
+import { useEffect, useState, useRef } from "react";
+import { FaThumbsUp } from "react-icons/fa";
 import { useAuthStore } from "@/store/authStore";
 import {
   fetchJobsForWorkers,
@@ -11,74 +10,71 @@ import {
   commentOnJob,
   deleteComment,
 } from "@/services/JobsService";
-import type { JobWithClientProfile as ServiceJobWithClientProfile } from "@/services/JobsService";
+import WorkerNewPost from "@/app/worker/WorkerNewPost";
 import { Job, User, Comment } from "@/types/user";
-import WorkerNewPost from "@/app/worker/WorkerNewPost"
 
-/**
- * Local type: extend the service JobWithClientProfile to guarantee likes/comments arrays
- * This avoids the cross-module type mismatch you saw earlier.
- */
-type JobWithClientProfile = ServiceJobWithClientProfile & {
+type JobWithClientProfile = Job & {
   likes: string[];
   comments: Comment[];
-  clientProfile?: User | any; // clientProfile in your service is client.profile — keep flexible
+  clientProfile?: User | any;
 };
 
 export default function WorkerJobPostsPage() {
   const [jobs, setJobs] = useState<JobWithClientProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
-  const { user } = useAuthStore();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string | number | null>(null);
 
+  const { user } = useAuthStore();
   const currentUserId = user?.id ? String(user.id) : "";
   const currentUserName = user?.name || "";
+  const modalRef = useRef<HTMLDivElement>(null);
 
-  // Helper to get the current user's profilePic (works for both client and worker shapes)
-  const getCurrentUserProfilePic = () => {
-    return (
-      (user as any)?.profile?.profilePic ||
-      (user as any)?.profilePic ||
-      "/default-avatar.png"
-    );
-  };
+  const getProfilePic = () =>
+    user?.profile?.profilePic || user?.profilePic || "/images/avatar.avif";
 
-  // Load jobs from service and normalize likes/comments
   useEffect(() => {
     const loadJobs = async () => {
       setLoading(true);
       try {
         const allJobs = await fetchJobsForWorkers();
         const normalized: JobWithClientProfile[] = allJobs.map((job) => ({
-          // keep everything from service job
           ...job,
-          // guarantee likes/comments arrays and ensure string ids
-          likes: Array.isArray((job as any).likes) ? (job as any).likes.map(String) : [],
-          comments: Array.isArray((job as any).comments) ? (job as any).comments : [],
-          clientProfile: (job as any).clientProfile ?? undefined,
+          likes: Array.isArray(job.likes) ? job.likes.map(String) : [],
+          comments: Array.isArray(job.comments) ? job.comments : [],
+          clientProfile: job.clientProfile ?? undefined,
         }));
-        setJobs(normalized);
+        setJobs(normalized.reverse());
       } catch (err) {
-        console.error("Failed to fetch jobs:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
-
     loadJobs();
   }, []);
 
-  // Like / Unlike handler
+  // Close modal when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setModalOpen(false);
+        setSelectedJobId(null);
+      }
+    };
+    if (modalOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [modalOpen]);
+
   const handleLike = async (jobId: string | number) => {
     if (!currentUserId) return;
     const job = jobs.find((j) => j.id === jobId);
     if (!job) return;
-
     const hasLiked = job.likes.includes(currentUserId);
     const success = hasLiked
       ? await unlikeJob(jobId, currentUserId)
       : await likeJob(jobId, currentUserId);
-
     if (!success) return;
 
     setJobs((prev) =>
@@ -86,14 +82,15 @@ export default function WorkerJobPostsPage() {
         j.id === jobId
           ? {
               ...j,
-              likes: hasLiked ? j.likes.filter((id) => id !== currentUserId) : [...j.likes, currentUserId],
+              likes: hasLiked
+                ? j.likes.filter((id) => id !== currentUserId)
+                : [...j.likes, currentUserId],
             }
           : j
       )
     );
   };
 
-  // Inline comment (uses commentInputs state)
   const handleCommentSubmit = async (jobId: string | number) => {
     if (!currentUserId) return;
     const key = String(jobId);
@@ -101,79 +98,76 @@ export default function WorkerJobPostsPage() {
     if (!text) return;
 
     const success = await commentOnJob(jobId, currentUserId, text);
-    if (!success) {
-      // optionally show an error toast (job service already does)
-      return;
-    }
+    if (!success) return;
 
-    // optimistic comment creation using local user data (server also stores profilePic)
     const newComment: Comment = {
       id: Date.now().toString(),
       userId: currentUserId,
       userName: currentUserName,
-      clientName: currentUserName, // required by your Comment type
+      clientName: currentUserName,
       text,
       date: new Date().toISOString(),
-      profilePic: getCurrentUserProfilePic(),
+      profilePic: getProfilePic(),
     };
 
     setJobs((prev) =>
       prev.map((j) => (j.id === jobId ? { ...j, comments: [...j.comments, newComment] } : j))
     );
 
-    // clear input
     setCommentInputs((prev) => ({ ...prev, [key]: "" }));
   };
 
-  // Delete comment (any user)
   const handleDeleteComment = async (jobId: string | number, commentId: string | number) => {
-    const confirmDelete = confirm("Are you sure you want to delete this comment?");
-    if (!confirmDelete) return;
-
-    try {
-      const updatedJob = await deleteComment(jobId, commentId);
-      if (updatedJob) {
-        // updatedJob comes from service patch — we only need its comments
-        setJobs((prev) =>
-          prev.map((j) => (j.id === jobId ? { ...j, comments: updatedJob.comments ?? [] } : j))
-        );
-      }
-    } catch (err) {
-      console.error("Failed to delete comment:", err);
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+    const updatedJob = await deleteComment(jobId, commentId);
+    if (updatedJob) {
+      setJobs((prev) =>
+        prev.map((j) => (j.id === jobId ? { ...j, comments: updatedJob.comments ?? [] } : j))
+      );
     }
   };
 
+  const openCommentModal = (jobId: string | number) => {
+    setSelectedJobId(jobId);
+    setModalOpen(true);
+  };
+
+  const selectedJobComments =
+    selectedJobId !== null
+      ? jobs.find((j) => j.id === selectedJobId)?.comments || []
+      : [];
+
   if (loading) return <div className="p-6 text-center w-full">Loading jobs...</div>;
-  if (!loading && jobs.length === 0) return <div className="p-6 text-center w-full">No jobs available</div>;
+  if (!loading && jobs.length === 0)
+    return <div className="p-6 text-center w-full">No jobs available</div>;
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
-
       <WorkerNewPost />
-    
-
 
       <div className="max-w-6xl mx-auto p-4 space-y-6">
         {jobs.map((job) => {
           const jobKey = String(job.id);
-          const isClientOwner = job.clientProfile?.id && String(job.clientProfile.id) === currentUserId;
+          const lastComment = job.comments[job.comments.length - 1];
+
           return (
-            <div key={jobKey} className="w-full rounded-lg shadow bg-white hover:shadow-lg transition p-4">
+            <div
+              key={jobKey}
+              className="w-full rounded-lg shadow bg-white hover:shadow-lg transition p-4 relative"
+            >
               {/* Client info */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
-                {job.clientProfile?.profilePic ? (
-                  <img
-                    src={job.clientProfile.profilePic}
-                    alt={job.clientName}
-                    className="w-12 h-12 rounded-full border object-cover"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full border bg-gray-100 flex items-center justify-center text-sm text-gray-500">No</div>
-                )}
+                <img
+                  src={job.clientProfile?.profilePic || "/images/avatar.avif"}
+                  alt={job.clientName}
+                  className="w-12 h-12 rounded-full border object-cover"
+                />
                 <div>
                   <p className="font-medium">{job.clientName}</p>
                   <p className="text-sm text-gray-500">
-                    {job.clientProfile?.state || "Unknown"}, {job.clientProfile?.district || "Unknown"}, {job.clientProfile?.city || "Unknown"}
+                    {job.clientProfile?.state || "Unknown"},{" "}
+                    {job.clientProfile?.district || "Unknown"},{" "}
+                    {job.clientProfile?.city || "Unknown"}
                   </p>
                 </div>
               </div>
@@ -182,15 +176,21 @@ export default function WorkerJobPostsPage() {
               <p className="mb-3 whitespace-pre-line">{job.description}</p>
 
               {/* Images */}
-              {job.images?.length ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mb-3">
-                  {job.images.map((img: string, idx: number) => (
-                    <img key={idx} src={img} alt={`Job ${idx + 1}`} className="w-full h-48 object-cover rounded-lg" />
-                  ))}
-                </div>
-              ) : null}
+           {job.images?.length ? (
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mb-3">
+    {(job.images || []).map((img, idx) => (
+      <img
+        key={idx}
+        src={img}
+        alt={`Job ${idx + 1}`}
+        className="w-full h-48 object-cover rounded-lg"
+      />
+    ))}
+  </div>
+) : null}
 
-              {/* likes info */}
+
+              {/* Likes */}
               <p className="text-sm text-gray-500 mb-1">
                 {job.likes.length > 0 ? `${job.likes.length} people liked this` : "No likes yet"}
               </p>
@@ -199,55 +199,66 @@ export default function WorkerJobPostsPage() {
               <div className="flex flex-wrap gap-4 pt-2">
                 <button
                   onClick={() => handleLike(job.id)}
-                  className={`flex items-center gap-1 text-sm font-medium ${job.likes.includes(currentUserId) ? "text-blue-500" : "text-gray-600"}`}
+                  className={`flex items-center gap-1 text-sm font-medium ${
+                    job.likes.includes(currentUserId) ? "text-blue-500" : "text-gray-600"
+                  }`}
                 >
                   <FaThumbsUp /> Like
                 </button>
-
-                <button
-                  onClick={() => {
-                    // focus the comment input for this job (basic UX)
-                    const el = document.getElementById(`comment-input-${jobKey}`) as HTMLInputElement | null;
-                    el?.focus();
-                  }}
-                  className="flex items-center gap-1 text-sm font-medium text-gray-600"
-                >
-                  <FaComment /> Comment
-                </button>
               </div>
 
-              {/* Comments */}
-              {job.comments && job.comments.length > 0 && (
-                <div className="mt-3  pt-2 space-y-2">
-                  {job.comments.map((comment) => {
-                    const canDelete = String(comment.userId) === currentUserId || isClientOwner;
+              {/* Latest Comment */}
+              {lastComment && (
+                <div
+                  className="flex items-start gap-2 mt-2 cursor-pointer"
+                  onClick={() => openCommentModal(job.id)}
+                >
+                  <img
+                    src={lastComment.profilePic || "/images/avatar.avif"}
+                    alt={lastComment.userName}
+                    className="w-6 h-6 rounded-full border object-cover mt-1"
+                  />
+                  <div className="flex-1 text-sm bg-gray-100 rounded-lg px-2 py-1">
+                    <span className="font-medium">{lastComment.userName}: </span>
+                    {lastComment.text}
+                  </div>
+                  {job.comments.length > 1 && (
+                    <span className="text-gray-500 text-xs ml-2 mt-1">
+                      View all {job.comments.length} comments
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Comments Modal */}
+              {modalOpen && selectedJobId === job.id && (
+                <div
+                  ref={modalRef}
+                  className="mt-2 w-full bg-white border shadow-lg rounded-lg max-h-64 overflow-y-auto z-10 p-3"
+                >
+                  <h3 className="text-sm font-medium mb-2">All Comments</h3>
+                  {selectedJobComments.length === 0 && (
+                    <p className="text-xs text-gray-500">No comments yet</p>
+                  )}
+                  {selectedJobComments.map((comment) => {
+                    const canDelete = String(comment.userId) === currentUserId;
                     return (
-                      <div key={`${jobKey}-${String(comment.id)}`} className="flex items-start gap-2">
-                        {comment.profilePic ? (
-                          <img src={comment.profilePic} alt={comment.userName} className="w-8 h-8 rounded-full border object-cover mt-1" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full border bg-gray-100 flex items-center justify-center text-xs text-gray-500 mt-1">U</div>
-                        )}
-                        <div className="flex-1 text-sm bg-gray-100 rounded-lg px-2 py-1 relative">
+                      <div key={comment.id} className="flex items-start gap-2 mb-2">
+                        <img
+                          src={comment.profilePic || "/images/avatar.avif"}
+                          alt={comment.userName}
+                          className="w-6 h-6 rounded-full border object-cover mt-1"
+                        />
+                        <div className="flex-1 text-xs bg-gray-100 rounded-lg px-2 py-1 relative">
                           <span className="font-medium">{comment.userName}: </span>
                           {comment.text}
-
                           {canDelete && (
-                            <div className="absolute top-1 right-1">
-                              <details className="relative">
-                                <summary className="list-none cursor-pointer">
-                                  <BsThreeDotsVertical />
-                                </summary>
-                                <div className="absolute right-0 mt-1 w-24 bg-white border rounded shadow">
-                                  <button
-                                    onClick={() => handleDeleteComment(job.id, comment.id)}
-                                    className="w-full text-left px-2 py-1 text-sm text-red-600 hover:bg-gray-100"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </details>
-                            </div>
+                            <button
+                              onClick={() => handleDeleteComment(selectedJobId, comment.id)}
+                              className="absolute top-0 right-0 text-red-500 text-xs"
+                            >
+                              ×
+                            </button>
                           )}
                         </div>
                       </div>
@@ -256,14 +267,16 @@ export default function WorkerJobPostsPage() {
                 </div>
               )}
 
-              {/* Inline comment input */}
+              {/* Comment Input */}
               <div className="flex items-center gap-2 mt-3">
                 <input
                   id={`comment-input-${jobKey}`}
                   type="text"
                   placeholder="Write a comment..."
                   value={commentInputs[jobKey] || ""}
-                  onChange={(e) => setCommentInputs((prev) => ({ ...prev, [jobKey]: e.target.value }))}
+                  onChange={(e) =>
+                    setCommentInputs((prev) => ({ ...prev, [jobKey]: e.target.value }))
+                  }
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleCommentSubmit(job.id);
                   }}

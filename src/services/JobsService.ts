@@ -178,30 +178,10 @@ export const commentOnJob = async (
     const { data: job } = await axios.get<Job>(`${JOBS_ENDPOINT}/${jobIdStr}`);
     const comments: any[] = Array.isArray(job.comments) ? job.comments : [];
 
-    let userName = "Unknown";
-    let profilePic = "/default-avatar.png";
-
-    try {
-      // Try client (users)
-      const { data: user } = await axios.get(`${USERS_ENDPOINT}/${userId}`);
-      userName = user?.name ?? "Unknown";
-      profilePic = user?.profile?.profilePic || "/default-avatar.png";
-    } catch {
-      try {
-        // Try worker
-        const { data: worker } = await axios.get(`${WORKERS_ENDPOINT}/${userId}`);
-        userName = worker?.name ?? "Unknown";
-        profilePic = worker?.profilePic || "/default-avatar.png";
-      } catch {
-        console.warn("User not found in users or workers");
-      }
-    }
-
+    // 🟢 Only save userId + text (not profilePic / userName)
     const newComment = {
       id: Date.now().toString(),
       userId: String(userId),
-      userName,
-      profilePic,
       text,
       date: new Date().toISOString(),
     };
@@ -209,14 +189,17 @@ export const commentOnJob = async (
     const updatedComments = [...comments, newComment];
     await axios.patch(`${JOBS_ENDPOINT}/${jobIdStr}`, { comments: updatedComments });
 
+    console.log("Comment added successfully:", newComment);
     toast.success("Comment added!");
     return true;
   } catch (error) {
-    console.error(error);
+    console.error("Failed to add comment:", error);
     toast.error("Failed to add comment.");
     return false;
   }
 };
+
+
 
 /**
  * Delete a comment (any user)

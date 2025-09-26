@@ -6,7 +6,7 @@
       "email": "saheer@gmail.com",
       "password": "1234567",
       "role": "worker",
-      "status": "active"
+      "status": "online"
     },
     {
       "id": "0b07",
@@ -314,7 +314,7 @@
         "district": "malappuram",
         "city": "kondotty",
         "zip": "673021",
-        "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1757138394/zfncpsx5xsayn2thvxxm.png",
+        "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1758879864/dwhyqlcnveb5l7qyccr3.jpg",
         "requests": [
           {
             "id": 1757138481621,
@@ -409,9 +409,11 @@
             "seen": false,
             "date": "2025-09-25T06:25:03.493Z"
           }
-        ]
+        ],
+        "ratings": [],
+        "reviews": []
       },
-      "status": "online",
+      "status": "offline",
       "posts": [
         {
           "id": "1758702788499",
@@ -426,13 +428,29 @@
           "comments": []
         }
       ]
+    },
+    {
+      "id": "cf61",
+      "name": "shibil",
+      "email": "shibil@gmail.com",
+      "password": "1234567",
+      "role": "client",
+      "status": "offline"
+    },
+    {
+      "id": "f705",
+      "name": "safvan",
+      "email": "safvan@gmail.com",
+      "password": "1234567",
+      "role": "worker",
+      "status": "offline"
     }
   ],
   "workers": [
     {
       "id": "1beb",
       "userId": "e0d9",
-      "profession": "plumber",
+      "profession": "Plumber",
       "phone": "9074326554",
       "gender": "male",
       "state": "Kerala",
@@ -557,6 +575,12 @@
           "message": "You have a new job request",
           "seen": false,
           "date": "2025-09-25T06:24:41.083Z"
+        },
+        {
+          "id": 1758874850440,
+          "message": "You have a new job request",
+          "seen": false,
+          "date": "2025-09-26T08:20:50.440Z"
         }
       ],
       "activeJobs": [],
@@ -906,7 +930,8 @@
       "termsAccepted": true,
       "name": "Vajid",
       "email": "vajid@gmail.com",
-      "Requests": []
+      "Requests": [],
+      "avgRating": 0
     },
     {
       "id": "03d7",
@@ -937,6 +962,30 @@
       "name": "Jasil",
       "email": "jasil@gmail.com",
       "Requests": []
+    },
+    {
+      "id": "01bd",
+      "userId": "f705",
+      "profession": "Electrician",
+      "phone": "9074326554",
+      "gender": "male",
+      "state": "Kerala",
+      "district": "kannur",
+      "city": "kannur",
+      "zip": "673675",
+      "schedule": "9am  to. 6pm",
+      "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1758868620/rxliuxpnzymxya69v4cu.svg",
+      "previousWorkImages": [],
+      "requests": [],
+      "completedJobs": [],
+      "reviews": [],
+      "ratings": [],
+      "notifications": [],
+      "activeJobs": [],
+      "termsAccepted": true,
+      "name": "safvan",
+      "email": "safvan@gmail.com",
+      "avgRating": 0
     }
   ],
   "admins": [
@@ -966,26 +1015,10 @@
         "4c47",
         "0f49",
         "c418",
-        "17b5"
+        "17b5",
+        "f705"
       ],
-      "comments": [
-        {
-          "id": "1758712875583",
-          "userId": "d6f8",
-          "userName": "Vajid",
-          "profilePic": "/default-avatar.png",
-          "text": "👍",
-          "date": "2025-09-24T11:21:15.583Z"
-        },
-        {
-          "id": "1758776285431",
-          "userId": "17b5",
-          "userName": "Muhammed Yasar",
-          "profilePic": "/default-avatar.png",
-          "text": "where is the exact location?",
-          "date": "2025-09-25T04:58:05.431Z"
-        }
-      ]
+      "comments": []
     },
     {
       "id": "1758396544423",
@@ -1005,7 +1038,8 @@
         "4c47",
         "0f49",
         "c418",
-        "17b5"
+        "17b5",
+        "f705"
       ],
       "comments": [
         {
@@ -1015,6 +1049,20 @@
           "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756204564/o8jvjwi0jvs7e4iotfti.jpg",
           "text": "❤️",
           "date": "2025-09-24T09:58:23.881Z"
+        },
+        {
+          "id": "1758879816399",
+          "userId": "0f49",
+          "userName": "faiz favaz",
+          "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1757138394/zfncpsx5xsayn2thvxxm.png",
+          "text": "👍",
+          "date": "2025-09-26T09:43:36.399Z"
+        },
+        {
+          "id": "1758881782063",
+          "userId": "e0d9",
+          "text": "❤️",
+          "date": "2025-09-26T10:16:22.063Z"
         }
       ]
     },
@@ -1033,9 +1081,26 @@
         "0b07",
         "c418",
         "d6f8",
-        "17b5"
+        "17b5",
+        "f705",
+        "e0d9"
       ],
-      "comments": []
+      "comments": [
+        {
+          "id": "1758862624216",
+          "userId": "c418",
+          "userName": "Ayisha Nefla",
+          "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1757923812/kmdcbf8rhisykk2kalaq.jpg",
+          "text": "👍",
+          "date": "2025-09-26T04:57:04.216Z"
+        },
+        {
+          "id": "1758881147300",
+          "userId": "0f49",
+          "text": "ssss",
+          "date": "2025-09-26T10:05:47.300Z"
+        }
+      ]
     },
     {
       "id": "1758697650747",
@@ -1053,7 +1118,9 @@
         "0f49",
         "0b07",
         "c418",
-        "17b5"
+        "17b5",
+        "f705",
+        "e0d9"
       ],
       "comments": [
         {
@@ -1065,12 +1132,10 @@
           "date": "2025-09-24T09:55:29.143Z"
         },
         {
-          "id": "1758775476701",
-          "userId": "e0d9",
-          "userName": "Saheer Chungath",
-          "profilePic": "/default-avatar.png",
-          "text": "i am interested👋",
-          "date": "2025-09-25T04:44:36.701Z"
+          "id": "1758881516117",
+          "userId": "0f49",
+          "text": "❤️",
+          "date": "2025-09-26T10:11:56.117Z"
         }
       ]
     },
@@ -1087,16 +1152,21 @@
         "0f49",
         "0b07",
         "c418",
-        "d6f8"
+        "d6f8",
+        "e0d9"
       ],
       "comments": [
         {
-          "id": "1758708552299",
-          "userId": "c418",
-          "userName": "Ayisha Nefla",
-          "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1757923812/kmdcbf8rhisykk2kalaq.jpg",
+          "id": "1758880867502",
+          "userId": "0f49",
+          "text": "fchvjb",
+          "date": "2025-09-26T10:01:07.502Z"
+        },
+        {
+          "id": "1758881248155",
+          "userId": "0f49",
           "text": "👍",
-          "date": "2025-09-24T10:09:12.299Z"
+          "date": "2025-09-26T10:07:28.155Z"
         }
       ]
     }

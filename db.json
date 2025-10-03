@@ -6,7 +6,7 @@
       "email": "saheer@gmail.com",
       "password": "1234567",
       "role": "worker",
-      "status": "online"
+      "status": "offline"
     },
     {
       "id": "0b07",
@@ -380,6 +380,12 @@
         "activeJobs": [],
         "notifications": [
           {
+            "id": 1758781503493,
+            "message": "Saheer Chungath accepted your job request. Please chat or call to confirm.",
+            "seen": true,
+            "date": "2025-09-25T06:25:03.493Z"
+          },
+          {
             "id": 1758451584558,
             "message": "Saheer Chungath accepted your job request. Please chat or call to confirm.",
             "seen": true,
@@ -402,18 +408,12 @@
             "message": "jamshil accepted your job request. Please chat or call to confirm.",
             "seen": true,
             "date": "2025-09-06T06:07:15.306Z"
-          },
-          {
-            "id": 1758781503493,
-            "message": "Saheer Chungath accepted your job request. Please chat or call to confirm.",
-            "seen": false,
-            "date": "2025-09-25T06:25:03.493Z"
           }
         ],
         "ratings": [],
         "reviews": []
       },
-      "status": "offline",
+      "status": "online",
       "posts": [
         {
           "id": "1758702788499",
@@ -1018,7 +1018,14 @@
         "17b5",
         "f705"
       ],
-      "comments": []
+      "comments": [
+        {
+          "id": "1758882813616",
+          "userId": "0f49",
+          "text": "good",
+          "date": "2025-09-26T10:33:33.616Z"
+        }
+      ]
     },
     {
       "id": "1758396544423",
@@ -1037,16 +1044,15 @@
         "0b07",
         "4c47",
         "0f49",
-        "c418",
         "17b5",
-        "f705"
+        "f705",
+        "c418"
       ],
       "comments": [
         {
           "id": "1758707903881",
           "userId": "0b07",
           "userName": "jomy seban",
-          "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1756204564/o8jvjwi0jvs7e4iotfti.jpg",
           "text": "❤️",
           "date": "2025-09-24T09:58:23.881Z"
         },
@@ -1054,15 +1060,8 @@
           "id": "1758879816399",
           "userId": "0f49",
           "userName": "faiz favaz",
-          "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1757138394/zfncpsx5xsayn2thvxxm.png",
           "text": "👍",
           "date": "2025-09-26T09:43:36.399Z"
-        },
-        {
-          "id": "1758881782063",
-          "userId": "e0d9",
-          "text": "❤️",
-          "date": "2025-09-26T10:16:22.063Z"
         }
       ]
     },
@@ -1090,7 +1089,6 @@
           "id": "1758862624216",
           "userId": "c418",
           "userName": "Ayisha Nefla",
-          "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1757923812/kmdcbf8rhisykk2kalaq.jpg",
           "text": "👍",
           "date": "2025-09-26T04:57:04.216Z"
         },
@@ -1099,6 +1097,12 @@
           "userId": "0f49",
           "text": "ssss",
           "date": "2025-09-26T10:05:47.300Z"
+        },
+        {
+          "id": "1759214035760",
+          "userId": "c418",
+          "text": "👍",
+          "date": "2025-09-30T06:33:55.760Z"
         }
       ]
     },
@@ -1127,7 +1131,6 @@
           "id": "1758707729143",
           "userId": "0f49",
           "userName": "faiz favaz",
-          "profilePic": "https://res.cloudinary.com/dazg1dppg/image/upload/v1757138394/zfncpsx5xsayn2thvxxm.png",
           "text": "👍",
           "date": "2025-09-24T09:55:29.143Z"
         },
@@ -1153,7 +1156,8 @@
         "0b07",
         "c418",
         "d6f8",
-        "e0d9"
+        "e0d9",
+        "17b5"
       ],
       "comments": [
         {
@@ -1167,6 +1171,24 @@
           "userId": "0f49",
           "text": "👍",
           "date": "2025-09-26T10:07:28.155Z"
+        },
+        {
+          "id": "1758883190877",
+          "userId": "0f49",
+          "text": "vnb",
+          "date": "2025-09-26T10:39:50.877Z"
+        },
+        {
+          "id": "1759221582725",
+          "userId": "e0d9",
+          "text": "👍",
+          "date": "2025-09-30T08:39:42.725Z"
+        },
+        {
+          "id": "1759222022065",
+          "userId": "17b5",
+          "text": "❤️",
+          "date": "2025-09-30T08:47:02.065Z"
         }
       ]
     }

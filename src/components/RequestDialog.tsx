@@ -5,9 +5,15 @@ import { useAuthStore } from "@/store/authStore";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { FaComments } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import ChatBox from "@/components/ChatBox";
 
 export default function RequestDialog({ workerId }: { workerId: string }) {
   const [open, setOpen] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const { user } = useAuthStore();
   const router = useRouter();
 
@@ -17,7 +23,10 @@ export default function RequestDialog({ workerId }: { workerId: string }) {
     description: "",
   });
 
-  const [loading, setLoading] = useState(false);
+  const worker = {
+    name: "Saheer Chungath",
+    profilePic: "https://res.cloudinary.com/dazg1dppg/image/upload/v1758649928/oqmv5vrwnp2oo9sbb6ol.jpg",
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -27,13 +36,11 @@ export default function RequestDialog({ workerId }: { workerId: string }) {
 
   const handleSendRequest = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!user) {
       toast.info("Please login first!");
       router.push("/auth/login");
       return;
     }
-
     if (user.role !== "client") {
       toast.error("Only clients can send requests!");
       return;
@@ -51,9 +58,6 @@ export default function RequestDialog({ workerId }: { workerId: string }) {
         );
 
       toast.success("Request sent! Worker notified ✅");
-      console.log("Worker Request:", newRequest);
-      console.log("Client Request:", clientRequest);
-      console.log("Notification:", newNotification);
 
       setFormData({
         name: user?.name || "",
@@ -88,57 +92,82 @@ export default function RequestDialog({ workerId }: { workerId: string }) {
         Request Service
       </button>
 
-      {open && (
-        <div className="absolute top-full right-0 mt-2 bg-white border rounded-lg shadow-lg p-4 w-72 z-20">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-sm font-semibold">Request Service</h3>
+      {/* Chat button */}
+     
             <button
-              onClick={() => setOpen(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              ✖
-            </button>
-          </div>
+        onClick={() => setShowChat(true)}
+        className="bg-green-500 text-white p-3 rounded-full hover:bg-green-600 mx-5"
+      >
+        <FaComments size={20} />
+      </button>
+  
 
-          <form onSubmit={handleSendRequest} className="flex flex-col gap-2">
-            <input
-              type="text"
-              name="name"
-              placeholder="Your Name"
-              value={formData.name}
-              onChange={handleChange}
-              className="border rounded-md px-2 py-1 text-sm"
-              required
-            />
-            <input
-              type="text"
-              name="contact"
-              placeholder="Phone Number"
-              value={formData.contact}
-              onChange={handleChange}
-              className="border rounded-md px-2 py-1 text-sm"
-              required
-            />
-            <textarea
-              name="description"
-              placeholder="Describe your request..."
-              rows={2}
-              value={formData.description}
-              onChange={handleChange}
-              className="border rounded-md px-2 py-1 text-sm"
-              required
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className={`${
-                loading ? "bg-gray-400" : "bg-yellow-400"
-              } text-white py-1.5 rounded-md text-sm`}
-            >
-              {loading ? "Sending..." : "Submit"}
-            </button>
-          </form>
-        </div>
+      {/* Small modal with “page opening” animation */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="requestModal"
+            initial={{ opacity: 0, scale: 0.5, rotateX: -15 }}
+            animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+            exit={{ opacity: 0, scale: 0.5, rotateX: -15 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="absolute top-full right-0 mt-2 bg-white border rounded-lg shadow-lg p-4 w-72 z-20"
+          >
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-sm font-semibold">Request Service</h3>
+              <button
+                onClick={() => setOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✖
+              </button>
+            </div>
+
+            <form onSubmit={handleSendRequest} className="flex flex-col gap-2">
+              <input
+                type="text"
+                name="name"
+                placeholder="Your Name"
+                value={formData.name}
+                onChange={handleChange}
+                className="border rounded-md px-2 py-1 text-sm"
+                required
+              />
+              <input
+                type="text"
+                name="contact"
+                placeholder="Phone Number"
+                value={formData.contact}
+                onChange={handleChange}
+                className="border rounded-md px-2 py-1 text-sm"
+                required
+              />
+              <textarea
+                name="description"
+                placeholder="Describe your request..."
+                rows={2}
+                value={formData.description}
+                onChange={handleChange}
+                className="border rounded-md px-2 py-1 text-sm"
+                required
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className={`${
+                  loading ? "bg-gray-400" : "bg-yellow-400"
+                } text-white py-1.5 rounded-md text-sm`}
+              >
+                {loading ? "Sending..." : "Submit"}
+              </button>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Chat UI */}
+      {showChat && (
+        <ChatBox worker={worker} onClose={() => setShowChat(false)} />
       )}
     </div>
   );

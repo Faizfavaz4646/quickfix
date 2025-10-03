@@ -38,10 +38,10 @@ export interface Request {
 export interface Comment {
   id: number | string;
   userId: string;
-  userName: string;
+  userName?: string;
   text: string;
   date: string;
-  clientName: string;
+  clientName?: string;
   userProfile?: User;
   profilePic?:string;
 }
@@ -117,6 +117,7 @@ export interface Profile {
 
 export interface User {
   id: number;
+userId: string;
   name: string;
   email: string;
   role: "client" | "worker";

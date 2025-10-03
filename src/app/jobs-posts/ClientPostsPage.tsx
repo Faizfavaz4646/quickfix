@@ -30,53 +30,45 @@ export default function ClientPostsPage() {
   const [commentInputs, setCommentInputs] = useState<{ [key: string]: string }>({});
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | number | null>(null);
-  const [users, setUsers] = useState<Record<string, User>>({});
+  const [allUsers, setAllUsers] = useState<Record<string, User>>({});
 
   const modalRef = useRef<HTMLDivElement>(null);
-
   const { user } = useAuthStore();
   const currentUserId = user?.id ? String(user.id) : "";
 
-  // ✅ Fetch jobs + preload user data
+  // ✅ Fetch jobs + preload all users
   useEffect(() => {
-    const loadJobs = async () => {
+    const loadJobsAndUsers = async () => {
       setLoading(true);
       try {
-        const allJobs = await fetchJobsForWorkers();
-        const jobsWithDefaults: JobWithClientProfile[] = allJobs.map((job) => ({
+        const jobsData = await fetchJobsForWorkers();
+        const normalizedJobs: JobWithClientProfile[] = jobsData.map((job) => ({
           ...job,
           likes: Array.isArray(job.likes) ? job.likes.map(String) : [],
           comments: Array.isArray(job.comments) ? job.comments : [],
-          clientProfile: job.clientProfile,
+          clientProfile: job.clientProfile ?? undefined,
         }));
-        setJobs(jobsWithDefaults.reverse());
+        setJobs(normalizedJobs.reverse());
 
-        const allUserIds = [
-          ...new Set(
-            jobsWithDefaults.flatMap((job) => job.comments.map((c) => c.userId))
-          ),
-        ];
-
-        const responses = await Promise.all(
-          allUserIds.map((id) => axios.get(`http://localhost:50001/users/${id}`))
-        );
-
+        // Fetch all users and workers
+        const [userRes, workerRes] = await Promise.all([
+          axios.get(`${API_URL}/users`),
+          axios.get(`${API_URL}/workers`),
+        ]);
         const usersMap: Record<string, User> = {};
-        responses.forEach((res) => {
-          usersMap[res.data.id] = res.data;
-        });
-
-        setUsers(usersMap);
+        userRes.data.forEach((u: User) => (usersMap[u.id] = u));
+        workerRes.data.forEach((w: User) => (usersMap[w.id] = w));
+        setAllUsers(usersMap);
       } catch (err) {
-        console.error("Failed to fetch jobs:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
-    loadJobs();
+    loadJobsAndUsers();
   }, []);
 
-  // ✅ Close modal when clicking outside OR touching outside
+  // ✅ Close modal when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -84,7 +76,6 @@ export default function ClientPostsPage() {
         setSelectedJobId(null);
       }
     };
-
     if (modalOpen) {
       document.addEventListener("mousedown", handleClickOutside);
       document.addEventListener("touchstart", handleClickOutside);
@@ -95,10 +86,11 @@ export default function ClientPostsPage() {
     };
   }, [modalOpen]);
 
-  const getProfilePic = (profile: User | null | undefined) => {
-    if (!profile) return "/default-avatar.png";
-    if (profile.role === "client") return profile.profile?.profilePic || "/default-client.png";
-    return profile.profilePic || "/default-worker.png";
+  // ✅ Get profile pic helper
+  const getProfilePic = (user?: User | null) => {
+    if (!user) return "/default-avatar.png";
+    if (user.role === "client") return user.profile?.profilePic || "/default-client.png";
+    return user.profilePic || "/default-worker.png";
   };
 
   const handleLike = async (jobId: string | number) => {
@@ -115,12 +107,7 @@ export default function ClientPostsPage() {
       setJobs((prev) =>
         prev.map((j) =>
           j.id === jobId
-            ? {
-                ...j,
-                likes: hasLiked
-                  ? j.likes.filter((id) => id !== currentUserId)
-                  : [...j.likes, currentUserId],
-              }
+            ? { ...j, likes: hasLiked ? j.likes.filter((id) => id !== currentUserId) : [...j.likes, currentUserId] }
             : j
         )
       );
@@ -133,25 +120,19 @@ export default function ClientPostsPage() {
     const success = await commentOnJob(jobId, currentUserId, text);
     if (!success) return;
 
-  const res = await fetch(`${API_URL}/users/${currentUserId}`);
-    const userData: User = await res.json();
-
+    const userData = allUsers[currentUserId];
     const newComment: Comment = {
       id: Date.now().toString(),
       userId: currentUserId,
-      userName: userData.name,
-      clientName: userData.name,
+      userName: userData?.name || "Unknown",
       text,
       date: new Date().toISOString(),
-      profilePic: userData.profilePic || "/default-avatar.png",
+      profilePic: getProfilePic(userData),
     };
 
     setJobs((prev) =>
-      prev.map((j) =>
-        j.id === jobId ? { ...j, comments: [...j.comments, newComment] } : j
-      )
+      prev.map((j) => (j.id === jobId ? { ...j, comments: [...j.comments, newComment] } : j))
     );
-
     setCommentInputs((prev) => ({ ...prev, [jobId]: "" }));
   };
 
@@ -166,7 +147,7 @@ export default function ClientPostsPage() {
         );
       }
     } catch (err) {
-      console.error("Failed to delete comment:", err);
+      console.error(err);
     }
   };
 
@@ -175,11 +156,9 @@ export default function ClientPostsPage() {
 
     try {
       const success = await deleteClientPost(jobId, currentUserId);
-      if (success) {
-        setJobs((prev) => prev.filter((j) => j.id !== jobId));
-      }
+      if (success) setJobs((prev) => prev.filter((j) => j.id !== jobId));
     } catch (err) {
-      console.error("Failed to delete post:", err);
+      console.error(err);
     }
   };
 
@@ -201,14 +180,11 @@ export default function ClientPostsPage() {
       <div className="max-w-6xl mx-auto p-4 space-y-6 relative">
         {jobs.slice(0, visibleCount).map((job) => {
           const isOwnPost = String(job.clientId) === currentUserId;
-          const lastComment = job.comments[job.comments.length - 1];
-          const lastCommentUser = lastComment ? users[lastComment.userId] : null;
+          const lastComment = job.comments.at(-1);
+          const lastCommentUser = lastComment ? allUsers[lastComment.userId] : null;
 
           return (
-            <div
-              key={job.id}
-              className="w-full rounded-lg shadow bg-white hover:shadow-lg transition p-4 relative"
-            >
+            <div key={job.id} className="w-full rounded-lg shadow bg-white hover:shadow-lg transition p-4 relative">
               {/* Client Info */}
               <div className="flex justify-between items-center mb-3">
                 <div className="flex items-center gap-3">
@@ -217,9 +193,7 @@ export default function ClientPostsPage() {
                     alt={job.clientName}
                     className="w-12 h-12 rounded-full border object-cover"
                   />
-                  <div>
-                    <p className="font-medium">{job.clientName}</p>
-                  </div>
+                  <p className="font-medium">{job.clientName}</p>
                 </div>
                 {isOwnPost && (
                   <details className="relative">
@@ -242,18 +216,19 @@ export default function ClientPostsPage() {
               <p className="mb-3 whitespace-pre-line">{job.description}</p>
 
               {/* Images */}
-              {job.images && job.images.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mb-3">
-                  {job.images.map((img, idx) => (
-                    <img
-                      key={idx}
-                      src={img}
-                      alt={`Job ${idx + 1}`}
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
-                  ))}
-                </div>
-              )}
+             {job.images?.length ? (
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mb-3">
+    {(job.images || []).map((img, idx) => (
+      <img
+        key={idx}
+        src={img}
+        alt={`Job ${idx + 1}`}
+        className="w-full h-48 object-cover rounded-lg"
+      />
+    ))}
+  </div>
+) : null}
+
 
               {/* Likes */}
               <p className="text-sm text-gray-500 mb-1">
@@ -272,74 +247,20 @@ export default function ClientPostsPage() {
                 </button>
               </div>
 
-              {/* ✅ Only most recent comment */}
-              {lastComment && lastCommentUser && (
-                <div
-                  className="flex items-start gap-2 mt-3 cursor-pointer"
-                  onClick={() => openCommentModal(job.id)}
-                >
+              {/* Most recent comment */}
+              {lastComment && (
+                <div className="flex items-start gap-2 mt-3 cursor-pointer" onClick={() => openCommentModal(job.id)}>
                   <img
-                    src={
-                      lastCommentUser.role === "client"
-                        ? lastCommentUser.profile?.profilePic || "/default-client.png"
-                        : lastCommentUser.profilePic || "/default-worker.png"
-                    }
-                    alt={lastCommentUser.name}
+                    src={getProfilePic(lastCommentUser)}
+                    alt={lastCommentUser?.name || lastComment.userName}
                     className="w-8 h-8 rounded-full border object-cover mt-1"
                   />
                   <div className="flex-1 text-sm bg-gray-100 rounded-lg px-2 py-1">
-                    <span className="font-medium">{lastCommentUser.name}: </span>
+                    <span className="font-medium">{lastCommentUser?.name || lastComment.userName}: </span>
                     {lastComment.text}
                     {job.comments.length > 1 && (
-                      <span className="text-gray-500 ml-2 text-xs">
-                        View all {job.comments.length} comments
-                      </span>
+                      <span className="text-gray-500 ml-2 text-xs">View all {job.comments.length} comments</span>
                     )}
-                  </div>
-                </div>
-              )}
-
-              {/* ✅ Comments Modal */}
-              {modalOpen && selectedJobId === job.id && (
-                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-                  <div
-                    ref={modalRef}
-                    className="bg-white w-full max-w-md max-h-[70vh] rounded-lg shadow-lg overflow-y-auto p-4"
-                  >
-                    <h3 className="text-sm font-medium mb-3">All Comments</h3>
-                    {selectedJobComments.length === 0 && (
-                      <p className="text-xs text-gray-500">No comments yet</p>
-                    )}
-                    {selectedJobComments.map((comment) => {
-                      const commentUser = users[comment.userId];
-                      const canDelete = String(comment.userId) === currentUserId;
-
-                      return (
-                        <div key={comment.id} className="flex items-start gap-2 mb-2">
-                          <img
-                            src={
-                              commentUser?.role === "client"
-                                ? commentUser.profile?.profilePic || "/default-client.png"
-                                : commentUser?.profilePic || "/default-worker.png"
-                            }
-                            alt={commentUser?.name || "User"}
-                            className="w-6 h-6 rounded-full border object-cover mt-1"
-                          />
-                          <div className="flex-1 text-xs bg-gray-100 rounded-lg px-2 py-1 relative">
-                            <span className="font-medium">{commentUser?.name}: </span>
-                            {comment.text}
-                            {canDelete && (
-                              <button
-                                onClick={() => handleDeleteComment(selectedJobId, comment.id)}
-                                className="absolute top-0 right-0 text-red-500 text-xs"
-                              >
-                                ×
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
                   </div>
                 </div>
               )}
@@ -362,6 +283,41 @@ export default function ClientPostsPage() {
                   Post
                 </button>
               </div>
+
+              {/* Comments Modal */}
+              {modalOpen && selectedJobId === job.id && (
+                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+                  <div ref={modalRef} className="bg-white w-full max-w-md max-h-[70vh] rounded-lg shadow-lg overflow-y-auto p-4">
+                    <h3 className="text-sm font-medium mb-3">All Comments</h3>
+                    {selectedJobComments.length === 0 && <p className="text-xs text-gray-500">No comments yet</p>}
+                    {selectedJobComments.map((comment) => {
+                      const commentUser = allUsers[comment.userId];
+                      const canDelete = String(comment.userId) === currentUserId;
+                      return (
+                        <div key={comment.id} className="flex items-start gap-2 mb-2">
+                          <img
+                            src={getProfilePic(commentUser)}
+                            alt={commentUser?.name || comment.userName}
+                            className="w-6 h-6 rounded-full border object-cover mt-1"
+                          />
+                          <div className="flex-1 text-xs bg-gray-100 rounded-lg px-2 py-1 relative">
+                            <span className="font-medium">{commentUser?.name || comment.userName}: </span>
+                            {comment.text}
+                            {canDelete && (
+                              <button
+                                onClick={() => handleDeleteComment(selectedJobId, comment.id)}
+                                className="absolute top-0 right-0 text-red-500 text-xs"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}

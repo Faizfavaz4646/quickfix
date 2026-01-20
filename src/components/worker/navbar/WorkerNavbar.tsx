@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { 
   Bell, X, Menu, LogOut, 
   LayoutDashboard, FileText, 
-  MessageSquare, Star, Settings, UserCircle 
+  MessageSquare, Star, Settings 
 } from "lucide-react";
 import WorkerCard from "@/components/worker/WorkerCard";
 import { FaTools } from "react-icons/fa";
@@ -89,72 +89,59 @@ export default function WorkerNavbar() {
               )}
             </Link>
           </div>
+          
+          {/* DESKTOP CARD */}
           <div className="hidden md:block border-l pl-3 ml-1">
             <WorkerCard />
           </div>
         </div>
 
-        {/* --- Mobile Professional Sidebar --- */}
-        <div 
-          className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 transition-opacity duration-300 md:hidden ${
-            menuOpen ? "opacity-100 visible" : "opacity-0 invisible"
-          }`}
-          onClick={() => setMenuOpen(false)}
-        >
-          <div
-            ref={menuRef}
-            className={`absolute top-0 left-0 w-72 h-full bg-white shadow-2xl transition-transform duration-300 ease-out flex flex-col ${
-              menuOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Sidebar Header */}
-            <div className="p-6 border-b border-slate-50 flex items-center justify-between">
-              <span className="font-black text-xl text-slate-800">Navigation</span>
-              <button onClick={() => setMenuOpen(false)} className="p-2 hover:bg-slate-100 rounded-lg">
-                <X className="w-5 h-5 text-slate-500" />
-              </button>
-            </div>
+        {/* Mobile Sidebar Menu */}
+        {menuOpen && (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 md:hidden" onClick={() => setMenuOpen(false)}>
+            <div
+              ref={menuRef}
+              className="absolute top-0 left-0 w-72 h-full bg-white shadow-2xl flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="p-6 border-b border-slate-50 flex items-center justify-between">
+                <span className="font-black text-xl text-slate-800">Navigation</span>
+                <button onClick={() => setMenuOpen(false)} className="p-2 hover:bg-slate-100 rounded-lg">
+                  <X className="w-5 h-5 text-slate-500" />
+                </button>
+              </div>
 
-            {/* Sidebar Profile */}
-            <div className="p-6 bg-slate-50/50">
-              <Link href="/worker/edit" onClick={() => setMenuOpen(false)} className="block">
+              {/* MOBILE CARD (Fixed: Removed Link Wrapper) */}
+              <div className="p-6 bg-slate-50/50">
                 <WorkerCard />
-              </Link>
-            </div>
+              </div>
 
-            {/* Sidebar Links */}
-            <div className="flex-1 p-4 flex flex-col gap-1 overflow-y-auto">
-              {links.map((link) => {
-                const isActive = pathname === link.href;
-                const Icon = link.icon;
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                      isActive 
-                        ? "bg-blue-600 text-white shadow-lg shadow-blue-200" 
-                        : "text-slate-600 hover:bg-slate-50 hover:text-blue-600"
-                    }`}
-                  >
-                    <Icon className={`w-5 h-5 ${isActive ? "text-white" : "text-slate-400"}`} />
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </div>
-
-            {/* Sidebar Footer */}
-            <div className="p-4 border-t border-slate-50">
-              <button className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors">
-                <LogOut className="w-5 h-5" />
-                Logout Account
-              </button>
+              {/* Links */}
+              <div className="flex-1 p-4 flex flex-col gap-1 overflow-y-auto">
+                {links.map((link) => {
+                  const Icon = link.icon;
+                  const isActive = pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                        isActive 
+                          ? "bg-blue-600 text-white shadow-lg" 
+                          : "text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </nav>
     </>
   );

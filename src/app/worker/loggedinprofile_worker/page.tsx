@@ -1,94 +1,243 @@
 'use client';
 
 import { useAuthStore } from "@/store/authStore";
-import { FaUserCircle, FaEdit, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
-import { GrUserWorker } from "react-icons/gr";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getWorkerProfile } from "@/services/workerService";
+// FIX 1: Import the correct service for "My Profile"
+import { getMyWorkerProfile } from "@/services/workerService"; 
 import { Profile } from "@/types/user";
+import { API_URL } from "@/lib/constants"; 
+import { 
+  MapPin, Phone, Mail, Edit3, Calendar, 
+  Briefcase, Star, CheckCircle, Award 
+} from "lucide-react";
 
 export default function WorkerProfilePage() {
-  const { user } = useAuthStore();
+  const { user, hasHydrated } = useAuthStore();
   const router = useRouter();
   const [workerProfile, setWorkerProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.id) return;
+    // GUARD: Check hydration, user existence, and token
+    if (!hasHydrated || !user || !user.token) return;
 
-    getWorkerProfile(user.id.toString())
+    setLoading(true);
+
+    // FIX 2: Use token to fetch "My" profile. This is much safer than using IDs.
+    getMyWorkerProfile(user.token)
       .then((data) => {
         if (data) setWorkerProfile(data);
       })
-      .catch((err) => console.error("Failed to fetch worker profile:", err));
-  }, [user?.id]);
+      .catch((err) => console.error("Failed to fetch worker profile:", err))
+      .finally(() => setLoading(false));
+  }, [hasHydrated, user]);
 
-  if (!user) return null;
+  if (!hasHydrated || !user) return null;
+
+  // FIX 3: Image Helper to handle relative paths from DB
+  const getImageUrl = (path?: string) => {
+    if (!path) return "/images/avatar.avif";
+    // If it is already a full link (Cloudinary/S3), use it
+    if (path.startsWith("http") || path.startsWith("data:")) return path;
+    // If it is a relative path (localhost), prepend API URL
+    return `${API_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+  };
+
+  // --- Display Helpers ---
+  // Priority: DB Image -> Local Store Image -> Default Avatar
+  const profileImage = getImageUrl(workerProfile?.profilePic || user.profilePic);
+  
+  const coverImage = "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=2000&auto=format&fit=crop"; 
+  const profession = workerProfile?.profession || "Worker";
+  const rating = (workerProfile?.avgRating || 0).toFixed(1);
+  const jobsCompleted = workerProfile?.completedJobs?.length || 0;
+  
+  // Format Address safely
+  const addressParts = [workerProfile?.city, workerProfile?.district, workerProfile?.state].filter(Boolean);
+  const address = addressParts.length > 0 ? addressParts.join(", ") : "Location not set";
 
   return (
-    <div className="min-h-screen py-10 bg-gray-50">
-      {/* Heading */}
-      <div className="text-center mb-10">
-        <h1 className="text-4xl md:text-5xl font-bold">Worker Profile</h1>
-        <p className="text-gray-600 mt-2">Manage your personal and professional information</p>
+    <div className="min-h-screen bg-slate-50 pb-12">
+      {/* --- Header / Cover Image --- */}
+      <div 
+        className="h-60 w-full bg-cover bg-center relative"
+        style={{ backgroundImage: `url(${coverImage})` }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 to-transparent"></div>
       </div>
 
-      {/* Profile Card */}
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-6 max-w-4xl mx-auto bg-white rounded-2xl shadow-md p-6 relative">
-        {/* Profile Picture */}
-        <div className="relative">
-          <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-white shadow-md">
-            {workerProfile?.profilePic
-              ? <img src={workerProfile.profilePic} alt="Profile" className="w-full h-full object-cover" />
-              : <FaUserCircle size={80} className="text-gray-400" />}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative -mt-24">
+        
+        {/* --- Main Profile Header Card --- */}
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8 flex flex-col sm:flex-row items-start gap-6 relative overflow-hidden">
+          
+          {/* Profile Image */}
+          <div className="relative">
+            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100">
+              <img 
+                src={profileImage} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+                onError={(e) => { e.currentTarget.src = "/images/avatar.avif"; }}
+              />
+            </div>
+            {/* Online Status Indicator */}
+            <div className="absolute bottom-4 right-4 sm:bottom-2 sm:right-2 bg-green-500 w-5 h-5 rounded-full border-4 border-white" title="Active"></div>
+          </div>
+
+          {/* User Info */}
+          <div className="flex-1 pt-2 w-full">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h1 className="text-3xl font-black text-slate-800 tracking-tight">{user.name}</h1>
+                <p className="text-blue-600 font-bold text-lg flex items-center gap-2 mt-1">
+                  <Briefcase className="w-5 h-5" />
+                  {profession}
+                </p>
+              </div>
+              
+              <button
+                onClick={() => router.push("/worker/edit")}
+                className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg active:scale-95"
+              >
+                <Edit3 className="w-4 h-4" />
+                Edit Profile
+              </button>
+            </div>
+
+            {/* Quick Stats Row */}
+            <div className="flex flex-wrap gap-4 mt-6">
+              <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-lg border border-slate-100 text-slate-600 font-medium text-sm">
+                <MapPin className="w-4 h-4 text-red-500" />
+                {address}
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-lg border border-slate-100 text-slate-600 font-medium text-sm">
+                <Calendar className="w-4 h-4 text-blue-500" />
+                Joined {new Date().getFullYear()}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Details */}
-        <div className="flex-1 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-800">{user.name}</h2>
+        {/* --- Content Grid --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+          
+          {/* LEFT COLUMN: Sidebar Info */}
+          <div className="space-y-8">
+            {/* Contact Details */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+              <h3 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Contact Info</h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 text-slate-600">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-xs text-slate-400 font-bold uppercase">Email</span>
+                    <span className="text-sm font-medium truncate">{user.emailId}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 text-slate-600">
+                  <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-slate-400 font-bold uppercase">Phone</span>
+                    <span className="text-sm font-medium">{workerProfile?.phone || "Not Added"}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-            {/* Edit Profile */}
-            <button
-              onClick={() => router.push("/worker/edit")}
-              className="relative group text-gray-500 hover:text-gray-700"
-            >
-              <FaEdit size={20} />
-              <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-2 py-1 text-xs rounded bg-gray-800 text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                Edit Profile
-              </span>
-            </button>
+            {/* Schedule / Availability */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+              <h3 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Working Hours</h3>
+              <div className="bg-slate-50 p-4 rounded-xl text-center border border-dashed border-slate-200">
+                 {workerProfile?.schedule ? (
+                   <span className="text-slate-700 font-semibold">{workerProfile.schedule}</span>
+                 ) : (
+                   <span className="text-slate-400 italic">No schedule available</span>
+                 )}
+              </div>
+            </div>
           </div>
 
-          {/* Profession */}
-          {workerProfile?.profession && (
-            <p className="flex items-center text-blue-700 font-medium gap-2">
-              <GrUserWorker /> {workerProfile.profession}
-            </p>
-          )}
+          {/* RIGHT COLUMN: Stats & Portfolio */}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
+                <div className="bg-yellow-50 p-3 rounded-full mb-3 text-yellow-600">
+                  <Star className="w-6 h-6 fill-yellow-500" />
+                </div>
+                <h4 className="text-2xl font-black text-slate-800">{rating}</h4>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-wide">Avg Rating</p>
+              </div>
 
-          {/* Location (stacked) */}
-          {(workerProfile?.state || workerProfile?.district || workerProfile?.city) && (
-            <div className="flex flex-col text-blue-600 gap-1">
-              <div className="flex items-center gap-2">
-                <FaMapMarkerAlt /> <span className="font-medium"></span> {workerProfile?.state || "-"}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
+                <div className="bg-blue-50 p-3 rounded-full mb-3 text-blue-600">
+                  <CheckCircle className="w-6 h-6" />
+                </div>
+                <h4 className="text-2xl font-black text-slate-800">{jobsCompleted}</h4>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-wide">Jobs Done</p>
               </div>
-              <div className="flex items-center gap-2">
-                <FaMapMarkerAlt /> <span className="font-medium"></span> {workerProfile?.district || "-"}
-              </div>
-              <div className="flex items-center gap-2">
-                <FaMapMarkerAlt /> <span className="font-medium"></span> {workerProfile?.city || "-"}
+
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
+                <div className="bg-purple-50 p-3 rounded-full mb-3 text-purple-600">
+                  <Award className="w-6 h-6" />
+                </div>
+                <h4 className="text-2xl font-black text-slate-800">Pro</h4>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-wide">Level</p>
               </div>
             </div>
-          )}
 
-          {/* Phone */}
-          {workerProfile?.phone && (
-            <div className="flex items-center gap-2 text-blue-600">
-              <FaPhone /> <span className="font-medium">Phone:</span> {workerProfile.phone}
+            {/* Portfolio / Previous Work */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-slate-800">Portfolio</h3>
+                <span className="text-xs font-semibold bg-slate-100 px-3 py-1 rounded-full text-slate-500">
+                  {workerProfile?.previousWorkImages?.length || 0} items
+                </span>
+              </div>
+              
+              {workerProfile?.previousWorkImages && workerProfile.previousWorkImages.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {workerProfile.previousWorkImages.map((img, index) => {
+                     const src = getImageUrl(img);
+                     return (
+                      <div key={index} className="aspect-square rounded-xl overflow-hidden border border-slate-100 shadow-sm group cursor-pointer relative bg-slate-100">
+                        <img 
+                          src={src} 
+                          alt={`Work ${index}`} 
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          onError={(e) => {
+                             // Hide broken images if needed, or show placeholder
+                             e.currentTarget.style.display = 'none'; 
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="text-white text-xs font-bold border border-white px-3 py-1 rounded-full">View</span>
+                        </div>
+                      </div>
+                     );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                  <p className="text-slate-500 font-medium">No portfolio images added yet.</p>
+                  <button 
+                    onClick={() => router.push("/worker/edit")}
+                    className="text-blue-600 text-sm font-bold mt-2 hover:underline"
+                  >
+                    Upload Work
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+
+          </div>
         </div>
       </div>
     </div>

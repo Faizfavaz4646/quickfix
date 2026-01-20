@@ -79,7 +79,7 @@ export interface Notification {
 export interface Profile {
   _id?: string;
   userId?: string;
-  email?: string;
+  emailId?: string;
   profilePic?: string;
   state?: string;
   district?: string;
@@ -105,7 +105,7 @@ export interface Profile {
 export interface User {
   _id: string; // MongoDB ID
   name: string;
-  email: string;
+  emailId: string;
   role: "client" | "worker" | "admin";
   token?: string;
   profile?: Profile;
@@ -164,7 +164,7 @@ export const useAuthStore = create<AuthState>()(
           ? {
               _id: state.user._id,
               name: state.user.name,
-              email: state.user.email,
+              email: state.user.emailId,
               role: state.user.role,
               token: state.user.token,
               profile: state.user.profile

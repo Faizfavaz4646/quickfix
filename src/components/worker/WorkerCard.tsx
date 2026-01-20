@@ -6,37 +6,46 @@ import { Profile } from "@/types/user";
 import { getWorkerProfile } from "@/services/workerService";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { IoMdSettings } from "react-icons/io";
-import { RiAccountPinCircleFill } from "react-icons/ri";
-import { FaSignOutAlt } from "react-icons/fa";
+import { Settings, User, LogOut } from "lucide-react";
+import { API_URL } from "@/lib/constants";
 
 const WorkerCard = () => {
-  const { user, logout } = useAuthStore();
+  // Pull hasHydrated from your updated store
+  const { user, logout, hasHydrated } = useAuthStore();
   const [workerProfile, setWorkerProfile] = useState<Profile | null>(null);
   const [open, setOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
-    if (!user?._id) return; // ensure _id exists
+    /**
+     * STRICT GUARD:
+     * 1. Wait until Zustand has finished reading from localStorage (hasHydrated)
+     * 2. Ensure user._id is a real value (not "undefined" string)
+     */
+    const userId = user?._id;
+    const canFetch = hasHydrated && userId && String(userId) !== "undefined";
 
-    // Pass user._id as authUserId to getWorkerProfile
-    getWorkerProfile(user._id)
-      .then((data) => {
-        if (data) setWorkerProfile(data);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch worker profile:", err);
-      });
-  }, [user?._id]);
+    if (!canFetch) {
+      return; 
+    }
 
-  useEffect(() => {
-  console.log("USER:", user);
-  console.log("WORKER PROFILE:", workerProfile);
-}, [user, workerProfile]);
+    const loadData = async () => {
+      try {
+        // Fetch profile using the hydrated ID
+        const data = await getWorkerProfile(String(userId)); 
+        setWorkerProfile(data);
+      } catch (err) {
+        console.error("WorkerCard: Profile fetch failed:", err);
+      }
+    };
 
+    loadData();
+  }, [hasHydrated, user?._id]); // Re-run when hydration finishes or user ID changes
 
-  // Close modal on outside click
+ 
+
+  // Handle clicking outside the modal to close it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -46,84 +55,106 @@ const WorkerCard = () => {
     if (open) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
-if (!user) return null;
 
+  // If the store hasn't hydrated or user isn't logged in, don't show the card
+  if (!hasHydrated || !user) return null;
+  // HELPER: Ensure URL is absolute
+  const getFullImageUrl = (path?: string) => {
+    if (!path) return null;
+    if (path.startsWith("http") || path.startsWith("blob")) return path;
+    return `${API_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+  };
 
   const handleLogout = () => {
-    toast("Are you sure you want to signout?", {
-      action: {
-        label: "Yes",
-        onClick: () => {
-          logout();
-          router.push("/auth/login");
-          toast.success("You have been signed out.");
-        },
-      },
-      cancel: {
-        label: "No",
-        onClick: () => toast.dismiss(),
-      },
-      duration: 10000,
-    });
+    logout();
+    router.push("/auth/login");
+    toast.success("Signed out successfully.");
   };
+
+  /**
+   * IMAGE PRIORITY:
+   * 1. Database (workerProfile.profilePic)
+   * 2. Store fallback (user.profilePic)
+   * 3. Default asset fallback
+   */
+const rawImage = workerProfile?.profilePic || user?.profilePic;
+  const profileImage = getFullImageUrl(rawImage) || "/images/avatar.avif";
 
   return (
     <div className="relative">
-      {/* Profile Pic */}
-      <img
-        src={workerProfile?.profilePic || "/images/avatar.avif"}
-        alt="Profile"
-        className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border border-gray-200 cursor-pointer"
-        onError={(e) => { e.currentTarget.src = "/images/avatar.avif"; }}
-        onClick={() => setOpen((prev) => !prev)}
-      />
-
-      {/* Overlay */}
-      {open && <div className="fixed inset-0 bg-black/30 z-40"></div>}
+      {/* Profile Trigger */}
+      <button 
+        onClick={() => setOpen(!open)}
+        className="focus:outline-none block transition-transform active:scale-95"
+      >
+       <img
+          src={profileImage}
+          alt="Profile"
+          className="w-11 h-11 rounded-full object-cover border-2 border-white shadow-md hover:border-blue-200 transition-all bg-slate-200"
+          onError={(e) => {
+            // Prevent infinite loop if default avatar is also missing
+            const target = e.currentTarget;
+            if (target.src.includes("avatar.avif")) return;
+            target.src = "/images/avatar.avif";
+          }}
+        />
+      </button>
 
       {/* Dropdown Modal */}
       {open && (
-        <div ref={modalRef} className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg z-50 p-4">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
+        <div 
+          ref={modalRef} 
+          className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl z-50 py-3 border border-slate-100 animate-in fade-in zoom-in duration-150"
+        >
+          {/* User Profile Header */}
+          <div className="px-4 pb-3 border-b border-slate-50 flex items-center gap-3">
+            <div className="relative">
               <img
-                src={workerProfile?.profilePic || "/images/avatar.avif"}
-                alt="Profile"
-                className="w-8 h-8 rounded-full border"
+                src={profileImage}
+                alt="User"
+                className="w-10 h-10 rounded-full border object-cover"
+                onError={(e) => { e.currentTarget.src = "/images/avatar.avif"; }}
               />
-              <span className="font-medium text-gray-700">{user.name}</span>
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
             </div>
-            <button onClick={() => setOpen(false)} className="text-gray-500 hover:text-gray-700">✖</button>
+            <div className="flex flex-col overflow-hidden">
+              <span className="font-bold text-slate-800 text-sm truncate">
+                {user.name}
+              </span>
+              <span className="text-[11px] text-slate-400 truncate">
+                {user.email}
+              </span>
+            </div>
           </div>
 
-          {/* Options */}
-          <ul className="space-y-2 text-sm">
-            <li>
-              <button
-                onClick={() => { setOpen(false); router.push("/worker/loggedinprofile_worker"); }}
-                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
-              >
-                <span className="flex gap-1"><RiAccountPinCircleFill className="text-xl" />Your Profile</span>
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => { setOpen(false); router.push("/settings"); }}
-                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
-              >
-                <span className="flex gap-1"><IoMdSettings className="text-xl" />Settings</span>
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-3 py-2 rounded-md hover:bg-red-100 text-red-600"
-              >
-                <span className="flex gap-1"><FaSignOutAlt className="text-xl" />Sign out</span>
-              </button>
-            </li>
-          </ul>
+          {/* Menu Options */}
+          <div className="p-2 space-y-1">
+            <button
+              onClick={() => { setOpen(false); router.push("/worker/loggedinprofile_worker"); }}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-colors"
+            >
+              <User size={18} />
+              Profile
+            </button>
+            <button
+              onClick={() => { setOpen(false); router.push("/worker/settings"); }}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-colors"
+            >
+              <Settings size={18} />
+              Settings
+            </button>
+          </div>
+
+          {/* Sign Out Section */}
+          <div className="border-t border-slate-50 p-2">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+            >
+              <LogOut size={18} />
+              Sign Out
+            </button>
+          </div>
         </div>
       )}
     </div>

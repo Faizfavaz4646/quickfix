@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { User, Profile, Job, Notification } from "@/types/user";
+import { User, Profile, Job } from "@/types/user";
 import axios from "axios";
 import { API_URL } from "@/lib/constants";
 
@@ -10,6 +10,9 @@ import { API_URL } from "@/lib/constants";
 interface AuthState {
   user: User | null;
   isLogin: boolean;
+  hasHydrated: boolean; // NEW: Track if localStorage is loaded
+  setHasHydrated: (state: boolean) => void;
+  
   setUser: (user: User) => void;
   updateUserProfile: (profile: Partial<Profile>, name?: string) => void;
   setIsLogin: (value: boolean) => void;
@@ -28,8 +31,11 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       isLogin: false,
+      hasHydrated: false, // Initial state is false
       activeJobs: [],
       completedJobs: [],
+
+      setHasHydrated: (state) => set({ hasHydrated: state }),
 
       setActiveJobs: (jobs) => set({ activeJobs: jobs }),
       setCompletedJobs: (jobs) => set({ completedJobs: jobs }),
@@ -50,7 +56,7 @@ export const useAuthStore = create<AuthState>()(
         set({
           user: {
             ...user,
-            _id: user._id || user._id,
+            _id: user._id,
             status,
           },
           isLogin: true,
@@ -83,9 +89,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         set({
-          user: currentUser
-            ? { ...currentUser, status: currentUser.status === "blocked" ? "blocked" : "offline" }
-            : null,
+          user: null,
           isLogin: false,
           activeJobs: [],
           completedJobs: [],
@@ -95,11 +99,14 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "quickfix-user",
       storage: createJSONStorage(() => localStorage),
+      // NEW: This function triggers when hydration is complete
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
       partialize: (state) => ({
         user: state.user
           ? {
               _id: state.user._id,
-              id: state.user._id, // fallback
               name: state.user.name,
               email: state.user.email,
               role: state.user.role,

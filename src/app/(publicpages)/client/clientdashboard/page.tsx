@@ -20,7 +20,7 @@ export default function DashboardLayout() {
     if (!user?.id) return;
 
     try {
-      const res = await axios.get(`http://localhost:50001/users/${user.id}`);
+      const res = await axios.get(`http://localhost:3000/users/${user.id}`);
       const profile = res.data.profile;
 
       const allJobs: Job[] = [
@@ -43,9 +43,9 @@ export default function DashboardLayout() {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row ">
   {/* Sidebar */}
-  <Sidebar notifications={notifications} />
+  <Sidebar notifications={notifications}  />
 
   {/* Main Content */}
   <div className="flex-1 flex flex-col">

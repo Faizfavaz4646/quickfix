@@ -1,4 +1,5 @@
 "use client";
+
 import { toast } from "sonner";
 import { useFormik } from "formik";
 import axios from "axios";
@@ -17,69 +18,46 @@ export default function LoginPage() {
       email: "",
       password: "",
     },
+
     onSubmit: async (values, { setSubmitting, setErrors }) => {
       try {
-        // 1️⃣ Check admin first
-        const adminRes = await axios.get(`${API_URL}/admins?email=${values.email}`);
-        if (adminRes.data.length > 0) {
-          const admin = adminRes.data[0];
-          if (admin.password !== values.password) {
-            setErrors({ password: "Incorrect password" });
-            return;
-          }
-
-          toast.success("Admin login successful");
-          sessionStorage.setItem("admin", JSON.stringify(admin));
-          router.push("/admin");
-          return;
-        }
-
-        // 2️⃣ Otherwise check user
-        const userRes = await axios.get(`${API_URL}/users?email=${values.email}`);
-        if (userRes.data.length === 0) {
-          setErrors({ email: "Email not found" });
-          return;
-        }
-
-        const user = userRes.data[0];
-
-        if (user.password !== values.password) {
-          setErrors({ password: "Incorrect password" });
-          return;
-        }
-
-        if (user.status === "blocked") {
-          toast.error("Your account is blocked. Contact admin.");
-          return;
-        }
-
-        // ✅ Update user status to "online"
-        const updatedUserRes = await axios.patch(`${API_URL}/users/${user.id}`, {
-          status: "online",
+        const res = await axios.post(`${API_URL}/auth/login`, {
+          emailId: values.email.toLowerCase(),
+          password: values.password,
         });
-        const updatedUser = updatedUserRes.data;
 
-        setUser(updatedUser);
+        const { user, token } = res.data;
+
+        setUser({
+          _id: user._id,
+          name: user.name,
+          email: user.emailId,
+          role: user.role,
+          token,
+          status: user.status,
+          profile: user.profile || {}, 
+        });
+
         toast.success("Login successful");
 
         // Redirect by role
-        if (updatedUser.role === "worker") {
-          const isProfileComplete =
-            updatedUser.profile &&
-            updatedUser.profile.profession &&
-            updatedUser.profile.phone;
-
-          if (isProfileComplete) {
-            router.push("/worker/dashboard");
-          } else {
-            router.push("/worker/profile");
-          }
+        if (user.role === "admin") {
+          router.push("/admin");
+        } else if (user.role === "worker") {
+          router.push("/worker/edit");
         } else {
-          router.push("/"); // client homepage
+          router.push("/");
         }
-      } catch (error) {
-        console.error(error);
-        toast.error("Something went wrong. Try again.");
+      } catch (err: any) {
+        if (err.response?.status === 401) {
+          setErrors({ password: "Invalid email or password" });
+        } else if (err.response?.status === 403) {
+          toast.error("Your account is blocked. Contact admin.");
+        } else {
+          console.error(err);
+          
+          toast.error("Login failed. Try again.");
+        }
       } finally {
         setSubmitting(false);
       }
@@ -125,12 +103,12 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={formik.isSubmitting}
-          className="bg-blue-500 text-white w-full p-2 rounded hover:bg-blue-600 cursor-pointer"
+          className="bg-blue-500 text-white w-full p-2 rounded hover:bg-blue-600"
         >
           {formik.isSubmitting ? "Logging in..." : "Login"}
         </button>
 
-        <Link className="text-blue-600 flex justify-end mt-3" href="/auth/signup">
+        <Link href="/auth/signup" className="text-blue-600 flex justify-end mt-3">
           Signup
         </Link>
       </form>

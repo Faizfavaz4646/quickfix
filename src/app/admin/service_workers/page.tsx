@@ -49,7 +49,7 @@ export default function UsersList() {
   if (!mounted) return null;
 
   return (
-    <div className="bg-gray-50 p-2 sm:p-4 lg:ml-64 lg:p-6">
+    <div className="min-h-screen bg-gray-50 p-2 sm:p-4 lg:p-6">
       {loading ? (
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-gray-500 text-sm sm:text-base">
@@ -123,10 +123,7 @@ export default function UsersList() {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan={6}
-                      className="text-center p-8 text-gray-500"
-                    >
+                    <td colSpan={6} className="text-center p-8 text-gray-500">
                       No users found.
                     </td>
                   </tr>

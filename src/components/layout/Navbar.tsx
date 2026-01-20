@@ -13,6 +13,7 @@ import { IoMdSettings } from "react-icons/io";
 import { MdOutlineRateReview } from "react-icons/md";
 import { FaSignOutAlt } from "react-icons/fa";
 import { MdDashboardCustomize } from "react-icons/md";
+import { API_URL } from '@/lib/constants';
 
 interface Profile {
   id: string;
@@ -58,7 +59,7 @@ const handleJoinProfessional = () => {
 
     if (user) {
       axios
-        .get(`http://localhost:50001/users/${user.id}`)
+        .get(`http://localhost:5001/users/${user._id}`)
         .then((res) => setProfile(res.data))
         .catch((err) => console.error(err));
     }
@@ -79,23 +80,39 @@ const handleJoinProfessional = () => {
     };
   }, [showModal]);
 
-  const handleLogout = () => {
-    toast("Are you sure you want to logout?", {
-      action: {
-        label: "Yes",
-        onClick: () => {
+const handleLogout = () => {
+  toast("Are you sure you want to logout?", {
+    action: {
+      label: "Yes",
+      onClick: async () => {
+        try {
+          // Call backend to clear cookie
+          await axios.post(
+            `${API_URL}/auth/logout`,
+            {},
+            { withCredentials: true }
+          );
+
+          //Clear frontend auth state
           logout();
+
+          //  Redirect
           router.push("/auth/login");
-          toast.success("You have been logged out.");
-        },
+
+          toast.success("Logged out successfully");
+        } catch (err) {
+          console.error("Logout failed", err);
+          toast.error("Logout failed. Try again.");
+        }
       },
-      cancel: {
-        label: "No",
-        onClick: () => toast.dismiss(),
-      },
-      duration: 10000,
-    });
-  };
+    },
+    cancel: {
+      label: "No",
+      onClick: () => toast.dismiss(),
+    },
+    duration: 10000,
+  });
+};
 
   const renderProfilePic = () => {
     if (!profile) return <FaUserCircle className="w-10 h-10 text-gray-600 cursor-pointer" />;
@@ -128,7 +145,7 @@ const handleJoinProfessional = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex gap-6 items-center">
-          <Link href="/publicpages/about" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">About</Link>
+          <Link href="/about" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">About</Link>
           <Link href="/services" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">Services</Link>
           <Link href="/contact" className="text-gray-700 dark:text-gray-300 hover:text-blue-500">Contact</Link>
           <Link href="/client/findworker" className="font-semibold hover:underline">Find a Professional</Link>
@@ -156,7 +173,7 @@ const handleJoinProfessional = () => {
       {isOpen && (
         <div className="md:hidden bg-white dark:bg-black px-4 pb-4">
           <div className="flex flex-col gap-4 mt-2">
-            <Link href="/publicpages/about" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">About</Link>
+            <Link href="/about" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">About</Link>
             <Link href="/services" onClick={() => setIsOpen(false)} className="text-gray-700 dark:text-gray-300">Services</Link>
             <Link href="/contact" onClick={() => setIsOpen(false)} className="text-gray-700  dark:text-gray-300">Contact</Link>
             <Link href="/client/findworker" onClick={() => setIsOpen(false)} className="font-semibold">Find a Professional</Link>
@@ -205,7 +222,7 @@ const handleJoinProfessional = () => {
             <ul className="space-y-2 text-sm">
               <li>
                 <button
-                  onClick={() => { router.push("/client/clientprofile-form"); setShowModal(false); }}
+                  onClick={() => { router.push("/client/loggedin_profile"); setShowModal(false); }}
                   className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
                 >
                <span className='flex gap-1'><RiAccountPinCircleFill className='text-xl' /> Your Profile</span> 

@@ -52,7 +52,7 @@ const handleJoinProfessional = () => {
 
     if (user) {
       axios
-        .get(`http://localhost:50001/users/${user.id}`)
+        .get(`http://localhost:3000/users/${user.id}`)
         .then((res) => setProfile(res.data))
         .catch((err) => console.error(err));
     }

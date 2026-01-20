@@ -51,7 +51,7 @@ export default function RequestDialog({ workerId }: { workerId: string }) {
       const { newRequest, clientRequest, newNotification } =
         await sendRequestToWorker(
           workerId.toString(),
-          user.id.toString(),
+          user._id.toString(),
           formData.name,
           formData.contact,
           formData.description
@@ -74,8 +74,9 @@ export default function RequestDialog({ workerId }: { workerId: string }) {
   };
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-flex items-center gap-4">
       {/* Request button */}
+
       <button
         onClick={() => {
           if (!user) {
@@ -96,10 +97,11 @@ export default function RequestDialog({ workerId }: { workerId: string }) {
      
             <button
         onClick={() => setShowChat(true)}
-        className="bg-green-500 text-white p-3 rounded-full hover:bg-green-600 mx-5"
+        className="bg-green-500 text-white p-3 rounded-full hover:bg-green-600 mx-5 "
       >
-        <FaComments size={20} />
+        <FaComments size={30} />
       </button>
+  
   
 
       {/* Small modal with “page opening” animation */}

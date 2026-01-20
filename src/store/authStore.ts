@@ -1,4 +1,3 @@
-// src/store/authStore.ts
 "use client";
 
 import { create } from "zustand";
@@ -16,7 +15,6 @@ interface AuthState {
   setIsLogin: (value: boolean) => void;
   logout: () => void;
 
-  // Jobs State
   activeJobs: Job[];
   completedJobs: Job[];
   setActiveJobs: (jobs: Job[]) => void;
@@ -30,14 +28,13 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       isLogin: false,
-
       activeJobs: [],
       completedJobs: [],
 
       setActiveJobs: (jobs) => set({ activeJobs: jobs }),
       setCompletedJobs: (jobs) => set({ completedJobs: jobs }),
 
-      markJobCompletedLocally: (jobId: number) => {
+      markJobCompletedLocally: (jobId) => {
         const job = get().activeJobs.find((j) => j.id === jobId);
         if (!job) return;
         set({
@@ -46,30 +43,33 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      addActiveJob: (job) => {
-        set({ activeJobs: [...get().activeJobs, job] });
-      },
+      addActiveJob: (job) => set({ activeJobs: [...get().activeJobs, job] }),
 
       setUser: (user) => {
-        // Mark user online if not blocked
         const status = user.status === "blocked" ? "blocked" : "online";
-        set({ user: { ...user, status }, isLogin: true });
+        set({
+          user: {
+            ...user,
+            _id: user._id || user._id,
+            status,
+          },
+          isLogin: true,
+        });
       },
 
       updateUserProfile: (profile, name) => {
         const currentUser = get().user;
-        if (currentUser) {
-          set({
-            user: {
-              ...currentUser,
-              name: name ?? currentUser.name,
-              profile: {
-                ...currentUser.profile,
-                ...profile,
-              },
+        if (!currentUser) return;
+        set({
+          user: {
+            ...currentUser,
+            name: name ?? currentUser.name,
+            profile: {
+              ...currentUser.profile,
+              ...profile,
             },
-          });
-        }
+          },
+        });
       },
 
       setIsLogin: (value) => set({ isLogin: value }),
@@ -77,9 +77,8 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         const currentUser = get().user;
         if (currentUser && currentUser.status !== "blocked") {
-          // Update backend status to offline
           axios
-            .patch(`${API_URL}/users/${currentUser.id}`, { status: "offline" })
+            .patch(`${API_URL}/users/${currentUser._id}`, { status: "offline" })
             .catch(console.error);
         }
 
@@ -99,13 +98,14 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user
           ? {
-              id: state.user.id,
+              _id: state.user._id,
+              id: state.user._id, // fallback
               name: state.user.name,
               email: state.user.email,
               role: state.user.role,
               token: state.user.token,
               profile: state.user.profile,
-              status: state.user.status, // persist status
+              status: state.user.status,
             }
           : null,
         isLogin: state.isLogin,
@@ -124,7 +124,7 @@ interface NotificationState {
   addNotification: (notif: Notification) => void;
   resetCount: () => void;
   incrementCount: () => void;
-  setCount: (value: number) => void;   // ✅ add this
+  setCount: (value: number) => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
@@ -139,6 +139,5 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     }),
   resetCount: () => set({ count: 0 }),
   incrementCount: () => set({ count: get().count + 1 }),
-  setCount: (value) => set({ count: value }),   // ✅ implement
+  setCount: (value) => set({ count: value }),
 }));
-  

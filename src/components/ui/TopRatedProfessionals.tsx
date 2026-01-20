@@ -18,7 +18,7 @@ export default function TopRatedProfessionals() {
   const [workers, setWorkers] = useState<Profile[]>([]);
 
   useEffect(() => {
-    axios.get("http://localhost:50001/workers").then((res) => {
+    axios.get("http://localhost:5001/workers").then((res) => {
       const filtered = res.data.filter((w: Profile) => {
         const avg =
           w.ratings && w.ratings.length > 0
@@ -58,7 +58,7 @@ export default function TopRatedProfessionals() {
 
             return (
               <div
-                key={worker.id}
+                key={worker._id}
                 className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center hover:shadow-lg transition"
               >
                 {/* Profile Pic with Gradient Border */}

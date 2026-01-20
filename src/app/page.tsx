@@ -3,7 +3,7 @@ import TopRatedProfessionals from "@/components/ui/TopRatedProfessionals";
 import WorkerCategories from "@/components/ui/WorkerCategories";
 
 import JobPostWrapper from "./jobs-posts/JobPostWrapper";
-import ClientPostsPage from "./jobs-posts/ClientPostsPage";
+// import ClientPostsPage from "./jobs-posts/ClientPostsPage";
 
 
 
@@ -13,7 +13,7 @@ export default function Home() {
     <>
       <Hero />
       <JobPostWrapper />
-      <ClientPostsPage />
+      {/* <ClientPostsPage /> */}
       <WorkerCategories />
       <TopRatedProfessionals />
     </>

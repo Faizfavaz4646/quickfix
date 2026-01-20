@@ -14,7 +14,7 @@ export default function ProfileCompletion() {
     const fetchProfile = async () => {
       try {
         const { data } = await axios.get<Profile[]>(
-          `http://localhost:50001/workers?userId=${user?.id}`
+          `http://localhost:3000/workers?userId=${user?.id}`
         );
         if (data.length) {
           const worker = data[0];

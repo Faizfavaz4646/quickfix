@@ -1,6 +1,6 @@
 "use client";
 
-import JobPostButton from "@/app/jobs-posts/NewPosts";
+// import JobPostButton from "@/app/jobs-posts/NewPosts";
 import { useAuthStore } from "@/store/authStore";
 
 export default function JobPostWrapper() {
@@ -10,7 +10,7 @@ export default function JobPostWrapper() {
 
   return (
     <main className="bg-gray-50">
-      <JobPostButton />
+      {/* <JobPostButton /> */}
     </main>
 
   )

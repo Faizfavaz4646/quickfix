@@ -11,37 +11,43 @@ import { RiAccountPinCircleFill } from "react-icons/ri";
 import { FaSignOutAlt } from "react-icons/fa";
 
 const WorkerCard = () => {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const [workerProfile, setWorkerProfile] = useState<Profile | null>(null);
   const [open, setOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?._id) return; // ensure _id exists
 
-    getWorkerProfile(user.id.toString())
+    // Pass user._id as authUserId to getWorkerProfile
+    getWorkerProfile(user._id)
       .then((data) => {
         if (data) setWorkerProfile(data);
       })
       .catch((err) => {
         console.error("Failed to fetch worker profile:", err);
       });
-  }, [user?.id]);
+  }, [user?._id]);
+
+  useEffect(() => {
+  console.log("USER:", user);
+  console.log("WORKER PROFILE:", workerProfile);
+}, [user, workerProfile]);
+
 
   // Close modal on outside click
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
-    }
+    };
     if (open) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
+if (!user) return null;
 
-  if (!user || !workerProfile) return null;
 
   const handleLogout = () => {
     toast("Are you sure you want to signout?", {
@@ -65,66 +71,48 @@ const WorkerCard = () => {
     <div className="relative">
       {/* Profile Pic */}
       <img
-        src={workerProfile.profilePic || "/images/avatar.avif"}
+        src={workerProfile?.profilePic || "/images/avatar.avif"}
         alt="Profile"
         className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border border-gray-200 cursor-pointer"
-        onError={(e) => {
-          e.currentTarget.src = "/images/avatar.avif";
-        }}
+        onError={(e) => { e.currentTarget.src = "/images/avatar.avif"; }}
         onClick={() => setOpen((prev) => !prev)}
       />
 
-      {/* Overlay (light opacity) */}
-      {open && (
-        <div className="fixed inset-0 bg-black/30 z-40"></div>
-      )}
+      {/* Overlay */}
+      {open && <div className="fixed inset-0 bg-black/30 z-40"></div>}
 
       {/* Dropdown Modal */}
       {open && (
-        <div
-          ref={modalRef}
-          className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg z-50 p-4"
-        >
-          {/* Header with close */}
+        <div ref={modalRef} className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg z-50 p-4">
+          {/* Header */}
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
               <img
-                src={workerProfile.profilePic || "/images/avatar.avif"}
+                src={workerProfile?.profilePic || "/images/avatar.avif"}
                 alt="Profile"
                 className="w-8 h-8 rounded-full border"
               />
               <span className="font-medium text-gray-700">{user.name}</span>
             </div>
-            <button
-              onClick={() => setOpen(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              ✖
-            </button>
+            <button onClick={() => setOpen(false)} className="text-gray-500 hover:text-gray-700">✖</button>
           </div>
 
           {/* Options */}
           <ul className="space-y-2 text-sm">
             <li>
               <button
-                onClick={() => {
-                  setOpen(false);
-                  router.push("/worker/edit");
-                }}
+                onClick={() => { setOpen(false); router.push("/worker/loggedinprofile_worker"); }}
                 className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
               >
-         <span className="flex gap-1"><RiAccountPinCircleFill className="text-xl" />Your Profile</span>    
+                <span className="flex gap-1"><RiAccountPinCircleFill className="text-xl" />Your Profile</span>
               </button>
             </li>
             <li>
               <button
-                onClick={() => {
-                  setOpen(false);
-                  router.push("/settings");
-                }}
+                onClick={() => { setOpen(false); router.push("/settings"); }}
                 className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
               >
-           <span className="flex gap-1"><IoMdSettings className="text-xl" />Settings</span>  
+                <span className="flex gap-1"><IoMdSettings className="text-xl" />Settings</span>
               </button>
             </li>
             <li>
@@ -132,7 +120,7 @@ const WorkerCard = () => {
                 onClick={handleLogout}
                 className="w-full text-left px-3 py-2 rounded-md hover:bg-red-100 text-red-600"
               >
-            <span className=" flex gap-1"> <FaSignOutAlt className="text-xl" /> Sign out</span>  
+                <span className="flex gap-1"><FaSignOutAlt className="text-xl" />Sign out</span>
               </button>
             </li>
           </ul>

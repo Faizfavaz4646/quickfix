@@ -1,317 +1,238 @@
 import axios from "axios";
+import { API_URL } from "@/lib/constants";
 import { Profile, Notification, User } from "@/types/user";
 
-const API_URL = "http://localhost:50001";
-// ---------- Submit Rating & Review ----------
-export async function submitRatingAndReview(
-   clientId: number | string,
-  workerId: number | string,
-  jobId: number,
-  rating: number,
-  review: string,
-  clientName: string
+const api = axios.create({ baseURL: API_URL });
+
+/* =====================================================
+   PUBLIC APIs (CLIENT SIDE)
+   ===================================================== */
+
+/**
+ * Search workers (client only)
+ */
+export async function searchWorkers(
+  profession: string,
+  location: string
 ) {
   try {
-    // 1. Fetch worker by userId
-    const { data: workerData } = await axios.get(
-      `${API_URL}/workers?userId=${workerId}`
-    );
-    if (!Array.isArray(workerData) || workerData.length === 0) {
-      console.warn("Worker not found:", workerId);
-      return { success: false, error: "Worker not found" };
-    }
-    const worker = workerData[0];
-
-    // 2. Fetch client
-    const { data: client } = await axios.get(`${API_URL}/users/${clientId}`);
-    if (!client) {
-      console.warn("Client not found:", clientId);
-      return { success: false, error: "Client not found" };
-    }
-
-    // 3. Build new review
-    const newReview = {
-      id: Date.now(),
-      clientId,
-      clientName: client.name ?? clientName, // ✅ ensure name is saved
-      jobId,
-      review,
-      rating,
-      date: new Date().toISOString(),
-    };
-
-    // 4. Update worker’s reviews & ratings
-    const updatedReviews = [...(worker.reviews || []), newReview];
-    const updatedRatings = [...(worker.ratings || []), rating];
-    const avgRating =
-      updatedRatings.reduce((sum: number, r: number) => sum + r, 0) /
-      updatedRatings.length;
-
-    await axios.patch(`${API_URL}/workers/${worker.id}`, {
-      reviews: updatedReviews,
-      ratings: updatedRatings,
-      avgRating,
+    const { data } = await api.get("/worker/search", {
+      params: { profession, location },
     });
-
-    // 5. Update client’s completed jobs → mark as reviewed
-    if (client.profile?.completedJobs) {
-      const updatedCompletedJobs = client.profile.completedJobs.map((job: any) =>
-        job.id === jobId ? { ...job, reviewed: true } : job
-      );
-
-      await axios.patch(`${API_URL}/users/${client.id}`, {
-        profile: {
-          ...client.profile,
-          completedJobs: updatedCompletedJobs,
-        },
-      });
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error("❌ Error submitting rating & review:", error);
-    return { success: false, error };
+    return data ?? [];
+  } catch (err) {
+    console.error("Search workers failed:", err);
+    return [];
   }
 }
 
-// ---------- Fetch all workers ----------
-export async function fetchAllWorkers(): Promise<Profile[]> {
-  const { data } = await axios.get(`${API_URL}/workers`);
-  return data;
-}
-
-// ---------- Get client profile ----------
-export async function getClientProfile(userId: string): Promise<User | null> {
+/**
+/**
+ * PUBLIC – Get worker profile by workerId (client view)
+ */
+export async function getWorkerProfile(
+  workerId: string
+): Promise<Profile | null> {
   try {
-    const { data } = await axios.get(`${API_URL}/users/${userId}`);
-    return data || null;
-  } catch (error) {
-    console.error("Error fetching client profile:", error);
+    if (!workerId) return null;
+
+    const { data } = await api.get(`/worker/${workerId}`);
+
+    if (!data) return null;
+
+    return {
+      ...data,
+      userId: typeof data.userId === "object" ? data.userId._id : data.userId,
+      name: data.userId?.name ?? "",
+      email: data.userId?.email ?? "",
+    };
+  } catch (err) {
+    console.error("Public worker profile fetch failed:", err);
     return null;
   }
 }
 
-// ---------- Get worker profile ----------
-export async function getWorkerProfile(userId: string): Promise<Profile | null> {
-  const { data: workerData } = await axios.get(
-    `${API_URL}/workers?userId=${userId}`
-  );
-  if (!workerData.length) return null;
 
-  const workerInfo = workerData[0];
 
-  const { data: userData }: { data: User } = await axios.get(
-    `${API_URL}/users/${workerInfo.userId}`
-  );
+/* =====================================================
+   PRIVATE APIs (WORKER SIDE – AUTH REQUIRED)
+   ===================================================== */
 
-  const profile: Profile = {
-    ...workerInfo,
-    name: userData.name,
-    email: userData.email,
-    profilePic: workerInfo.profilePic,
-    previousWorkImages: workerInfo.previousWorkImages || [],
-    notifications: workerInfo.notifications || [],
-    requests: workerInfo.requests || [],
-    activeJobs: workerInfo.activeJobs || [],
-    completedJobs: workerInfo.completedJobs || [],
-    reviews: workerInfo.reviews || [],
-    ratings: workerInfo.ratings || [],
-    avgRating: workerInfo.avgRating || 0,
-  };
-
-  return profile;
+/**
+ * INTERNAL helper – get worker by logged-in USER ID
+ * (used only for worker dashboard actions)
+ */
+async function getWorkerByUserId(userId: string | number) {
+  const { data } = await api.get(`/worker/by-user/${userId}`);
+  return data ?? null;
 }
 
-// ---------- Mark notification as seen ----------
+/**
+ * INTERNAL helper – get user
+ */
+async function getUserById(userId: string | number): Promise<User | null> {
+  const { data } = await api.get(`/users/${userId}`);
+  return data ?? null;
+}
+
+/* =====================================================
+   RATING & REVIEW (CLIENT → WORKER)
+   ===================================================== */
+
+export async function submitRatingAndReview(
+  clientId: string | number,
+  workerUserId: string | number,
+  jobId: string,
+  rating: number,
+  review: string,
+  clientNameFallback: string
+) {
+  try {
+    const worker = await getWorkerByUserId(workerUserId);
+    if (!worker) throw new Error("Worker not found");
+
+    const client = await getUserById(clientId);
+    if (!client) throw new Error("Client not found");
+
+    const newReview = {
+      _id: Date.now().toString(),
+      jobId,
+      rating,
+      review,
+      clientId,
+      clientName: client.name || clientNameFallback,
+      date: new Date().toISOString(),
+    };
+
+    const reviews = [...(worker.reviews ?? []), newReview];
+    const ratings = [...(worker.ratings ?? []), rating];
+    const avgRating =
+      ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length;
+
+    await api.patch(`/worker/${worker._id}`, {
+      reviews,
+      ratings,
+      avgRating,
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error("Rating failed:", err);
+    return { success: false, error: err };
+  }
+}
+
+/* =====================================================
+   NOTIFICATIONS (WORKER SIDE)
+   ===================================================== */
+
 export async function markNotificationSeen(
   userId: string,
-  notificationId: number
+  notificationId: string
 ): Promise<Notification[]> {
-  const { data: workerData } = await axios.get(
-    `${API_URL}/workers?userId=${userId}`
-  );
-  if (!workerData.length) return [];
+  const worker = await getWorkerByUserId(userId);
+  if (!worker) return [];
 
-  const worker = workerData[0];
-
-  const updatedNotifications = (worker.notifications || []).map(
-    (n: Notification) =>
-      n.id === notificationId ? { ...n, seen: true } : n
+  const notifications = (worker.notifications ?? []).map((n: Notification) =>
+    n._id === notificationId ? { ...n, seen: true } : n
   );
 
-  await axios.patch(`${API_URL}/workers/${worker.id}`, {
-    notifications: updatedNotifications,
-  });
-
-  return updatedNotifications;
+  await api.patch(`/worker/${worker._id}`, { notifications });
+  return notifications;
 }
 
-// ---------- Delete Notifications ----------
 export async function deleteNotification(
   userId: string,
-  notificationId: number
+  notificationId: string
 ): Promise<Notification[]> {
-  const { data: workerData } = await axios.get(
-    `${API_URL}/workers?userId=${userId}`
-  );
-  if (!workerData.length) return [];
+  const worker = await getWorkerByUserId(userId);
+  if (!worker) return [];
 
-  const worker = workerData[0];
-
-  const updatedNotifications = (worker.notifications || []).filter(
-    (n: Notification) => n.id !== notificationId
+  const notifications = (worker.notifications ?? []).filter(
+    (n: Notification) => n._id !== notificationId
   );
 
-  await axios.patch(`${API_URL}/workers/${worker.id}`, {
-    notifications: updatedNotifications,
-  });
-
-  return updatedNotifications;
+  await api.patch(`/worker/${worker._id}`, { notifications });
+  return notifications;
 }
 
-// ---------- Decline request ----------
-export async function declineRequest(userId: string, requestId: number) {
-  const { data: workerData } = await axios.get(
-    `${API_URL}/workers?userId=${userId}`
+/* =====================================================
+   REQUESTS (WORKER SIDE)
+   ===================================================== */
+
+export async function declineRequest(userId: string, requestId: string) {
+  const worker = await getWorkerByUserId(userId);
+  if (!worker) return null;
+
+  const requests = (worker.requests ?? []).filter(
+    (r: any) => r._id !== requestId
   );
-  if (!workerData.length) return null;
-  const worker = workerData[0];
 
-  const updatedRequests = (worker.requests || []).filter(
-    (r: any) => r.id !== requestId
-  );
-
-  await axios.patch(`${API_URL}/workers/${worker.id}`, {
-    requests: updatedRequests,
-  });
-
-  return await getWorkerProfile(userId);
+  await api.patch(`/worker/${worker._id}`, { requests });
+  return worker;
 }
 
-// ---------- Accept request ----------
-export async function acceptRequest(userId: string, requestId: number) {
-  const { data: workerData } = await axios.get(
-    `${API_URL}/workers?userId=${userId}`
-  );
-  if (!workerData.length) return null;
-  const worker = workerData[0];
+export async function acceptRequest(userId: string, requestId: string) {
+  const worker = await getWorkerByUserId(userId);
+  if (!worker) return null;
 
-  const request = (worker.requests || []).find((r: any) => r.id === requestId);
-  if (!request) return await getWorkerProfile(userId);
-
-  const updatedRequests = (worker.requests || []).filter(
-    (r: any) => r.id !== requestId
+  const request = (worker.requests ?? []).find(
+    (r: any) => r._id === requestId
   );
+  if (!request) return worker;
+
+  const updatedRequests = worker.requests.filter(
+    (r: any) => r._id !== requestId
+  );
+
   const updatedActiveJobs = [
-    ...(worker.activeJobs || []),
+    ...(worker.activeJobs ?? []),
     { ...request, status: "ongoing" },
   ];
 
-  // Update worker
-  await axios.patch(`${API_URL}/workers/${worker.id}`, {
+  await api.patch(`/worker/${worker._id}`, {
     requests: updatedRequests,
     activeJobs: updatedActiveJobs,
   });
 
-  // Update client
-  const { data: client } = await axios.get(
-    `${API_URL}/users/${request.clientId}`
-  );
-  const updatedClientRequests = (client.profile?.requests || []).filter(
-    (r: any) => r.id !== requestId
-  );
-  const updatedClientActiveJobs = [
-    ...(client.profile?.activeJobs || []),
-    {
-      id: request.id,
-      workerId: worker.userId,
-      workerName: worker.name,
-      profession: worker.profession,
-      status: "ongoing",
-      date: request.date,
-    },
-  ];
-
-  const newNotification = {
-    id: Date.now(),
-    message: `${worker.name} accepted your job request. Please chat or call to confirm.`,
-    seen: false,
-    date: new Date().toISOString(),
-  };
-
-  const updatedNotifications = [
-    ...(client.profile?.notifications || []),
-    newNotification,
-  ];
-
-  await axios.patch(`${API_URL}/users/${client.id}`, {
-    profile: {
-      ...client.profile,
-      requests: updatedClientRequests,
-      activeJobs: updatedClientActiveJobs,
-      notifications: updatedNotifications,
-    },
-  });
-
-  return await getWorkerProfile(userId);
+  return worker;
 }
 
-// ---------- Mark job as completed ----------
-export async function markJobCompleted(userId: string, jobId: number) {
-  const { data: workerData } = await axios.get(
-    `${API_URL}/workers?userId=${userId}`
-  );
-  if (!workerData.length) return null;
-  const worker = workerData[0];
 
-  const jobToComplete = (worker.activeJobs || []).find(
-    (job: any) => job.id === jobId
-  );
-  if (!jobToComplete) return null;
+export async function getMyWorkerProfile(
+  token: string
+): Promise<Profile | null> {
+  try {
+    const { data } = await api.get("/worker/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  const updatedActiveJobs = (worker.activeJobs || []).filter(
-    (job: any) => job.id !== jobId
-  );
-  const updatedCompletedJobs = [
-    ...(worker.completedJobs || []),
-    { ...jobToComplete, status: "completed" },
-  ];
-
-  await axios.patch(`${API_URL}/workers/${worker.id}`, {
-    activeJobs: updatedActiveJobs,
-    completedJobs: updatedCompletedJobs,
-  });
-
-  // Update client
-  const clientId = jobToComplete.clientId;
-  if (clientId) {
-    const { data: client } = await axios.get(`${API_URL}/users/${clientId}`);
-    if (client?.profile) {
-      const updatedClientActiveJobs = (
-        client.profile.activeJobs || []
-      ).filter((job: any) => job.id !== jobId);
-
-      const updatedClientCompletedJobs = [
-        ...(client.profile.completedJobs || []),
-        {
-          id: jobId, // ✅ keep jobId
-          workerId: worker.userId,
-          workerName: worker.name,
-          profession: worker.profession,
-          status: "completed",
-          date: new Date().toISOString(),
-        },
-      ];
-
-      await axios.patch(`${API_URL}/users/${client.id}`, {
-        profile: {
-          ...client.profile,
-          activeJobs: updatedClientActiveJobs,
-          completedJobs: updatedClientCompletedJobs,
-        },
-      });
+    return data;
+  } catch (err: any) {
+    if (axios.isAxiosError(err)) {
+      // 👇 first-time worker (no profile yet)
+      if (err.response?.status === 404) {
+        return null;
+      }
     }
-  }
 
-  return await getWorkerProfile(userId);
+    // 👇 REAL problems must surface
+    console.error("Fetch my worker profile failed:", err);
+    throw err;
+  }
 }
+
+export async function updateMyWorkerProfile(
+  form: Profile,
+  token: string
+) {
+  return api.post("/worker/upsert", form, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+

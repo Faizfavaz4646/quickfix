@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { getWorkerProfile } from "@/services/workerService";
 import ProfileDetails from "@/components/ProfileDetails";
 import PreviousWorks from "@/components/PreviousWorks";
+import RequestDialog from "@/components/RequestDialog";
 
 export default function ProfilePage() {
   const { id } = useParams();

@@ -91,8 +91,10 @@ export default function WorkerNavbar() {
          
           </Link> 
         </div>
-     <WorkerCard /> 
+          <WorkerCard /> 
+
       </div>
+         
 
       {/* Mobile Sidebar Menu */}
       {menuOpen && (

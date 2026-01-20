@@ -4,16 +4,16 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useAuthStore } from '@/store/authStore';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { FaEye, FaEyeSlash, FaTools } from 'react-icons/fa';
 import { API_URL } from '../../../../lib/constants';
 
+
 type Role = 'client' | 'worker';
 
 const SignupPage = () => {
-  const { setUser } = useAuthStore();
+
   const router = useRouter();
   const [role, setRole] = useState<Role>('client');
   const [showPassword, setShowPassword] = useState(false);
@@ -39,47 +39,27 @@ const SignupPage = () => {
       try {
         const email = values.email.toLowerCase();
 
-        // Check if email exists
-        const existing = await axios.get(`${API_URL}/users?email=${email}`);
-        if (existing.data.length > 0) {
-          toast.info('Email already registered');
-          setSubmitting(false);
-          return;
-        }
-
-        // Build payload with status
+        // Build payload
         const payload = {
           name: values.name,
-          email,
+          emailId: email,
           password: values.password,
           role,
-          status: 'active', // <-- new user is active by default
+          status: 'active',
         };
 
-        // Create user
-        const response = await axios.post(`${API_URL}/users`, payload);
-        const newUser = response.data;
 
-        // Auto-login after signup
-        setUser({
-          id: newUser.id ?? newUser._id,
-          name: newUser.name,
-          email: newUser.email,
-          role: newUser.role,
-          token: newUser.token ?? '', // optional token
-        });
-
-        toast.success('Account created and logged in');
+  // Send signup request
+  await axios.post(`${API_URL}/auth/signup`, payload);
+   
+ toast.success('Account created successfully');
+    
 
         // Redirect based on role
-        if (role === 'worker') {
-          router.push('/worker/profile');
-        } else {
-          router.push('/auth/login');
-        }
+        router.push('/auth/login');
       } catch (err) {
         console.error(err);
-        toast.error('Signup failed');
+        toast.error('Signup failed',);
       } finally {
         setSubmitting(false);
       }
@@ -92,7 +72,6 @@ const SignupPage = () => {
         <h1 className="flex gap-2 justify-center text-3xl font-bold mb-4">
           <FaTools className="text-blue-600 mt-1" /> QuickFix
         </h1>
-
         <h2 className="text-2xl font-bold mb-6 text-center">Signup</h2>
 
         {/* Role Selection */}

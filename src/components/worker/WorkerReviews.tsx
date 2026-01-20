@@ -30,7 +30,7 @@ export default function WorkerReviews({ userId }: WorkerReviewsProps) {
 
       try {
         // fetch the worker entry using userId
-        const { data: workers } = await axios.get(`http://localhost:50001/workers?userId=${userId}`);
+        const { data: workers } = await axios.get(`http://localhost:3000/workers?userId=${userId}`);
         if (workers.length === 0) {
           setReviews([]);
           return;
@@ -42,7 +42,7 @@ export default function WorkerReviews({ userId }: WorkerReviewsProps) {
         const reviewsWithPics = await Promise.all(
           (worker.reviews || []).map(async (rev: Review) => {
             try {
-              const { data: users } = await axios.get(`http://localhost:50001/users?id=${rev.clientId}`);
+              const { data: users } = await axios.get(`http://localhost:3000/users?id=${rev.clientId}`);
               return { ...rev, clientProfilePic: users[0]?.profile?.profilePic || "" };
             } catch {
               return rev;

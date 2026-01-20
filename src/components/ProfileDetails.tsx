@@ -1,4 +1,4 @@
-import { FaMapMarkerAlt } from "react-icons/fa";
+import { FaMapMarkerAlt, FaPhone } from "react-icons/fa";
 import { AiFillStar } from "react-icons/ai";
 import { Profile } from "@/types/user";
 import RequestDialog from "./RequestDialog";
@@ -18,6 +18,9 @@ const renderStars = (rating: number) => {
   const fullStars = Math.floor(rating);
   const halfStar = rating - fullStars >= 0.5;
   const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+
+  
 
   return (
     <div className="flex text-yellow-400 text-sm mt-1">
@@ -43,15 +46,18 @@ const renderStars = (rating: number) => {
 
 export default function ProfileCard({ worker }: ProfileCardProps) {
   const avgRating = getAverageRating(worker.ratings);
+    console.log("worker data",worker);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col md:flex-row gap-6">
       <div className="flex flex-col items-center md:items-start">
+      
         <img
           src={worker.profilePic || "/images/avatar.avif"}
           alt={worker.name}
           className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
         />
+        
 
         {/* Worker Name */}
         <h2 className="text-2xl font-semibold text-gray-800 mt-3">
@@ -71,12 +77,13 @@ export default function ProfileCard({ worker }: ProfileCardProps) {
           <FaMapMarkerAlt className="text-blue-500" />
           {worker.state}, {worker.district}, {worker.city}
         </p>
+        <span className="flex gap-2"><FaPhone className="mt-1 text-blue-500" /><p className="text-gray-500">{worker.phone}</p></span>
       </div>
 
       {/* RequestDialog handles its own button + dialog */}
       <div className="flex flex-col justify-center">
-        {worker.id !== undefined && (
-          <RequestDialog workerId={String(worker.id)} />
+        {worker._id !== undefined && (
+          <RequestDialog workerId={String(worker._id)} />
         )}
       </div>
     </div>

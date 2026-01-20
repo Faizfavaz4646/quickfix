@@ -1,7 +1,7 @@
 import axios from "axios";
 import { User, Profile } from "@/types/user";
 
-const API_URL = "http://localhost:50001";
+const API_URL = "http://localhost:3000";
 
 // ✅ Fetch all users (workers + clients + admins)
 export const fetchAllUsers = async (): Promise<User[]> => {

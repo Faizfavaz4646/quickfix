@@ -46,7 +46,7 @@ export default function Sidebar({ notifications = [] }: SidebarProps) {
     <>
       {/* Burger Button - Mobile only */}
       <button
-        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-md"
+        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-md "
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
@@ -64,7 +64,7 @@ export default function Sidebar({ notifications = [] }: SidebarProps) {
         <div className="flex flex-col h-full justify-between">
           {/* Logo + Menu */}
           <div>
-            <h1 className="text-4xl font-bold text-sky-600 mb-8 flex items-center justify-center">
+            <h1 className="text-4xl font-bold text-sky-600 mb-8 flex items-center justify-center mt-10">
               <FaHome />
             </h1>
             <nav className="flex flex-col gap-4">

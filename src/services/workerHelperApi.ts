@@ -1,13 +1,18 @@
 // utils/workerApi.ts
 import axios from "axios";
 import { Profile } from "@/types/user";
+import { API_URL } from "@/lib/constants";
 
-const BASE_URL = "http://localhost:50001/workers";
 
 export const createWorker = async (form: Profile, userId: number) => {
-  return axios.post(BASE_URL, { ...form, userId });
+  return axios.post(`${API_URL}/worker`, { ...form, userId });
 };
 
-export const updateWorker = async (form: Profile, workerId: number, userId: number) => {
-  return axios.patch(`${BASE_URL}/${workerId}`, { ...form, userId });
+export const updateWorker = async (form: Profile, workerId: string, token: string) => {
+  return axios.patch(`${API_URL}/worker/${workerId}`, form, {
+    headers: {
+      Authorization: `Bearer ${token}`, // <-- send token
+    },
+  });
 };
+

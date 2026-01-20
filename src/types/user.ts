@@ -6,26 +6,26 @@ import { persist, createJSONStorage } from "zustand/middleware";
 // ---------- TYPES ----------
 
 export interface Review {
-  id: number;
-  clientId: string | number;
+  _id?: string;
+  clientId: string;
   clientName: string;
-  jobId: number;
+  jobId: string;
   review: string;
   rating: number;
   date: string;
 }
 
 export interface RatingInput {
-  clientId: string | number;
-  workerId: string | number;
-  jobId: number;
+  clientId: string;
+  workerId: string;
+  jobId: string;
   rating: number;
   review: string;
   clientName: string;
 }
 
 export interface Request {
-  id: number;
+  _id?: string;
   clientId: string;
   workerId: string;
   name: string;
@@ -33,63 +33,53 @@ export interface Request {
   description: string;
   status: string;
   date: string;
+  clientName?: string;
 }
 
 export interface Comment {
-  id: number | string;
+  _id?: string;
   userId: string;
   userName?: string;
   text: string;
   date: string;
   clientName?: string;
   userProfile?: User;
-  profilePic?:string;
+  profilePic?: string;
 }
-
-
-
 export interface Job {
-  id: number | string;
-  clientId: string;
-  clientName?: string;
-  workerId: string;   // required
+  _id?: string;
+  clientId: string;          // just the type, no values here
+  clientName: string;        // required string
+  workerId: string;
   workerName?: string;
   profession?: string;
   description?: string;
   status: "pending" | "ongoing" | "completed";
-  date: string;       //  required
+  date: string;
   reviewed?: boolean;
-  name?:string;
-  contact?:string;
-  location?:string;
+  name?: string;
+  contact?: string;
+  location?: string;
   images?: string[];
-  likes?:string[];      // ✅number of likes
+  likes?: string[];
   comments?: Comment[];
-    profilePic?: string;
-
-}
-
-export interface Field<T> {
-  name: keyof T; // ensures only keys from T are valid
-  label: string;
-  type: "text" | "number" | "select";
-  options?: { label: string; value: string }[];
-  placeholder?: string;
-  maxLength?: number;
+  profilePic?: string;
 }
 
 export interface Notification {
-  id: number;
+  _id?: string;
   message: string;
   date: string;
   seen: boolean;
-  name?: string;       // optional, if merged with request
+  name?: string;
   contact?: string;
   description?: string;
 }
 
 export interface Profile {
-  id?: number;
+  _id?: string;
+  userId?: string;
+  email?: string;
   profilePic?: string;
   state?: string;
   district?: string;
@@ -104,36 +94,29 @@ export interface Profile {
   requests?: Request[];
   termsAccepted?: boolean;
   name?: string;
-  reviews?: Review[];      // ← Add this for workers
-  ratings?: number[];      // ← Add this for workers
-  avgRating?: number;      // ← Optional average rating
-   activeJobs?: Job[];
+  reviews?: Review[];
+  ratings?: number[];
+  avgRating?: number;
+  activeJobs?: Job[];
   completedJobs?: Job[];
-  location?:string;
-
-  
- 
+  location?: string;
 }
 
 export interface User {
-  id: number;
-userId: string;
+  _id: string; // MongoDB ID
   name: string;
   email: string;
-  role: "client" | "worker";
+  role: "client" | "worker" | "admin";
   token?: string;
   profile?: Profile;
   profession?: string;
   status?: "active" | "online" | "offline" | "blocked";
-  location?: string; // ← Add this
-  profilePic?:string;
-  state?:string;
-  district?:string;
-  city?:string;
- 
-
+  location?: string;
+  profilePic?: string;
+  state?: string;
+  district?: string;
+  city?: string;
 }
-
 
 // ---------- AUTH STORE ----------
 interface AuthState {
@@ -155,18 +138,18 @@ export const useAuthStore = create<AuthState>()(
 
       updateUserProfile: (profile, name) => {
         const currentUser = get().user;
-        if (currentUser) {
-          set({
-            user: {
-              ...currentUser,
-              name: name ?? currentUser.name, // update root-level name too
-              profile: {
-                ...currentUser.profile,
-                ...profile,
-              },
+        if (!currentUser) return;
+
+        set({
+          user: {
+            ...currentUser,
+            name: name ?? currentUser.name,
+            profile: {
+              ...currentUser.profile,
+              ...profile,
             },
-          });
-        }
+          },
+        });
       },
 
       setIsLogin: (value) => set({ isLogin: value }),
@@ -179,12 +162,18 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user
           ? {
-              id: state.user.id,
+              _id: state.user._id,
               name: state.user.name,
               email: state.user.email,
               role: state.user.role,
               token: state.user.token,
-              profile: state.user.profile,
+              profile: state.user.profile
+                ? {
+                    ...state.user.profile,
+                    _id: state.user.profile._id ?? "",
+                    userId: state.user.profile.userId ?? state.user._id,
+                  }
+                : undefined,
             }
           : null,
         isLogin: state.isLogin,

@@ -1,6 +1,23 @@
 import axios from "axios";
+import { API_URL } from "@/lib/constants";
 
-const API_URL = "http://localhost:50001";
+export interface Request {
+  _id: string;
+  clientId: string;
+  workerId: string;
+  name: string;
+  contact: string;
+  description: string;
+  status: "pending" | "ongoing" | "completed";
+  date: string;
+}
+
+export interface Notification {
+  _id: string;
+  message: string;
+  seen: boolean;
+  date: string;
+}
 
 export const sendRequestToWorker = async (
   workerId: string,
@@ -9,59 +26,62 @@ export const sendRequestToWorker = async (
   contact: string,
   description: string
 ) => {
-  const newRequest = {
-    id: Date.now(),
-    clientId,
-    workerId,
-    name,
-    contact,
-    description,
-    status: "pending",
-    date: new Date().toISOString(),
-  };
+  try {
+    const requestId = Date.now().toString();
+    const now = new Date().toISOString();
 
-  const newNotification = {
-    id: Date.now(),
-    message: "You have a new job request",
-    seen: false,
-    date: new Date().toISOString(),
-  };
+    const newRequest: Request = {
+      _id: requestId,
+      clientId,
+      workerId,
+      name,
+      contact,
+      description,
+      status: "pending",
+      date: now,
+    };
 
-  // Fetch worker
-  const { data: worker } = await axios.get(`${API_URL}/workers/${workerId}`);
+    const newNotification: Notification = {
+      _id: requestId,
+      message: "You have a new job request",
+      seen: false,
+      date: now,
+    };
 
-  // Fetch client
-  const { data: client } = await axios.get(`${API_URL}/users/${clientId}`);
+    // Fetch worker
+    const { data: worker } = await axios.get(`${API_URL}/workers/${workerId}`);
+    const updatedWorkerRequests = [...(worker.requests ?? []), newRequest];
+    const updatedNotifications = [...(worker.notifications ?? []), newNotification];
 
-  // Append request for worker safely
-  const updatedWorkerRequests = [...(worker.requests || worker.Requests || []), newRequest];
-  const updatedNotifications = [...(worker.notifications || []), newNotification];
+    await axios.patch(`${API_URL}/workers/${workerId}`, {
+      requests: updatedWorkerRequests,
+      notifications: updatedNotifications,
+    });
 
-  await axios.patch(`${API_URL}/workers/${workerId}`, {
-    requests: updatedWorkerRequests,
-    notifications: updatedNotifications,
-  });
+    // Fetch client
+    const { data: client } = await axios.get(`${API_URL}/users/${clientId}`);
+    const clientRequest = {
+      _id: requestId,
+      workerId,
+      workerName: worker.name,
+      profession: worker.profession,
+      status: newRequest.status,
+      date: now,
+    };
+    const updatedClientRequests = [...(client.profile?.requests ?? []), clientRequest];
 
-  // Prepare request for client
-  const clientRequest = {
-    id: newRequest.id,
-    workerId,
-    workerName: worker.name,
-    profession: worker.profession,
-    status: newRequest.status,
-    date: newRequest.date,
-  };
+    await axios.patch(`${API_URL}/users/${clientId}`, {
+      profile: {
+        ...client.profile,
+        requests: updatedClientRequests,
+        activeJobs: client.profile?.activeJobs ?? [],
+        completedJobs: client.profile?.completedJobs ?? [],
+      },
+    });
 
-  const updatedClientRequests = [...(client.profile?.requests || []), clientRequest];
-
-  await axios.patch(`${API_URL}/users/${clientId}`, {
-    profile: {
-      ...client.profile,
-      requests: updatedClientRequests,
-      activeJobs: client.profile?.activeJobs || [],
-      completedJobs: client.profile?.completedJobs || [],
-    },
-  });
-
-  return { newRequest, clientRequest, newNotification };
+    return { newRequest, clientRequest, newNotification };
+  } catch (err) {
+    console.error("Failed to send request to worker:", err);
+    throw err;
+  }
 };

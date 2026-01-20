@@ -3,38 +3,54 @@
 import { FiStar } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useAuthStore } from "@/store/authStore";
 
 interface WorkerRatingProps {
-  userId: string; // the worker's userId
+  userId?: string; // optional
 }
 
 export default function WorkerRating({ userId }: WorkerRatingProps) {
   const [avgRating, setAvgRating] = useState<number>(0);
   const maxStars = 5;
+  const authUser = useAuthStore((state) => state.user);
+
+  const workerId = userId || authUser?._id;
 
   useEffect(() => {
+    if (!workerId) {
+      console.warn("WorkerRating: no worker ID available");
+      setAvgRating(0);
+      return;
+    }
+
     const fetchWorkerRating = async () => {
       try {
-        const { data: workers } = await axios.get(`http://localhost:50001/workers?userId=${userId}`);
-        if (workers.length === 0) return;
+        const { data: workers } = await axios.get(
+          `http://localhost:5001/workers?userId=${workerId}`
+        );
+
+        if (!workers || workers.length === 0) {
+          setAvgRating(0);
+          return;
+        }
 
         const worker = workers[0];
         const ratings: number[] = worker.ratings || [];
 
-        if (ratings.length > 0) {
-          const sum = ratings.reduce((acc, r) => acc + r, 0);
-          const average = sum / ratings.length;
-          setAvgRating(average);
-        } else {
-          setAvgRating(0);
-        }
+        const average =
+          ratings.length > 0
+            ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+            : 0;
+
+        setAvgRating(average);
       } catch (err) {
         console.error("Error fetching worker ratings:", err);
+        setAvgRating(0);
       }
     };
 
     fetchWorkerRating();
-  }, [userId]);
+  }, [workerId]);
 
   return (
     <div className="w-full h-32 rounded-lg p-4 mt-4 hover:shadow-lg transition duration-300 ease-in-out flex flex-col">
@@ -48,7 +64,9 @@ export default function WorkerRating({ userId }: WorkerRatingProps) {
         {[...Array(maxStars)].map((_, i) => (
           <span
             key={i}
-            className={`text-xl ${i < Math.round(avgRating) ? "text-yellow-500" : "text-gray-300"}`}
+            className={`text-xl ${
+              i < Math.round(avgRating) ? "text-yellow-500" : "text-gray-300"
+            }`}
           >
             ★
           </span>

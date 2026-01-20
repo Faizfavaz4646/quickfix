@@ -2,39 +2,38 @@
 
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { getWorkerProfile, markJobCompleted, acceptRequest } from "@/services/workerService";
+import { getWorkerProfile, acceptRequest } from "@/services/workerService";
 import { FiBriefcase } from "react-icons/fi";
 import { toast } from "sonner";
-import { Job } from "@/types/user";
+import { Job, Request } from "@/types/user";
+
 export default function ActiveJobs() {
   const user = useAuthStore((state) => state.user);
   const activeJobs = useAuthStore((state) => state.activeJobs);
   const completedJobs = useAuthStore((state) => state.completedJobs);
   const setActiveJobs = useAuthStore((state) => state.setActiveJobs);
   const setCompletedJobs = useAuthStore((state) => state.setCompletedJobs);
-  const markJobCompletedLocally = useAuthStore((state) => state.markJobCompletedLocally);
   const addNewActiveJob = useAuthStore((state) => state.addActiveJob);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Fetch jobs from backend json
+  // Fetch worker profile and jobs
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?._id) return;
 
     const fetchJobs = async () => {
       try {
-        const profile = await getWorkerProfile(user.id.toString());
+        const profile = await getWorkerProfile(user._id);
         if (profile) {
-          // Ensure unique IDs (React needs it for lists)
-          const uniqueActiveJobs = (profile.activeJobs ?? []).map((j, idx) => ({
-            ...j,
-            key: j.id ?? `active-${idx}-${Date.now()}`,
+          const uniqueActiveJobs = (profile.activeJobs ?? []).map((job, idx) => ({
+            ...job,
+            key: job._id ?? `active-${idx}-${Date.now()}`,
           }));
 
-          const uniqueCompletedJobs = (profile.completedJobs ?? []).map((j, idx) => ({
-            ...j,
-            key: j.id ?? `completed-${idx}-${Date.now()}`,
+          const uniqueCompletedJobs = (profile.completedJobs ?? []).map((job, idx) => ({
+            ...job,
+            key: job._id ?? `completed-${idx}-${Date.now()}`,
           }));
 
           setActiveJobs(uniqueActiveJobs);
@@ -42,6 +41,7 @@ export default function ActiveJobs() {
         }
       } catch (error) {
         console.error("Error fetching jobs:", error);
+        toast.error("Failed to fetch jobs.");
       } finally {
         setLoading(false);
       }
@@ -50,56 +50,37 @@ export default function ActiveJobs() {
     fetchJobs();
   }, [user, setActiveJobs, setCompletedJobs]);
 
-  // Complete job
- const handleCompleteJob = async (jobId: number) => {
-  if (!user?.id) return;
+  // Accept a pending request
+  const handleAcceptRequest = async (request: Request) => {
+    if (!user?._id) return;
 
-  try {
-    await markJobCompleted(user.id.toString(), jobId);
+    const newJob: Job = {
+      _id: request._id,
+      clientId: request.clientId.toString(),
+      clientName: request.clientName ?? request.name,
+      workerId: user._id,
+      workerName: user.name ?? "",
+      profession: user.profession ?? "",
+      description: request.description,
+      status: "ongoing",
+      date: new Date().toISOString(),
+      reviewed: false,
+    };
 
-    // re-fetch worker profile
-    const profile = await getWorkerProfile(user.id.toString());
-    if (profile) {
-      setActiveJobs(profile.activeJobs ?? []);
-      setCompletedJobs(profile.completedJobs ?? []);
+    addNewActiveJob(newJob);
+    if (!request._id) {
+  toast.error("Request ID is missing");
+  return;
+}
+
+    try {
+      await acceptRequest(user._id, request._id);
+      toast.success("Request accepted! ✅");
+    } catch (error) {
+      console.error("Error accepting request:", error);
+      toast.error("Failed to accept request ❌");
     }
-
-    toast.success("Job marked as completed ✅");
-  } catch (error) {
-    console.error("Error completing job:", error);
-    toast.error("Failed to complete job ❌");
-  }
-};
-
-
-  // Accept request
-const handleAcceptRequest = async (request: any) => {
-  if (!user?.id) return;
-
-  const newJob: Job = {
-    id: request.id,
-    clientId: request.clientId.toString(),
-    clientName: request.clientName ?? request.name, // if request has clientName, else fallback
-    workerId: user.id.toString(), // ✅ required
-    workerName: user.name,        // optional
-    profession: user.profession,  // optional
-    description: request.description,
-    status: "ongoing",
-    date: new Date().toISOString(), // ✅ required
-    reviewed: false,
   };
-
-  addNewActiveJob(newJob);
-
-  try {
-    await acceptRequest(user.id.toString(), request.id);
-    toast.success("Request accepted! ✅");
-  } catch (error) {
-    console.error("Error accepting request:", error);
-    toast.error("Failed to accept request ❌");
-  }
-};
-
 
   if (loading) {
     return (
@@ -119,7 +100,6 @@ const handleAcceptRequest = async (request: any) => {
           <h3 className="font-semibold text-lg text-gray-800">Active Jobs</h3>
           <FiBriefcase className="text-blue-500 w-6 h-6" />
         </div>
-
         <p className="mt-2 text-2xl font-bold text-blue-600">{activeJobs.length}</p>
         <p className="text-sm text-gray-500">Currently in progress</p>
       </div>
@@ -132,12 +112,12 @@ const handleAcceptRequest = async (request: any) => {
             {activeJobs.length === 0 ? (
               <p>No active jobs.</p>
             ) : (
-              activeJobs.map((job,idx) => (
-                <div key={job.id ?? `-${idx}`} className="border p-3 rounded mb-3">
-                  <p className="font-semibold">{job.name}</p>
+              activeJobs.map((job, idx) => (
+                <div key={job._id ?? `active-${idx}`} className="border p-3 rounded mb-3">
+                  <p className="font-semibold">{job.clientName}</p>
                   <p className="text-gray-600">{job.description}</p>
                   <button
-                    onClick={() => handleCompleteJob(job.id)}
+                    // onClick={() => handleCompleteJob(job._id)}
                     className="mt-2 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
                   >
                     Mark as Completed
@@ -147,23 +127,22 @@ const handleAcceptRequest = async (request: any) => {
             )}
 
             {user?.profile?.requests?.length ? (
-  <>
-    <h3 className="text-lg font-semibold mt-4 mb-2">Pending Requests</h3>
-    {user.profile.requests.map((req, idx) => (
-      <div key={req.id ?? `req-${idx}-${Date.now()}`} className="border p-3 rounded mb-3">
-        <p className="font-semibold">{req.name}</p>
-        <p className="text-gray-600">{req.description}</p>
-        <button
-          onClick={() => handleAcceptRequest(req)}
-          className="mt-2 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-        >
-          Accept Request
-        </button>
-      </div>
-    ))}
-  </>
-) : null
-}
+              <>
+                <h3 className="text-lg font-semibold mt-4 mb-2">Pending Requests</h3>
+                {user.profile.requests.map((req, idx) => (
+                  <div key={req._id ?? `req-${idx}-${Date.now()}`} className="border p-3 rounded mb-3">
+                    <p className="font-semibold">{req.name}</p>
+                    <p className="text-gray-600">{req.description}</p>
+                    <button
+                      onClick={() => handleAcceptRequest(req)}
+                      className="mt-2 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                    >
+                      Accept Request
+                    </button>
+                  </div>
+                ))}
+              </>
+            ) : null}
 
             <button
               onClick={() => setModalOpen(false)}

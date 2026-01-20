@@ -5,7 +5,7 @@ import { MdOutlineVerifiedUser, MdOutlineAccessTime } from "react-icons/md";
 import { AiFillStar } from "react-icons/ai";
 import Link from "next/link";
 import Image from "next/image";
-import { fetchAllWorkers, getWorkerProfile } from "@/services/workerService";
+import { searchWorkers } from "@/services/workerService"; 
 
 // Helper: render stars based on rating
 const renderStars = (rating: number) => {
@@ -17,17 +17,18 @@ const renderStars = (rating: number) => {
     <div className="flex text-yellow-400 text-sm">
       {Array(fullStars).fill(0).map((_, i) => <AiFillStar key={`full-${i}`} />)}
       {halfStar && <AiFillStar key="half" className="text-yellow-400/50" />}
-      {Array(emptyStars).fill(0).map((_, i) => <AiFillStar key={`empty-${i}`} className="text-gray-300" />)}
+      {Array(emptyStars).fill(0).map((_, i) => (
+        <AiFillStar key={`empty-${i}`} className="text-gray-300" />
+      ))}
     </div>
   );
 };
 
-// Calculate average rating from worker.ratings array
+// Calculate average rating
 const getAverageRating = (worker: any) => {
   const ratings = worker.ratings || [];
-  if (ratings.length === 0) return 0;
-  const total = ratings.reduce((sum: number, r: number) => sum + r, 0);
-  return total / ratings.length;
+  if (!ratings.length) return 0;
+  return ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length;
 };
 
 export default function FindWorker() {
@@ -40,31 +41,8 @@ export default function FindWorker() {
     if (!profession) return;
 
     try {
-      // Fetch all workers
-      const workersData = await fetchAllWorkers();
-
-      // Filter workers by profession and location
-      const filteredWorkers = workersData.filter((worker: any) => {
-        const matchesProfession = worker.profession
-          ?.toLowerCase()
-          .includes(profession.toLowerCase());
-
-        const matchesLocation = `${worker.city || ""} ${worker.state || ""} ${worker.district || ""}`
-          .toLowerCase()
-          .includes(location.toLowerCase());
-
-        return matchesProfession && matchesLocation;
-      });
-
-      // Fetch full profiles for each filtered worker
-      const workersWithProfiles = await Promise.all(
-        filteredWorkers.map(async (worker: any) => {
-          const profile = await getWorkerProfile(worker.userId);
-          return profile || { ...worker, name: "Unknown", ratings: [], completedJobs: [] };
-        })
-      );
-
-      setSearchResult(workersWithProfiles);
+      const results = await searchWorkers(profession, location);
+      setSearchResult(results);
       setShowResults(true);
     } catch (error) {
       console.error("Error fetching workers", error);
@@ -100,15 +78,15 @@ export default function FindWorker() {
           <select
             value={profession}
             onChange={(e) => setProfession(e.target.value)}
-            className="flex-1 px-4 py-3 text-sm sm:text-base rounded-md border border-gray-300 focus:outline-none text-black"
+            className="flex-1 px-4 py-3 rounded-md border text-black"
           >
             <option value="">🔍 Select a profession</option>
-            <option value="plumber">Plumber</option>
-            <option value="electrician">Electrician</option>
-            <option value="cleaner">Cleaner</option>
-            <option value="carpenter">Carpenter</option>
-            <option value="painter">Painter</option>
-            <option value="mechanic">Mechanic</option>
+            <option value="Plumber">Plumber</option>
+            <option value="Electrician">Electrician</option>
+            <option value="Cleaner">Cleaner</option>
+            <option value="Carpenter">Carpenter</option>
+            <option value="Painter">Painter</option>
+            <option value="Mechanic">Mechanic</option>
             <option value="HVAC Technician">HVAC Technician</option>
           </select>
 
@@ -117,19 +95,19 @@ export default function FindWorker() {
             placeholder="📍 Enter your location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="flex-1 px-4 py-3 text-sm sm:text-base rounded-md border border-gray-300 focus:outline-none text-black"
+            className="flex-1 px-4 py-3 rounded-md border text-black"
           />
 
           <button
             onClick={handleSearch}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-sm sm:text-base rounded-md font-semibold transition w-full sm:w-auto"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-semibold"
           >
             Search
           </button>
         </div>
 
-        {/* Stats Section */}
-        <div className="flex flex-wrap justify-center items-center gap-4 text-white mb-8 text-xs sm:text-sm md:text-base">
+        {/* Stats */}
+        <div className="flex flex-wrap justify-center gap-4 text-white mb-8 text-sm">
           <div className="flex items-center gap-2">
             <MdOutlineVerifiedUser size={20} className="text-blue-400" />
             <span>10,000+ Verified Professionals</span>
@@ -144,52 +122,38 @@ export default function FindWorker() {
           </div>
         </div>
 
-        {/* Search Results */}
+        {/* Results */}
         {showResults && (
           <div className="bg-white p-4 rounded-lg shadow-lg w-full max-w-2xl text-left max-h-80 overflow-y-auto">
             {searchResult.length > 0 ? (
-              <ul className="divide-y divide-gray-200 bg-white rounded-md">
+              <ul className="divide-y">
                 {searchResult.map((worker, index) => {
                   const rating = getAverageRating(worker);
 
                   return (
-                    <li
-                      key={index}
-                      className="flex flex-col items-start gap-1 py-3 font-medium text-gray-800 hover:bg-gray-50 transition rounded-md px-2"
-                    >
+                    <li key={index} className="py-3 px-2 hover:bg-gray-50">
                       <div className="flex items-center gap-3">
-                        {worker.profilePic?.startsWith("data:image") ? (
-                          <img
-                            src={worker.profilePic}
-                            alt={worker.name || "Worker"}
-                            className="rounded-full object-cover w-12 h-12"
-                          />
-                        ) : (
-                          <Image
-                            src={worker.profilePic || "/images/avatar.avif"}
-                            alt={worker.name || "Worker"}
-                            width={50}
-                            height={50}
-                            className="rounded-full object-cover w-12 h-12"
-                          />
-                        )}
+                        <Image
+                          src={worker.profilePic || "/images/avatar.avif"}
+                          alt={worker.userId.name}
+                          width={48}
+                          height={48}
+                          className="rounded-full object-cover"
+                        />
 
-                        <div className="flex flex-col">
-                          {/* Render real stars */}
+                        <div>
                           {renderStars(rating)}
 
-                          {/* Worker Name */}
                           <Link
-                            href={`/client/workerprofile/${worker.userId}`}
-                            className="hover:text-blue-600 transition font-semibold"
+                            href={`/client/workerprofile/${worker._id}`}
+                            className="font-semibold hover:text-blue-600"
                           >
-                            {worker.name}
+                            {worker.userId.name}
                           </Link>
 
-                          {/* Completed Jobs */}
-                          <span className="text-gray-500 text-xs">
+                          <div className="text-xs text-gray-500">
                             {worker.completedJobs?.length ?? 0} Jobs Completed
-                          </span>
+                          </div>
                         </div>
                       </div>
                     </li>

@@ -18,16 +18,16 @@ const WorkerJobPostButton: React.FC = () => {
 
   const { user } = useAuthStore();
     useEffect(() => {
-      if (!user?.id) return;
+      if (!user?._id) return;
   
-      getWorkerProfile(user.id.toString())
+      getWorkerProfile(user._id.toString())
         .then((data) => {
           if (data) setWorkerProfile(data);
         })
         .catch((err) => {
           console.error("Failed to fetch worker profile:", err);
         });
-    }, [user?.id]);
+    }, [user?._id]);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -60,14 +60,14 @@ const WorkerJobPostButton: React.FC = () => {
       return;
     }
 
-    if (!user?.id) {
+    if (!user?._id) {
       toast.error("You must be logged in to post a job.");
       return;
     }
 
     const newJob: Job = {
-      id: Date.now().toString(),
-      clientId: String(user.id),
+      _id: Date.now().toString(),
+      clientId: String(user._id),
       clientName: user.name || "Worker",
       profilePic: user?.profile?.profilePic || "/default-avatar.png", // ✅ store worker pic
       description,
@@ -80,7 +80,7 @@ const WorkerJobPostButton: React.FC = () => {
       comments: [],
     };
 
-    const success = await postJob(newJob, user.id);
+    const success = await postJob(newJob, user._id);
     if (success) {
       setDescription("");
       setImages([]);
@@ -95,7 +95,7 @@ const WorkerJobPostButton: React.FC = () => {
         onClick={() => setIsOpen(true)}
         className="flex items-center gap-2 px-4 py-2 border-2 border-gray-100 text-blue-500 rounded-full hover:bg-blue-50 transition"
       >
-        <FaPencilAlt /> Post a Job
+        <FaPencilAlt /> Create a Post
       </button>
 
       {/* Modal */}

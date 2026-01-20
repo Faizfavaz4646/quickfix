@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/authStore";
 import { API_URL } from "../../../../lib/constants";
 import { FaTools } from "react-icons/fa";
 import Link from "next/link";
+import { getMyWorkerProfile } from "@/services/workerService";  // Import the profile checker
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function LoginPage() {
 
     onSubmit: async (values, { setSubmitting, setErrors }) => {
       try {
+        // 1. Authenticate User
         const res = await axios.post(`${API_URL}/auth/login`, {
           emailId: values.email.toLowerCase(),
           password: values.password,
@@ -28,6 +30,7 @@ export default function LoginPage() {
 
         const { user, token } = res.data;
 
+        // 2. Set user in Global Store
         setUser({
           _id: user._id,
           name: user.name,
@@ -40,12 +43,28 @@ export default function LoginPage() {
 
         toast.success("Login successful");
 
-        // Redirect by role
+        // 3. Handle Redirections
         if (user.role === "admin") {
           router.push("/admin");
-        } else if (user.role === "worker") {
-          router.push("/worker/edit");
-        } else {
+        } 
+        else if (user.role === "worker") {
+          // CHECK IF WORKER PROFILE EXISTS
+          try {
+            const workerProfile = await getMyWorkerProfile(token);
+            
+            if (workerProfile && workerProfile.profession) {
+              // Profile is complete, go to dashboard
+              router.push("/worker/dashboard");
+            } else {
+              // No profile found, go to creation form
+              router.push("/worker/edit");
+            }
+          } catch (profileErr) {
+            // If profile fetch fails (e.g., 404), assume new worker
+            router.push("/worker/edit");
+          }
+        } 
+        else {
           router.push("/");
         }
       } catch (err: any) {
@@ -55,7 +74,6 @@ export default function LoginPage() {
           toast.error("Your account is blocked. Contact admin.");
         } else {
           console.error(err);
-          
           toast.error("Login failed. Try again.");
         }
       } finally {
@@ -65,52 +83,65 @@ export default function LoginPage() {
   });
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="flex justify-center items-center min-h-screen bg-slate-50">
       <form
         onSubmit={formik.handleSubmit}
-        className="bg-white p-6 rounded shadow-md w-96"
+        className="bg-white p-8 rounded-2xl shadow-xl shadow-slate-200 w-full max-w-md border border-slate-100"
       >
-        <h1 className="flex gap-2 justify-center text-2xl font-bold mb-4">
-          <FaTools className="text-blue-600 mt-1" /> QuickFix
-        </h1>
+        <div className="flex flex-col items-center mb-8">
+          <div className="bg-blue-600 p-3 rounded-xl mb-3 shadow-lg shadow-blue-100">
+            <FaTools className="text-white text-2xl" />
+          </div>
+          <h1 className="text-3xl font-black text-slate-800 tracking-tight">QuickFix</h1>
+          <p className="text-slate-500 text-sm font-medium">Log in to manage your services</p>
+        </div>
 
-        <h2 className="text-xl font-bold mb-4 text-center">Login</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1 ml-1">Email Address</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="worker@quickfix.com"
+              onChange={formik.handleChange}
+              value={formik.values.email}
+              className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            />
+            {formik.errors.email && (
+              <p className="text-red-500 text-xs mt-1 ml-1 font-bold">{formik.errors.email}</p>
+            )}
+          </div>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          onChange={formik.handleChange}
-          value={formik.values.email}
-          className="w-full p-2 mb-3 border rounded"
-        />
-        {formik.errors.email && (
-          <p className="text-red-500 text-sm">{formik.errors.email}</p>
-        )}
-
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          onChange={formik.handleChange}
-          value={formik.values.password}
-          className="w-full p-2 mb-3 border rounded"
-        />
-        {formik.errors.password && (
-          <p className="text-red-500 text-sm">{formik.errors.password}</p>
-        )}
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1 ml-1">Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="••••••••"
+              onChange={formik.handleChange}
+              value={formik.values.password}
+              className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            />
+            {formik.errors.password && (
+              <p className="text-red-500 text-xs mt-1 ml-1 font-bold">{formik.errors.password}</p>
+            )}
+          </div>
+        </div>
 
         <button
           type="submit"
           disabled={formik.isSubmitting}
-          className="bg-blue-500 text-white w-full p-2 rounded hover:bg-blue-600"
+          className="bg-blue-600 text-white w-full p-4 rounded-xl font-bold mt-8 hover:bg-blue-700 active:scale-[0.98] transition-all shadow-lg shadow-blue-100 disabled:bg-slate-300"
         >
-          {formik.isSubmitting ? "Logging in..." : "Login"}
+          {formik.isSubmitting ? "Verifying..." : "Sign In"}
         </button>
 
-        <Link href="/auth/signup" className="text-blue-600 flex justify-end mt-3">
-          Signup
-        </Link>
+        <div className="flex items-center justify-between mt-6 text-sm">
+          <span className="text-slate-500">Don't have an account?</span>
+          <Link href="/auth/signup" className="text-blue-600 font-bold hover:underline">
+            Create Account
+          </Link>
+        </div>
       </form>
     </div>
   );

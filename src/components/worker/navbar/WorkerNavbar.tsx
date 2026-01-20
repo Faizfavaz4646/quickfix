@@ -1,134 +1,161 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, X, Menu, LogOut } from "lucide-react";
+import { 
+  Bell, X, Menu, LogOut, 
+  LayoutDashboard, FileText, 
+  MessageSquare, Star, Settings, UserCircle 
+} from "lucide-react";
 import WorkerCard from "@/components/worker/WorkerCard";
 import { FaTools } from "react-icons/fa";
-import {useNotificationStore}from "@/store/authStore";
+import { useNotificationStore } from "@/store/authStore";
 
 export default function WorkerNavbar() {
-  const count=useNotificationStore((state)=>state.count)
+  const count = useNotificationStore((state) => state.count);
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const links = [
-    { href: "/worker/dashboard", label: "Dashboard" },
-    {href: "/worker/dashboard/jobposts", label: "Posts"},
-    { href: "/worker/reviews", label: "Reviews" },
-    { href: "/worker/messages", label: "Messages" },
-    { href: "/worker/settings", label: "Settings" },
+    { href: "/worker/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/worker/dashboard/jobposts", label: "Posts", icon: FileText },
+    { href: "/worker/reviews", label: "Reviews", icon: Star },
+    { href: "/worker/messages", label: "Messages", icon: MessageSquare },
+    { href: "/worker/settings", label: "Settings", icon: Settings },
   ];
 
-  // Close menu on outside click
+  // Prevent scrolling when mobile menu is open
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    if (menuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (menuOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "unset";
   }, [menuOpen]);
 
   return (
     <>
-    <nav className="w-full flex items-center justify-between bg-white shadow px-6 py-3 sticky z-40 top-0">
-      {/* Left Section: Logo + Hamburger */}
-      <div className="flex items-center gap-3">
-        {/* Hamburger for mobile */}
-        <button
-          className="md:hidden text-gray-800"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
-        </button>
-
-        {/* Logo */}
-        <Link
-          href="/worker/dashboard"
-          className="font-bold text-2xl flex items-center gap-2"
-        >
-          <FaTools className="text-blue-600" />
-          QuickFix
-        </Link>
-      </div>
-
-      {/* Desktop Links */}
-      <div className="hidden md:flex gap-6 text-md font-semibold">
-        {links.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={`${
-              pathname === link.href
-                ? "text-blue-600 font-semibold"
-                : "text-gray-600"
-            } hover:text-blue-600`}
+      <nav className="w-full flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 py-3 sticky z-40 top-0">
+        {/* Left Section: Logo + Hamburger */}
+        <div className="flex items-center gap-4">
+          <button
+            className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            onClick={() => setMenuOpen(true)}
           >
-            {link.label}
+            <Menu className="w-6 h-6 text-slate-700" />
+          </button>
+
+          <Link href="/worker/dashboard" className="flex items-center gap-2 group">
+            <div className="bg-blue-600 p-2 rounded-lg group-hover:rotate-12 transition-transform">
+              <FaTools className="text-white text-lg" />
+            </div>
+            <span className="font-black text-xl tracking-tight text-slate-800">
+              QuickFix<span className="text-blue-600">.</span>
+            </span>
           </Link>
-        ))}
-      </div>
-
-      {/* Right section (Desktop only) */}
-      <div className="hidden md:flex items-center gap-4">
-        <div className="relative cursor-pointer">
-        <Link href="/worker/notifications" ><Bell className="w-6 h-6 text-gray-700" />
-        {count > 0 && (
-           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.4 rounded-full">
-           {count} 
-          </span>
-
-        )}
-         
-          </Link> 
         </div>
-          <WorkerCard /> 
 
-      </div>
-         
+        {/* Desktop Links */}
+        <div className="hidden md:flex gap-1">
+          {links.map((link) => {
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                  isActive 
+                    ? "bg-blue-50 text-blue-600" 
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </div>
 
-      {/* Mobile Sidebar Menu */}
-      {menuOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50">
+        {/* Right Section */}
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Link 
+              href="/worker/notifications" 
+              className="p-2 hover:bg-slate-100 rounded-full block transition-colors relative"
+            >
+              <Bell className="w-5 h-5 text-slate-600" />
+              {count > 0 && (
+                <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full border-2 border-white">
+                  {count}
+                </span>
+              )}
+            </Link>
+          </div>
+          <div className="hidden md:block border-l pl-3 ml-1">
+            <WorkerCard />
+          </div>
+        </div>
+
+        {/* --- Mobile Professional Sidebar --- */}
+        <div 
+          className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 transition-opacity duration-300 md:hidden ${
+            menuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+          }`}
+          onClick={() => setMenuOpen(false)}
+        >
           <div
             ref={menuRef}
-            className="absolute top-0 left-0 w-64 h-full bg-white shadow-lg flex flex-col p-4"
+            className={`absolute top-0 left-0 w-72 h-full bg-white shadow-2xl transition-transform duration-300 ease-out flex flex-col ${
+              menuOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Worker Profile */}
-            <div className="mb-6">
-             <Link href="/worker/edit"><WorkerCard /></Link> 
+            {/* Sidebar Header */}
+            <div className="p-6 border-b border-slate-50 flex items-center justify-between">
+              <span className="font-black text-xl text-slate-800">Navigation</span>
+              <button onClick={() => setMenuOpen(false)} className="p-2 hover:bg-slate-100 rounded-lg">
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
             </div>
 
-            {/* Links */}
-            <div className="flex flex-col gap-4 text-md font-semibold">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMenuOpen(false)}
-                  className={`${
-                    pathname === link.href
-                      ? "text-blue-600 font-semibold"
-                      : "text-gray-700"
-                  } hover:text-blue-600`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+            {/* Sidebar Profile */}
+            <div className="p-6 bg-slate-50/50">
+              <Link href="/worker/edit" onClick={() => setMenuOpen(false)} className="block">
+                <WorkerCard />
+              </Link>
+            </div>
+
+            {/* Sidebar Links */}
+            <div className="flex-1 p-4 flex flex-col gap-1 overflow-y-auto">
+              {links.map((link) => {
+                const isActive = pathname === link.href;
+                const Icon = link.icon;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                      isActive 
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-200" 
+                        : "text-slate-600 hover:bg-slate-50 hover:text-blue-600"
+                    }`}
+                  >
+                    <Icon className={`w-5 h-5 ${isActive ? "text-white" : "text-slate-400"}`} />
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Sidebar Footer */}
+            <div className="p-4 border-t border-slate-50">
+              <button className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                <LogOut className="w-5 h-5" />
+                Logout Account
+              </button>
             </div>
           </div>
         </div>
-      )}
-    </nav>
+      </nav>
     </>
   );
 }

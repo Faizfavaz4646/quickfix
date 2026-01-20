@@ -199,40 +199,44 @@ export async function acceptRequest(userId: string, requestId: string) {
 }
 
 
-export async function getMyWorkerProfile(
-  token: string
-): Promise<Profile | null> {
+const getCleanPayload = (form: Profile) => {
+  const { 
+    name, profession, phone, gender, state, 
+    district, city, zip, schedule, profilePic, 
+    previousWorkImages 
+  } = form;
+
+  return {
+    name, profession, phone, gender, state, 
+    district, city, zip, schedule, profilePic, 
+    previousWorkImages 
+  };
+};
+
+export async function getMyWorkerProfile(token: string): Promise<Profile | null> {
   try {
     const { data } = await api.get("/worker/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
-
     return data;
   } catch (err: any) {
-    if (axios.isAxiosError(err)) {
-      // 👇 first-time worker (no profile yet)
-      if (err.response?.status === 404) {
-        return null;
-      }
-    }
-
-    // 👇 REAL problems must surface
-    console.error("Fetch my worker profile failed:", err);
+    if (err.response?.status === 404) return null;
     throw err;
   }
 }
 
-export async function updateMyWorkerProfile(
-  form: Profile,
-  token: string
-) {
-  return api.post("/worker/upsert", form, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+// Creation - POST
+export async function updateMyWorkerProfile(form: Profile, token: string) {
+  const payload = getCleanPayload(form);
+  return api.post("/worker/upsert", payload, {
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
-
+// Edit/Update - PATCH
+export async function editMyWorkerProfile(form: Profile, token: string) {
+  const payload = getCleanPayload(form);
+  return api.patch("/worker/upsert", payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}

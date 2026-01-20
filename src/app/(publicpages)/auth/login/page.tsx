@@ -57,11 +57,11 @@ export default function LoginPage() {
               router.push("/worker/dashboard");
             } else {
               // No profile found, go to creation form
-              router.push("/worker/edit");
+              router.push("/worker/profile");
             }
           } catch (profileErr) {
             // If profile fetch fails (e.g., 404), assume new worker
-            router.push("/worker/edit");
+            router.push("/worker/profile");
           }
         } 
         else {

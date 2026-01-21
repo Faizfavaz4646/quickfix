@@ -5,7 +5,6 @@ import MainLayout from "./MainLayout";
 import WorkerLayout from "./WorkerLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
 
-
 export default function LayoutSwitcher({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
@@ -19,6 +18,10 @@ export default function LayoutSwitcher({ children }: { children: React.ReactNode
   // ✅ Admin routes
   const isAdminRoute = pathname.startsWith("/admin");
 
+  // ✅ Client Dashboard routes (NEW FIX)
+  // We identify these so we can skip the MainLayout
+  const isClientDashboard = pathname.startsWith("/client");
+
   if (isWorkerRoute) {
     return <WorkerLayout>{children}</WorkerLayout>;
   }
@@ -27,6 +30,13 @@ export default function LayoutSwitcher({ children }: { children: React.ReactNode
     return <AdminLayout>{children}</AdminLayout>;
   }
 
-  // ✅ Default = normal site
+  // ✅ FIX: If on Client Dashboard, render children directly.
+  // We do NOT want MainLayout (Global Nav/Footer) here.
+  // The 'ClientDashboardLayout' file in your app directory will provide the Sidebar/Footer.
+  if (isClientDashboard) {
+    return <>{children}</>;
+  }
+
+  // ✅ Default = normal site (Home, Login, Signup, etc.)
   return <MainLayout>{children}</MainLayout>;
 }

@@ -8,11 +8,12 @@ import {
   FaBell,
   FaWallet,
   FaCog,
-  FaHome,
-  FaBars,
   FaTimes,
+  FaBars,
+  FaTools,
+  FaHome, // 1. Import Home Icon
+  FaArrowLeft
 } from "react-icons/fa";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -34,90 +35,112 @@ export default function Sidebar({ notifications = [] }: SidebarProps) {
   const unreadCount = notifications.filter((n) => !n.seen).length;
 
   const menu = [
-    { key: "dashboard", label: "Dashboard", icon: <MdDashboard className="text-xl" />, path: "/client/clientdashboard" },
-    { key: "jobs", label: "Jobs", icon: <FaBriefcase className="text-lg" />, path: "/client/clientdashboard/jobs" },
-    { key: "requests", label: "Requests", icon: <FaListAlt className="text-lg" />, path: "/client/clientdashboard/requests" },
-    { key: "notifications", label: "Notifications", icon: <FaBell className="text-lg" />, path: "/client/clientdashboard/notifications", count: unreadCount },
-    { key: "payments", label: "Payments", icon: <FaWallet className="text-lg" />, path: "/client/clientdashboard/payments" },
-    { key: "settings", label: "Settings", icon: <FaCog className="text-lg" />, path: "/client/clientdashboard/settings" },
+    { key: "dashboard", label: "Dashboard", icon: <MdDashboard size={22} />, path: "/client/clientdashboard" },
+    { key: "jobs", label: "Jobs", icon: <FaBriefcase size={20} />, path: "/client/clientdashboard/jobs" },
+    { key: "requests", label: "Requests", icon: <FaListAlt size={20} />, path: "/client/clientdashboard/requests" },
+    { key: "notifications", label: "Notifications", icon: <FaBell size={20} />, path: "/client/clientdashboard/notifications", count: unreadCount },
+    { key: "payments", label: "Payments", icon: <FaWallet size={20} />, path: "/client/clientdashboard/payments" },
+    { key: "settings", label: "Settings", icon: <FaCog size={20} />, path: "/client/clientdashboard/settings" },
   ];
 
   return (
     <>
-      {/* Burger Button - Mobile only */}
-      <button
-        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-md "
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
-      </button>
-
-      {/* Sidebar */}
-      <aside
-        className={`
-          fixed top-0 left-0 h-full bg-white shadow-lg z-40
-          w-64 p-6 transform transition-transform duration-300
-          md:translate-x-0 md:top-6 md:left-6 md:rounded-2xl md:h-[700px]
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        `}
-      >
-        <div className="flex flex-col h-full justify-between">
-          {/* Logo + Menu */}
-          <div>
-            <h1 className="text-4xl font-bold text-sky-600 mb-8 flex items-center justify-center mt-10">
-              <FaHome />
-            </h1>
-            <nav className="flex flex-col gap-4">
-              {menu.map((item) => {
-                const isActive = pathname === item.path;
-                return (
-                  <Link
-                    key={item.key}
-                    href={item.path}
-                    className={`relative flex items-center gap-3 px-3 py-2 rounded-lg transition ${
-                      isActive
-                        ? "bg-sky-100 text-sky-600 font-semibold"
-                        : "hover:bg-gray-100 text-gray-700"
-                    }`}
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-
-                    {/* Notification badge */}
-                    {item.key === "notifications" && item.count && item.count > 0 && (
-                      <span className="absolute right-3 top-2 bg-red-500 text-white text-xs font-semibold rounded-full px-1.5">
-                        {item.count}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Help Section */}
-          <div className="flex flex-col items-center text-sm text-gray-500 mt-8">
-            <Image
-              src="/images/folderimage.jpg"
-              alt="Help Icon"
-              width={90}
-              height={90}
-              className="mb-3 w-32"
-            />
-            <p className="font-medium">Need help?</p>
-            <p>Please check our docs.</p>
-          </div>
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 left-0 w-full bg-white z-50 px-4 py-3 flex items-center justify-between shadow-sm border-b border-slate-200">
+        <div className="flex items-center gap-2 text-blue-600 font-bold text-xl">
+           <FaTools /> QuickFix
         </div>
-      </aside>
+        <button onClick={() => setIsOpen(true)} className="text-gray-700 p-2 hover:bg-slate-100 rounded-lg">
+          <FaBars size={24} />
+        </button>
+      </div>
 
-      {/* Overlay for Mobile */}
+      {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black opacity-30 z-30 md:hidden"
+          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
           onClick={() => setIsOpen(false)}
         />
       )}
+
+      {/* Main Sidebar */}
+      <aside
+        className={`
+          fixed top-0 left-0 z-50 h-screen w-64 bg-white border-r border-slate-200 shadow-xl md:shadow-none
+          transform transition-transform duration-300 ease-in-out flex flex-col
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 
+        `}
+      >
+        {/* Logo Area */}
+        <div className="h-16 flex items-center px-6 border-b border-slate-100 shrink-0">
+            <Link href="/" className="flex items-center gap-2 text-blue-600 font-black text-2xl tracking-tight hover:opacity-80 transition">
+              <FaTools /> QuickFix
+            </Link>
+            <button onClick={() => setIsOpen(false)} className="md:hidden ml-auto text-slate-400 hover:text-slate-600">
+              <FaTimes size={20} />
+            </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
+          {menu.map((item) => {
+            const isActive = pathname === item.path;
+            return (
+              <Link
+                key={item.key}
+                href={item.path}
+                onClick={() => setIsOpen(false)}
+                className={`
+                  relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200
+                  ${isActive 
+                    ? "bg-blue-50 text-blue-600 shadow-sm ring-1 ring-blue-100" 
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  }
+                `}
+              >
+                <span className={`transition-colors ${isActive ? "text-blue-600" : "text-slate-400"}`}>
+                  {item.icon}
+                </span>
+                <span>{item.label}</span>
+
+                {item.key === "notifications" && item.count && item.count > 0 && (
+                  <span className="absolute right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    {item.count}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+
+          {/* Separator */}
+          <div className="my-4 border-t border-slate-100 mx-2"></div>
+
+          {/* 2. BACK TO HOME LINK */}
+          <Link
+            href="/"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-all duration-200"
+          >
+            <FaArrowLeft size={16} />
+            <span>Back to Home</span>
+          </Link>
+        </nav>
+
+        {/* Sidebar Footer (Docs) */}
+        <div className="p-4 border-t border-slate-100 bg-slate-50/50 shrink-0">
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-4 text-white text-center relative overflow-hidden shadow-lg shadow-blue-200">
+              <div className="relative z-10">
+                <p className="font-bold text-sm mb-1">Need Help?</p>
+                <p className="text-xs text-blue-100 mb-3 opacity-90">Contact support or check docs</p>
+                <button className="bg-white text-blue-600 text-xs font-bold px-4 py-2 rounded-lg w-full hover:bg-blue-50 transition active:scale-95">
+                  View Docs
+                </button>
+              </div>
+              <div className="absolute -bottom-6 -right-6 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+            </div>
+        </div>
+      </aside>
     </>
   );
 }

@@ -3,13 +3,12 @@
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-// FIX 1: Import the correct service for "My Profile"
 import { getMyWorkerProfile } from "@/services/workerService"; 
 import { Profile } from "@/types/user";
 import { API_URL } from "@/lib/constants"; 
 import { 
   MapPin, Phone, Mail, Edit3, Calendar, 
-  Briefcase, Star, CheckCircle, Award 
+  Briefcase, Star, CheckCircle, Award, Loader2 
 } from "lucide-react";
 
 export default function WorkerProfilePage() {
@@ -19,14 +18,16 @@ export default function WorkerProfilePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // GUARD: Check hydration, user existence, and token
     if (!hasHydrated || !user || !user.token) return;
 
     setLoading(true);
+    
+    // DEBUG: Check what user data we actually have in the store
+    console.log("Current Store User:", user);
 
-    // FIX 2: Use token to fetch "My" profile. This is much safer than using IDs.
     getMyWorkerProfile(user.token)
       .then((data) => {
+        console.log("Fetched Worker Profile:", data); // DEBUG: Check backend response
         if (data) setWorkerProfile(data);
       })
       .catch((err) => console.error("Failed to fetch worker profile:", err))
@@ -35,31 +36,42 @@ export default function WorkerProfilePage() {
 
   if (!hasHydrated || !user) return null;
 
-  // FIX 3: Image Helper to handle relative paths from DB
+  // --- Display Helpers ---
+
   const getImageUrl = (path?: string) => {
     if (!path) return "/images/avatar.avif";
-    // If it is already a full link (Cloudinary/S3), use it
     if (path.startsWith("http") || path.startsWith("data:")) return path;
-    // If it is a relative path (localhost), prepend API URL
     return `${API_URL}${path.startsWith("/") ? "" : "/"}${path}`;
   };
 
-  // --- Display Helpers ---
-  // Priority: DB Image -> Local Store Image -> Default Avatar
   const profileImage = getImageUrl(workerProfile?.profilePic || user.profilePic);
-  
   const coverImage = "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=2000&auto=format&fit=crop"; 
-  const profession = workerProfile?.profession || "Worker";
+  const profession = workerProfile?.profession || user.profession || "Worker";
   const rating = (workerProfile?.avgRating || 0).toFixed(1);
   const jobsCompleted = workerProfile?.completedJobs?.length || 0;
   
-  // Format Address safely
+  // --- ROBUST EMAIL FINDER ---
+  // We check 4 different places where the email might be hiding
+  const displayEmail = 
+    user.email ||                           // 1. Standard Store location
+    (user as any).emailId ||                // 2. Legacy Store location
+    workerProfile?.email ||                 // 3. Profile root
+    (workerProfile as any)?.userId?.email || // 4. Nested User object in Profile
+    "No Email Found";
+
   const addressParts = [workerProfile?.city, workerProfile?.district, workerProfile?.state].filter(Boolean);
   const address = addressParts.length > 0 ? addressParts.join(", ") : "Location not set";
 
+  if (loading && !workerProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 pb-12">
-      {/* --- Header / Cover Image --- */}
       <div 
         className="h-60 w-full bg-cover bg-center relative"
         style={{ backgroundImage: `url(${coverImage})` }}
@@ -69,10 +81,8 @@ export default function WorkerProfilePage() {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 relative -mt-24">
         
-        {/* --- Main Profile Header Card --- */}
         <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8 flex flex-col sm:flex-row items-start gap-6 relative overflow-hidden">
           
-          {/* Profile Image */}
           <div className="relative">
             <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100">
               <img 
@@ -82,11 +92,9 @@ export default function WorkerProfilePage() {
                 onError={(e) => { e.currentTarget.src = "/images/avatar.avif"; }}
               />
             </div>
-            {/* Online Status Indicator */}
             <div className="absolute bottom-4 right-4 sm:bottom-2 sm:right-2 bg-green-500 w-5 h-5 rounded-full border-4 border-white" title="Active"></div>
           </div>
 
-          {/* User Info */}
           <div className="flex-1 pt-2 w-full">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
@@ -106,7 +114,6 @@ export default function WorkerProfilePage() {
               </button>
             </div>
 
-            {/* Quick Stats Row */}
             <div className="flex flex-wrap gap-4 mt-6">
               <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-lg border border-slate-100 text-slate-600 font-medium text-sm">
                 <MapPin className="w-4 h-4 text-red-500" />
@@ -120,12 +127,9 @@ export default function WorkerProfilePage() {
           </div>
         </div>
 
-        {/* --- Content Grid --- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
           
-          {/* LEFT COLUMN: Sidebar Info */}
           <div className="space-y-8">
-            {/* Contact Details */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
               <h3 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Contact Info</h3>
               <div className="space-y-4">
@@ -133,9 +137,12 @@ export default function WorkerProfilePage() {
                   <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
                     <Mail className="w-5 h-5" />
                   </div>
-                  <div className="flex flex-col overflow-hidden">
+                  <div className="flex flex-col overflow-hidden min-w-0">
                     <span className="text-xs text-slate-400 font-bold uppercase">Email</span>
-                    <span className="text-sm font-medium truncate">{user.emailId}</span>
+                    {/* DISPLAY EMAIL */}
+                    <span className="text-sm font-medium truncate break-all" title={displayEmail}>
+                      {displayEmail}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-slate-600">
@@ -150,7 +157,6 @@ export default function WorkerProfilePage() {
               </div>
             </div>
 
-            {/* Schedule / Availability */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
               <h3 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Working Hours</h3>
               <div className="bg-slate-50 p-4 rounded-xl text-center border border-dashed border-slate-200">
@@ -163,10 +169,7 @@ export default function WorkerProfilePage() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Stats & Portfolio */}
           <div className="lg:col-span-2 space-y-8">
-            
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
                 <div className="bg-yellow-50 p-3 rounded-full mb-3 text-yellow-600">
@@ -193,7 +196,6 @@ export default function WorkerProfilePage() {
               </div>
             </div>
 
-            {/* Portfolio / Previous Work */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-slate-800">Portfolio</h3>
@@ -213,13 +215,9 @@ export default function WorkerProfilePage() {
                           alt={`Work ${index}`} 
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           onError={(e) => {
-                             // Hide broken images if needed, or show placeholder
                              e.currentTarget.style.display = 'none'; 
                           }}
                         />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <span className="text-white text-xs font-bold border border-white px-3 py-1 rounded-full">View</span>
-                        </div>
                       </div>
                      );
                   })}

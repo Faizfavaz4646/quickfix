@@ -79,7 +79,7 @@ export interface Notification {
 export interface Profile {
   _id?: string;
   userId?: string;
-  emailId?: string;
+  email?: string;
   profilePic?: string;
   state?: string;
   district?: string;
@@ -105,7 +105,7 @@ export interface Profile {
 export interface User {
   _id: string; // MongoDB ID
   name: string;
-  emailId: string;
+  email?: string;
   role: "client" | "worker" | "admin";
   token?: string;
   profile?: Profile;
@@ -159,25 +159,28 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "quickfix-user",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        user: state.user
+     partialize: (state) => ({
+  user: state.user
+    ? {
+        _id: state.user._id,
+        name: state.user.name,
+        
+        // FIX: Map 'emailId' (from backend) to 'email' (for frontend)
+        email: state.user.email || (state.user as any).emailId,
+        
+        role: state.user.role,
+        token: state.user.token,
+        profile: state.user.profile
           ? {
-              _id: state.user._id,
-              name: state.user.name,
-              email: state.user.emailId,
-              role: state.user.role,
-              token: state.user.token,
-              profile: state.user.profile
-                ? {
-                    ...state.user.profile,
-                    _id: state.user.profile._id ?? "",
-                    userId: state.user.profile.userId ?? state.user._id,
-                  }
-                : undefined,
+              ...state.user.profile,
+              _id: state.user.profile._id ?? "",
+              userId: state.user.profile.userId ?? state.user._id,
             }
-          : null,
-        isLogin: state.isLogin,
-      }),
+          : undefined,
+      }
+    : null,
+  isLogin: state.isLogin,
+}),
     }
   )
 );

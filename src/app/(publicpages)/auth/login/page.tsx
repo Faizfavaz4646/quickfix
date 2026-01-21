@@ -5,14 +5,24 @@ import { useFormik } from "formik";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
-import { API_URL } from "../../../../lib/constants";
+import { API_URL } from "@/lib/constants"; 
 import { FaTools } from "react-icons/fa";
 import Link from "next/link";
-import { getMyWorkerProfile } from "@/services/workerService";  // Import the profile checker
+import { getMyWorkerProfile } from "@/services/workerService";
 
 export default function LoginPage() {
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
+
+  // ✅ HELPER: Extract data directly from the token
+  // This bypasses the broken 'user' object from the backend response
+  const parseJwt = (token: string) => {
+    try {
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch (e) {
+      return null;
+    }
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -22,45 +32,50 @@ export default function LoginPage() {
 
     onSubmit: async (values, { setSubmitting, setErrors }) => {
       try {
-        // 1. Authenticate User
         const res = await axios.post(`${API_URL}/auth/login`, {
           emailId: values.email.toLowerCase(),
           password: values.password,
         });
 
-        const { user, token } = res.data;
+        const { token } = res.data; // We only really need the token!
+        
+        // 1. DECODE THE TOKEN
+        const decodedUser = parseJwt(token);
+        
+        if (!decodedUser) {
+            toast.error("Invalid token received");
+            return;
+        }
 
-        // 2. Set user in Global Store
+        console.log("Decoded Token Data:", decodedUser);
+
+        // 2. Set user in Global Store using TOKEN DATA
+        // The token has: _id, emailId, name, role
         setUser({
-          _id: user._id,
-          name: user.name,
-          email: user.emailId,
-          role: user.role,
-          token,
-          status: user.status,
-          profile: user.profile || {}, 
+          _id: decodedUser._id,           // Guaranteed to exist
+          name: decodedUser.name,
+          email: decodedUser.emailId,     // Guaranteed to exist
+          role: decodedUser.role,
+          token: token,
+          status: "active",               // Default to active
+          profile: {},                    // Profile will be fetched separately
         });
 
-        toast.success("Login successful");
+        toast.success(`Welcome back, ${decodedUser.name}!`);
 
         // 3. Handle Redirections
-        if (user.role === "admin") {
+        if (decodedUser.role === "admin") {
           router.push("/admin");
         } 
-        else if (user.role === "worker") {
-          // CHECK IF WORKER PROFILE EXISTS
+        else if (decodedUser.role === "worker") {
           try {
             const workerProfile = await getMyWorkerProfile(token);
-            
             if (workerProfile && workerProfile.profession) {
-              // Profile is complete, go to dashboard
               router.push("/worker/dashboard");
             } else {
-              // No profile found, go to creation form
               router.push("/worker/profile");
             }
           } catch (profileErr) {
-            // If profile fetch fails (e.g., 404), assume new worker
             router.push("/worker/profile");
           }
         } 
@@ -68,13 +83,13 @@ export default function LoginPage() {
           router.push("/");
         }
       } catch (err: any) {
+        console.error("Login Error:", err);
         if (err.response?.status === 401) {
           setErrors({ password: "Invalid email or password" });
         } else if (err.response?.status === 403) {
           toast.error("Your account is blocked. Contact admin.");
         } else {
-          console.error(err);
-          toast.error("Login failed. Try again.");
+          toast.error(err.response?.data?.message || "Login failed. Try again.");
         }
       } finally {
         setSubmitting(false);
@@ -107,9 +122,6 @@ export default function LoginPage() {
               value={formik.values.email}
               className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             />
-            {formik.errors.email && (
-              <p className="text-red-500 text-xs mt-1 ml-1 font-bold">{formik.errors.email}</p>
-            )}
           </div>
 
           <div>
@@ -122,9 +134,6 @@ export default function LoginPage() {
               value={formik.values.password}
               className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             />
-            {formik.errors.password && (
-              <p className="text-red-500 text-xs mt-1 ml-1 font-bold">{formik.errors.password}</p>
-            )}
           </div>
         </div>
 

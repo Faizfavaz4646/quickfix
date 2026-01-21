@@ -8,6 +8,9 @@ const api = axios.create({ baseURL: API_URL });
    PUBLIC APIs (CLIENT SIDE)
    ===================================================== */
 
+
+
+
 /**
  * Search workers (client only)
  */
@@ -70,7 +73,7 @@ async function getWorkerByUserId(userId: string | number) {
 /**
  * INTERNAL helper – get user
  */
-async function getUserById(userId: string | number): Promise<User | null> {
+export async function getUserById(userId: string | number): Promise<User | null> {
   const { data } = await api.get(`/users/${userId}`);
   return data ?? null;
 }

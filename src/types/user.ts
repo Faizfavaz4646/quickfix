@@ -87,6 +87,7 @@ export interface Profile {
   schedule?: string;
   phone?: string;
   gender?: string;
+  address?:string;
   zip?: string;
   profession?: string;
   previousWorkImages?: string[];

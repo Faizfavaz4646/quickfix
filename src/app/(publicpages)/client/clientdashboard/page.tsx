@@ -21,7 +21,7 @@ export default function DashboardPage() {
     if (!userId) return;
 
     try {
-      const res = await axios.get(`http://localhost:3000/users/${userId}`);
+      const res = await axios.get(`http://localhost:5001/users/${userId}`);
       const profile = res.data.profile;
 
       const allJobs: Job[] = [

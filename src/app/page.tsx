@@ -12,7 +12,6 @@ export default function Home() {
     <>
       <Hero />
       <CreatePostModal />
-      {/* <ClientPostsPage /> */}
       <WorkerCategories />
       <TopRatedProfessionals />
     </>

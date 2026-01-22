@@ -15,7 +15,9 @@ import { getClientProfile } from '@/services/clientService';
 import axios from 'axios';
 import { API_URL } from '@/lib/constants';
 
-// Interface matching your Client Profile DB structure
+// ✅ IMPORT THE BELL
+import NotificationBell from '@/components/NotificationBell';
+
 interface ClientProfileData {
   _id: string;
   name?: string;
@@ -36,7 +38,10 @@ export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   
   const user = useAuthStore((state) => state.user);
-  const token = useAuthStore((state) => state.token); 
+  
+  // ✅ FIX: Cast to 'any' to avoid TypeScript error if interface is missing 'token'
+  const token = useAuthStore((state) => (state as any).token); 
+
   const logout = useAuthStore((state) => state.logout);
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -83,12 +88,11 @@ export default function Navbar() {
     setIsMounted(true);
 
     const fetchProfile = async () => {
+      // We need both user and token to fetch data
       if (user && token && user.role === 'client') {
         try {
           const data = await getClientProfile(token);
           if (data && data.profile) {
-             // 🔍 DEBUG: Log this to see where your image is hiding
-             console.log("NAVBAR PROFILE DATA:", data.profile);
              setClientProfile(data.profile);
           }
         } catch (error) {
@@ -113,13 +117,11 @@ export default function Navbar() {
   // --- Render Helpers ---
 
   const renderProfilePic = (size: 'sm' | 'lg' = 'sm') => {
-    // ✅ ROBUST IMAGE FINDER
-    // Checks 4 different places for the image
     const picUrl = 
-      clientProfile?.profilePic ||           // 1. Direct on Client Profile
-      clientProfile?.userId?.profilePic ||   // 2. Nested in populated User ID
-      user?.profilePic ||                    // 3. Fallback: Auth Store User
-      (user as any)?.profile?.profilePic;    // 4. Fallback: Nested Auth Store
+      clientProfile?.profilePic ||           
+      clientProfile?.userId?.profilePic ||   
+      user?.profilePic ||                    
+      (user as any)?.profile?.profilePic;    
 
     const sizeClasses = size === 'sm' ? "w-9 h-9" : "w-14 h-14";
 
@@ -165,41 +167,49 @@ export default function Navbar() {
           <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
 
           {user ? (
-            <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="flex items-center gap-2 p-1 pr-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all border border-transparent hover:border-gray-200"
-              >
-                {renderProfilePic('sm')}
-                <ChevronDown size={16} className={`text-gray-500 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
-              </button>
+            // ✅ GROUPED BELL AND PROFILE
+            <div className="flex items-center gap-4">
+              
+              {/* 🔔 1. Notification Bell */}
+              <NotificationBell />
 
-              {/* Desktop Dropdown */}
-              {showDropdown && (
-                <div className="absolute right-0 top-full mt-3 w-72 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100">
-                  <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gray-50/50 dark:bg-gray-800/50">
-                    {renderProfilePic('lg')}
-                    <div className="overflow-hidden">
-                      <p className="font-semibold text-gray-900 dark:text-white truncate">{user?.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
-                      <span className="inline-block mt-1 text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                        {user?.role || "User"}
-                      </span>
+              {/* 👤 2. Profile Dropdown */}
+              <div className="relative" ref={dropdownRef}>
+                <button 
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="flex items-center gap-2 p-1 pr-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all border border-transparent hover:border-gray-200"
+                >
+                  {renderProfilePic('sm')}
+                  <ChevronDown size={16} className={`text-gray-500 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Desktop Dropdown */}
+                {showDropdown && (
+                  <div className="absolute right-0 top-full mt-3 w-72 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gray-50/50 dark:bg-gray-800/50">
+                      {renderProfilePic('lg')}
+                      <div className="overflow-hidden">
+                        <p className="font-semibold text-gray-900 dark:text-white truncate">{user?.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                        <span className="inline-block mt-1 text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                          {user?.role || "User"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-2">
+                      <MenuItem icon={<RiAccountPinCircleFill size={20} />} label="Your Profile" onClick={() => router.push("/client/loggedin_profile")} />
+                      <MenuItem icon={<MdDashboardCustomize size={20} />} label="Dashboard" onClick={() => router.push("/client/clientdashboard")} />
+                      <MenuItem icon={<MdOutlineRateReview size={20} />} label="My Requests" onClick={() => router.push("/client/previous-requests")} />
+                      <MenuItem icon={<IoMdSettings size={20} />} label="Settings" onClick={() => router.push("/settings")} />
+                      <div className="my-1 border-t border-gray-100 dark:border-gray-800"></div>
+                      <button onClick={() => { handleLogout(); setShowDropdown(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                        <FaSignOutAlt size={18} /> Sign Out
+                      </button>
                     </div>
                   </div>
-
-                  <div className="p-2">
-                    <MenuItem icon={<RiAccountPinCircleFill size={20} />} label="Your Profile" onClick={() => router.push("/client/loggedin_profile")} />
-                    <MenuItem icon={<MdDashboardCustomize size={20} />} label="Dashboard" onClick={() => router.push("/client/clientdashboard")} />
-                    <MenuItem icon={<MdOutlineRateReview size={20} />} label="My Requests" onClick={() => router.push("/client/previous-requests")} />
-                    <MenuItem icon={<IoMdSettings size={20} />} label="Settings" onClick={() => router.push("/settings")} />
-                    <div className="my-1 border-t border-gray-100 dark:border-gray-800"></div>
-                    <button onClick={() => { handleLogout(); setShowDropdown(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                      <FaSignOutAlt size={18} /> Sign Out
-                    </button>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ) : (
             <div className="flex gap-3">
@@ -210,9 +220,14 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu Toggle */}
-        <button className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors" onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="md:hidden flex items-center gap-4">
+           {/* Mobile Bell */}
+           {user && <NotificationBell />} 
+           <button className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors" onClick={() => setIsOpen(!isOpen)}>
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+        
       </div>
 
       {/* Mobile Menu */}

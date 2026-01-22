@@ -17,11 +17,10 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
   const { user } = useAuthStore();
   const router = useRouter();
 
-  // ✅ Updated State to match Backend Schema
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    address: user?.profile?.address || "", // Pre-fill if available
+    address: user?.profile?.address || "", 
     scheduledDate: "",
     clientPhone: user?.profile?.phone || "",
     city: user?.profile?.city || "",
@@ -50,7 +49,6 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
       return;
     }
 
-    // Basic frontend validation
     if (new Date(formData.scheduledDate) <= new Date()) {
         toast.error("Scheduled date must be in the future");
         return;
@@ -75,7 +73,6 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
       toast.success("Request sent successfully! Worker notified.");
       setOpen(false);
       
-      // Reset critical fields
       setFormData(prev => ({
           ...prev, 
           title: "", 
@@ -84,7 +81,6 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
       }));
     } catch (err: any) {
       console.error("Error sending request:", err);
-      // Show backend error message if available
       toast.error(err.response?.data?.message || "Failed to send request.");
     } finally {
       setLoading(false);
@@ -134,19 +130,22 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
       <AnimatePresence>
         {open && (
           <>
+            {/* Backdrop */}
             <motion.div 
                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-               className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
+               className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
                onClick={() => setOpen(false)}
             />
             
+            {/* Modal Content - CENTERED ON SCREEN */}
             <motion.div
               key="requestModal"
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              // Center the modal using fixed positioning and percentage transforms
+              initial={{ opacity: 0, scale: 0.95, x: "-50%", y: "-45%" }} 
+              animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
+              exit={{ opacity: 0, scale: 0.95, x: "-50%", y: "-45%" }}
               transition={{ duration: 0.2 }}
-              className="absolute top-full left-0 mt-4 w-full sm:w-[450px] bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 z-50 origin-top-left max-h-[80vh] overflow-y-auto"
+              className="fixed top-1/2 left-1/2 w-[95%] sm:w-[450px] bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 z-50 max-h-[85vh] overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-5 sticky top-0 bg-white z-10 pb-2 border-b border-slate-100">
                 <div>
@@ -160,7 +159,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
 
               <form onSubmit={handleSendRequest} className="flex flex-col gap-4">
                 
-                {/* 1. Job Title (Required) */}
+                {/* 1. Job Title */}
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Job Title <span className="text-red-500">*</span></label>
                   <input

@@ -10,7 +10,7 @@ import {
   unlikeJob,
   commentOnJob,
   deleteComment,
-} from "@/services/JobsService";
+} from "@/services/postServices";
 import WorkerNewPost from "@/app/worker/WorkerNewPost";
 import { Job, User, Comment } from "@/types/user";
 import axios from "axios";

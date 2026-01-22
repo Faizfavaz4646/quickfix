@@ -5,7 +5,7 @@ import { FaPencilAlt, FaImage, FaTimes } from "react-icons/fa";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
 import { Job, Profile } from "@/types/user";
-import { postJob } from "@/services/JobsService";
+import { postJob } from "@/services/postServices";
 import { uploadToCloudinary } from "../../../utils/uploadToCloudinary";
 import { getWorkerProfile } from "@/services/workerService";
 

@@ -12,10 +12,11 @@ import { getMyWorkerProfile } from "@/services/workerService";
 
 export default function LoginPage() {
   const router = useRouter();
-  const setUser = useAuthStore((state) => state.setUser);
+  
+  // ✅ FIX 1: Use 'login' instead of 'setUser'
+  const login = useAuthStore((state) => state.login);
 
-  // ✅ HELPER: Extract data directly from the token
-  // This bypasses the broken 'user' object from the backend response
+  // Helper to extract data from token
   const parseJwt = (token: string) => {
     try {
       return JSON.parse(atob(token.split('.')[1]));
@@ -37,9 +38,9 @@ export default function LoginPage() {
           password: values.password,
         });
 
-        const { token } = res.data; // We only really need the token!
+        const { token } = res.data; 
         
-        // 1. DECODE THE TOKEN
+        // 1. Decode token to get essential user info
         const decodedUser = parseJwt(token);
         
         if (!decodedUser) {
@@ -49,17 +50,19 @@ export default function LoginPage() {
 
         console.log("Decoded Token Data:", decodedUser);
 
-        // 2. Set user in Global Store using TOKEN DATA
-        // The token has: _id, emailId, name, role
-        setUser({
-          _id: decodedUser._id,           // Guaranteed to exist
+        // ✅ FIX 2: Call the new 'login' action
+        // We construct the user object first, then pass it + token to the store
+        const userPayload = {
+          _id: decodedUser._id,
           name: decodedUser.name,
-          email: decodedUser.emailId,     // Guaranteed to exist
+          email: decodedUser.emailId, 
           role: decodedUser.role,
-          token: token,
-          status: "active",               // Default to active
-          profile: {},                    // Profile will be fetched separately
-        });
+          status: "active",
+          profile: {}, // Empty profile initially, fetched later
+        };
+
+        // Pass (User, Token)
+        login(userPayload as any, token);
 
         toast.success(`Welcome back, ${decodedUser.name}!`);
 

@@ -1,87 +1,74 @@
 import axios from "axios";
-import { API_URL } from "@/lib/constants";
+import { API_URL } from "@/lib/constants"; 
+import { JobRequest } from "@/types/request";
+import { toast } from "sonner";
 
-export interface Request {
-  _id: string;
-  clientId: string;
-  workerId: string;
-  name: string;
-  contact: string;
-  description: string;
-  status: "pending" | "ongoing" | "completed";
-  date: string;
-}
-
-export interface Notification {
-  _id: string;
-  message: string;
-  seen: boolean;
-  date: string;
-}
-
-export const sendRequestToWorker = async (
-  workerId: string,
-  clientId: string,
-  name: string,
-  contact: string,
-  description: string
-) => {
+// --- GET PENDING REQUESTS (Worker) ---
+export const getWorkerRequests = async (token: string): Promise<JobRequest[]> => {
   try {
-    const requestId = Date.now().toString();
-    const now = new Date().toISOString();
-
-    const newRequest: Request = {
-      _id: requestId,
-      clientId,
-      workerId,
-      name,
-      contact,
-      description,
-      status: "pending",
-      date: now,
-    };
-
-    const newNotification: Notification = {
-      _id: requestId,
-      message: "You have a new job request",
-      seen: false,
-      date: now,
-    };
-
-    // Fetch worker
-    const { data: worker } = await axios.get(`${API_URL}/workers/${workerId}`);
-    const updatedWorkerRequests = [...(worker.requests ?? []), newRequest];
-    const updatedNotifications = [...(worker.notifications ?? []), newNotification];
-
-    await axios.patch(`${API_URL}/workers/${workerId}`, {
-      requests: updatedWorkerRequests,
-      notifications: updatedNotifications,
+    // ✅ CHANGED: "/requests" -> "/job-requests"
+    const { data } = await axios.get(`${API_URL}/job-requests/worker/pending`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
+    
+    console.log("Worker Requests Fetched:", data); 
+    return data;
+  } catch (error) {
+    console.error("Fetch requests error:", error);
+    return [];
+  }
+};
 
-    // Fetch client
-    const { data: client } = await axios.get(`${API_URL}/users/${clientId}`);
-    const clientRequest = {
-      _id: requestId,
-      workerId,
-      workerName: worker.name,
-      profession: worker.profession,
-      status: newRequest.status,
-      date: now,
-    };
-    const updatedClientRequests = [...(client.profile?.requests ?? []), clientRequest];
+// --- UPDATE STATUS (Accept/Decline) ---
+export const updateRequestStatus = async (
+  requestId: string, 
+  status: "accepted" | "rejected", 
+  token: string
+): Promise<boolean> => {
+  try {
+    // ✅ CHANGED: "/requests" -> "/job-requests"
+    await axios.patch(
+      `${API_URL}/job-requests/${requestId}/status`,
+      { status },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return true;
+  } catch (error: any) {
+    console.error("Update status error:", error);
+    toast.error(error.response?.data?.message || "Action failed");
+    return false;
+  }
+};
 
-    await axios.patch(`${API_URL}/users/${clientId}`, {
-      profile: {
-        ...client.profile,
-        requests: updatedClientRequests,
-        activeJobs: client.profile?.activeJobs ?? [],
-        completedJobs: client.profile?.completedJobs ?? [],
+// --- SEND REQUEST (Client) ---
+export const sendRequestToWorker = async (data: {
+  workerId: string;
+  title: string;
+  description: string;
+  token: string;
+  address: string;
+  scheduledDate: string; 
+}): Promise<boolean> => {
+  try {
+    // ✅ CHANGED: "/requests" -> "/job-requests"
+    await axios.post(
+      `${API_URL}/job-requests`, 
+      {
+        workerId: data.workerId,
+        title: data.title,
+        description: data.description,
+        address: data.address,
+        scheduledDate: data.scheduledDate
       },
-    });
-
-    return { newRequest, clientRequest, newNotification };
-  } catch (err) {
-    console.error("Failed to send request to worker:", err);
-    throw err;
+      {
+        headers: { Authorization: `Bearer ${data.token}` },
+      }
+    );
+    toast.success("Request sent successfully!");
+    return true;
+  } catch (error: any) {
+    console.error("Send request error:", error);
+    toast.error(error.response?.data?.message || "Failed to send request");
+    return false;
   }
 };

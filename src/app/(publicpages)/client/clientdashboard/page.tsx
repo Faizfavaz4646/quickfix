@@ -8,44 +8,60 @@ import { useEffect, useState } from "react";
 import { Job } from "@/types/user";
 import axios from "axios";
 import JobGraph from "../components/JobGraph";
-import { Calendar, Filter } from "lucide-react"; // Optional: for UI polish
+import { Calendar, Filter, Loader2 } from "lucide-react"; 
+import { API_URL } from "@/lib/constants"; // ✅ Use your constant
 
 export default function DashboardPage() {
-  const { user } = useAuthStore();
+  const { user, token, hasHydrated } = useAuthStore(); // ✅ Get token & hydration state
   const [requests, setRequests] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refreshRequests = async () => {
-    // Robust check for ID (handles both _id and id)
-    const userId = user?._id || user?._id;
-    if (!userId) return;
+    // 1. Safety Check: Need token to fetch profile
+    const authToken = token || (user as any)?.token;
+    if (!authToken) return;
 
     try {
-      const res = await axios.get(`http://localhost:5001/users/${userId}`);
-      const profile = res.data.profile;
+      // ✅ FIX: Use the Client Profile endpoint we fixed earlier
+      const { data } = await axios.get(`${API_URL}/client/profile`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
 
+      // 2. Map the data correctly
+      // The endpoint returns the profile object directly now
       const allJobs: Job[] = [
-        ...(profile?.requests?.map((job: Job) => ({ ...job, status: "pending" })) || []),
-        ...(profile?.activeJobs?.map((job: Job) => ({ ...job, status: "ongoing" })) || []),
-        ...(profile?.completedJobs?.map((job: Job) => ({ ...job, status: "completed" })) || []),
+        ...(data.requests?.map((job: any) => ({ ...job, status: "pending" })) || []),
+        ...(data.activeJobs?.map((job: any) => ({ ...job, status: "ongoing" })) || []),
+        ...(data.completedJobs?.map((job: any) => ({ ...job, status: "completed" })) || []),
       ];
 
       setRequests(allJobs);
     } catch (err) {
-      console.error("Error fetching requests:", err);
+      console.error("Error fetching dashboard data:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    refreshRequests();
-  }, [user]);
+    if (hasHydrated && user) {
+      refreshRequests();
+    }
+  }, [hasHydrated, user]);
+
+  // Loading State
+  if (!hasHydrated || loading) {
+     return (
+       <div className="min-h-screen flex items-center justify-center bg-slate-50">
+         <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+       </div>
+     );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 md:p-8 space-y-8">
       
-      {/* 1. Page Header (Clean & Minimal) */}
+      {/* 1. Page Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Dashboard Overview</h1>
@@ -54,7 +70,6 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Optional: Date / Filter Actions */}
         <div className="flex items-center gap-3">
           <div className="hidden md:flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-sm text-sm text-slate-600">
             <Calendar size={16} className="text-slate-400" />
@@ -67,7 +82,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* 2. Stats Section */}
+      {/* 2. Stats Section - Pass data if needed, or let it fetch internally */}
       <section>
         <StatCard />
       </section>
@@ -75,7 +90,7 @@ export default function DashboardPage() {
       {/* 3. Main Content Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         
-        {/* Left Column (Main Data) - Spans 2 columns on large screens */}
+        {/* Left Column */}
         <div className="xl:col-span-2 space-y-8">
           
           {/* Graph Card */}
@@ -96,15 +111,14 @@ export default function DashboardPage() {
                 <h3 className="font-bold text-slate-800">Recent Requests</h3>
              </div>
              <div className="p-0">
+               {/* Pass refresh function so user can update list after actions */}
                <RequestCard requests={requests} refreshRequests={refreshRequests} />
              </div>
           </div>
         </div>
 
-        {/* Right Column (Widgets/Info) */}
+        {/* Right Column */}
         <div className="space-y-8">
-          
-          {/* Mini Profile / Status Widget (Example) */}
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-6 text-white shadow-lg">
             <h4 className="font-bold text-lg mb-2">Pro Tip</h4>
             <p className="text-slate-300 text-sm mb-4">
@@ -114,8 +128,6 @@ export default function DashboardPage() {
               View Profile
             </button>
           </div>
-
-          {/* You can add a "Recent Notifications" or "Support" widget here */}
         </div>
       </div>
     </div>

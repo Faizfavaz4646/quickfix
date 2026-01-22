@@ -16,6 +16,7 @@
     "axios": "^1.11.0",
     "chart.js": "^4.5.0",
     "cloudinary": "^2.7.0",
+    "date-fns": "^4.1.0",
     "formik": "^2.4.6",
     "framer-motion": "^12.23.22",
     "gsap": "^3.13.0",

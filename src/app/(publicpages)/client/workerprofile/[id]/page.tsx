@@ -7,7 +7,7 @@ import PreviousWorks from "@/components/PreviousWorks";
 import RequestDialog from "@/components/RequestDialog";
 import { 
   MapPin, Phone, Mail, Calendar, 
-  CheckCircle, ShieldCheck, Loader2, Briefcase, Star 
+  CheckCircle, ShieldCheck, Loader2, Briefcase 
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -42,6 +42,12 @@ export default function ProfilePage() {
   const displayName = worker.name && worker.name !== "Worker" 
     ? worker.name 
     : (worker.userId?.name || "Service Provider");
+
+  // ✅ 1. FIX: Calculate the correct User ID for the request
+  // This handles if userId is a string OR an object
+  const targetUserId = (typeof worker.userId === 'string') 
+      ? worker.userId 
+      : (worker.userId?._id || worker._id);
 
   const displayEmail = worker.email || worker.userId?.email || "Contact Hidden";
   
@@ -81,12 +87,11 @@ export default function ProfilePage() {
                 <div className="absolute bottom-4 right-4 bg-green-500 w-6 h-6 rounded-full border-4 border-white shadow-sm"></div>
               </div>
 
-              {/* 📱 MOBILE VIEW: Name & Details */}
+              {/* 📱 MOBILE VIEW */}
               <div className="md:hidden text-center mt-4 w-full">
                  <h1 className="text-2xl font-black text-slate-800">{displayName}</h1>
                  <p className="text-blue-600 font-bold uppercase text-sm tracking-wide mt-1">{worker.profession}</p>
                  
-                 {/* ✅ NEW: Mobile Stats Row (Visible only on mobile) */}
                  <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4 text-sm font-medium text-slate-500">
                     <div className="flex items-center gap-1">
                       <MapPin size={14} className="text-red-500" />
@@ -154,11 +159,14 @@ export default function ProfilePage() {
 
               {/* ACTION BUTTONS */}
               <div className="mt-8 pt-6 border-t border-slate-100 w-full">
+                
+                {/* ✅ 2. FIX: Use targetUserId here */}
                 <RequestDialog 
-                  workerId={String(worker._id)} 
+                  workerId={targetUserId} 
                   workerName={displayName} 
                   workerPic={worker.profilePic} 
                 />
+
               </div>
             </div>
           </div>
@@ -188,7 +196,7 @@ export default function ProfilePage() {
                    </div>
                    <div className="min-w-0">
                      <p className="text-[10px] text-slate-400 font-bold uppercase">Email Address</p>
-                     <p className="text-sm font-bold text-slate-800 truncate block w-40">{worker.email}</p>
+                     <p className="text-sm font-bold text-slate-800 truncate block w-40">{displayEmail}</p>
                    </div>
                 </div>
 

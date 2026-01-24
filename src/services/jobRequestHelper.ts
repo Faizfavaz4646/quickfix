@@ -22,7 +22,7 @@ export const getWorkerRequests = async (token: string): Promise<JobRequest[]> =>
 // --- UPDATE STATUS (Accept/Decline) ---
 export const updateRequestStatus = async (
   requestId: string, 
-  status: "accepted" | "rejected", 
+  status: "accepted" | "rejected" | "completed",
   token: string
 ): Promise<boolean> => {
   try {
@@ -41,34 +41,56 @@ export const updateRequestStatus = async (
 };
 
 // --- SEND REQUEST (Client) ---
-export const sendRequestToWorker = async (data: {
+export const sendRequestToWorker = async (params: {
   workerId: string;
+  token: string;       // We need token to authenticate
   title: string;
   description: string;
-  token: string;
   address: string;
   scheduledDate: string; 
+  clientPhone: string; // ✅ Required by backend
+  city?: string;
+  state?: string;
 }): Promise<boolean> => {
   try {
-    // ✅ CHANGED: "/requests" -> "/job-requests"
+    console.log("📤 Sending Request Payload:", params);
+
+    // Backend expects: { workerId, title, ... }
+    // We do NOT need to send clientId because the Backend gets it from the Token
+    const payload = {
+      workerId: params.workerId,
+      title: params.title,
+      description: params.description,
+      address: params.address,
+      scheduledDate: params.scheduledDate,
+      clientPhone: params.clientPhone, 
+      city: params.city || "",
+      state: params.state || ""
+    };
+
     await axios.post(
       `${API_URL}/job-requests`, 
+      payload,
       {
-        workerId: data.workerId,
-        title: data.title,
-        description: data.description,
-        address: data.address,
-        scheduledDate: data.scheduledDate
-      },
-      {
-        headers: { Authorization: `Bearer ${data.token}` },
+        headers: { Authorization: `Bearer ${params.token}` },
       }
     );
-    toast.success("Request sent successfully!");
+    
     return true;
   } catch (error: any) {
     console.error("Send request error:", error);
-    toast.error(error.response?.data?.message || "Failed to send request");
-    return false;
+    // Rethrow or return false so the component knows it failed
+    throw error; 
+  }
+};
+export const getWorkerActiveJobs = async (token: string): Promise<JobRequest[]> => {
+  try {
+    const { data } = await axios.get(`${API_URL}/job-requests/worker/active`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return data;
+  } catch (error) {
+    console.error("Fetch active jobs error:", error);
+    return [];
   }
 };

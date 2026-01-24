@@ -45,7 +45,7 @@ export default function NotificationBell() {
     // Listen for incoming notifications
     socketRef.current.on("notification", (newNotif: Notification) => {
       // Play sound
-      const audio = new Audio("/sounds/notification.mp3"); // Add a sound file to public/sounds
+      const audio = new Audio("/sounds/notification.wav"); // Add a sound file to public/sounds
       audio.play().catch(e => console.log("Audio play failed", e));
 
       // Update State

@@ -11,6 +11,7 @@ export interface JobRequest {
   description: string;
   address: string;
   scheduledDate: string;
+  clientPhone: string; 
   status: "pending" | "accepted" | "rejected" | "completed";
   createdAt: string;
 }

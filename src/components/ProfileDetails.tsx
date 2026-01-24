@@ -1,13 +1,9 @@
 import { FaMapMarkerAlt, FaPhone } from "react-icons/fa";
 import { AiFillStar } from "react-icons/ai";
-// Ensure your Profile type includes userId as an object optionally
-// or use 'any' if types are loose for now
-import { Profile } from "@/types/user"; 
 import RequestDialog from "./RequestDialog";
 
+// Using 'any' to safely access nested properties regardless of backend format
 interface ProfileCardProps {
-  // Using 'any' for worker here to safely access nested .userId.name 
-  // without strict type errors until you update your Profile interface
   worker: any; 
 }
 
@@ -42,13 +38,19 @@ const renderStars = (rating: number) => {
 export default function ProfileCard({ worker }: ProfileCardProps) {
   const avgRating = getAverageRating(worker.ratings);
 
-  // ✅ FIX: Check nested userId.name first, then worker.name, then fallback
+  // 1. Resolve Display Name (Handle flattened vs nested structure)
   const displayName = worker.userId?.name || worker.name || "Service Provider";
   
-  // Also fix image if nested
+  // 2. Resolve Display Image
   const displayImage = worker.profilePic || worker.userId?.profilePic || "/images/avatar.avif";
 
-  console.log("worker data", worker);
+  // 3. ✅ CRITICAL FIX: Resolve the Correct Target User ID
+  // Your backend sends `userId` as a String (flattened), so we must check for that.
+  const targetUserId = (typeof worker.userId === 'string') 
+    ? worker.userId 
+    : (worker.userId?._id || worker._id);
+
+  console.log("👉 ProfileCard Target ID:", targetUserId);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col md:flex-row gap-6">
@@ -60,7 +62,7 @@ export default function ProfileCard({ worker }: ProfileCardProps) {
           className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
         />
 
-        {/* ✅ Worker Name (Fixed) */}
+        {/* Worker Name */}
         <h2 className="text-2xl font-semibold text-gray-800 mt-3">
           {displayName}
         </h2>
@@ -79,6 +81,7 @@ export default function ProfileCard({ worker }: ProfileCardProps) {
           {worker.state}, {worker.district}, {worker.city}
         </p>
         
+        {/* Phone */}
         <span className="flex gap-2 items-center">
             <FaPhone className="mt-1 text-blue-500" />
             <p className="text-gray-500">{worker.phone}</p>
@@ -87,10 +90,10 @@ export default function ProfileCard({ worker }: ProfileCardProps) {
 
       {/* Right Side: Request Dialog */}
       <div className="flex flex-col justify-center ml-auto">
-        {worker._id !== undefined && (
+        {worker && (
           <RequestDialog 
-            workerId={String(worker._id)} 
-            // ✅ Pass the fixed name and image to the dialog so it looks correct there too
+            // ✅ Pass the resolved ID (User ID)
+            workerId={targetUserId} 
             workerName={displayName}
             workerPic={displayImage}
           />

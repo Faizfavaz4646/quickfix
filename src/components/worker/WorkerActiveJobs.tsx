@@ -2,90 +2,76 @@
 
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { getWorkerProfile, acceptRequest } from "@/services/workerService";
+import { getWorkerActiveJobs, updateRequestStatus } from "@/services/jobRequestHelper"; 
 import { FiBriefcase } from "react-icons/fi";
 import { toast } from "sonner";
-import { Job, Request } from "@/types/user";
+import { Loader2, CheckCircle, MapPin, Phone, Calendar } from "lucide-react";
+import { JobRequest } from "@/types/request";
+import { format } from "date-fns";
 
 export default function ActiveJobs() {
-  const user = useAuthStore((state) => state.user);
-  const activeJobs = useAuthStore((state) => state.activeJobs);
-  const completedJobs = useAuthStore((state) => state.completedJobs);
-  const setActiveJobs = useAuthStore((state) => state.setActiveJobs);
-  const setCompletedJobs = useAuthStore((state) => state.setCompletedJobs);
-  const addNewActiveJob = useAuthStore((state) => state.addActiveJob);
+  // ✅ FIX: Robust Token Retrieval
+  const user = useAuthStore((state: any) => state.user);
+  const token = useAuthStore((state: any) => state.token) || localStorage.getItem("token");
 
-  const [modalOpen, setModalOpen] = useState(false);
+  const [activeJobs, setActiveJobs] = useState<JobRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  // Fetch worker profile and jobs
-  useEffect(() => {
-    if (!user?._id) return;
-
-    const fetchJobs = async () => {
-      try {
-        const profile = await getWorkerProfile(user._id);
-        if (profile) {
-          const uniqueActiveJobs = (profile.activeJobs ?? []).map((job, idx) => ({
-            ...job,
-            key: job._id ?? `active-${idx}-${Date.now()}`,
-          }));
-
-          const uniqueCompletedJobs = (profile.completedJobs ?? []).map((job, idx) => ({
-            ...job,
-            key: job._id ?? `completed-${idx}-${Date.now()}`,
-          }));
-
-          setActiveJobs(uniqueActiveJobs);
-          setCompletedJobs(uniqueCompletedJobs);
-        }
-      } catch (error) {
-        console.error("Error fetching jobs:", error);
-        toast.error("Failed to fetch jobs.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchJobs();
-  }, [user, setActiveJobs, setCompletedJobs]);
-
-  // Accept a pending request
-  const handleAcceptRequest = async (request: Request) => {
-    if (!user?._id) return;
-
-    const newJob: Job = {
-      _id: request._id,
-      clientId: request.clientId.toString(),
-      clientName: request.clientName ?? request.name,
-      workerId: user._id,
-      workerName: user.name ?? "",
-      profession: user.profession ?? "",
-      description: request.description,
-      status: "ongoing",
-      date: new Date().toISOString(),
-      reviewed: false,
-    };
-
-    addNewActiveJob(newJob);
-    if (!request._id) {
-  toast.error("Request ID is missing");
-  return;
-}
+  // 1. Fetch Real Data from DB
+  const fetchJobs = async () => {
+    console.group("🔍 Debugging Active Jobs Fetch");
+    
+    if (!token) {
+        console.warn("⚠️ Still no token found! Check Login.");
+        console.groupEnd();
+        setLoading(false); 
+        return;
+    }
+    console.log("✅ Token found:", token.substring(0, 10) + "...");
 
     try {
-      await acceptRequest(user._id, request._id);
-      toast.success("Request accepted! ✅");
+      const jobs = await getWorkerActiveJobs(token);
+      console.log(`📊 Total Active Jobs: ${jobs.length}`);
+      setActiveJobs(jobs);
     } catch (error) {
-      console.error("Error accepting request:", error);
-      toast.error("Failed to accept request ❌");
+      console.error("❌ API Fetch Failed:", error);
+      toast.error("Could not load active jobs");
+    } finally {
+      setLoading(false);
+      console.groupEnd();
     }
   };
 
-  if (loading) {
+  useEffect(() => {
+    fetchJobs();
+  }, [token]);
+
+  useEffect(() => {
+    if (modalOpen) fetchJobs();
+  }, [modalOpen]);
+
+  // 2. Handle Completion
+  const handleCompleteJob = async (jobId: string) => {
+    setActionLoading(jobId);
+    try {
+      await updateRequestStatus(jobId, "completed", token!); // token! because we know it exists here
+      toast.success("Job marked as completed! 🎉");
+      setActiveJobs((prev) => prev.filter((job) => job._id !== jobId));
+      if (activeJobs.length <= 1) setModalOpen(false);
+    } catch (error) {
+      toast.error("Failed to update status");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // --- RENDER ---
+  if (loading && activeJobs.length === 0) {
     return (
-      <div className="w-auto h-32 rounded-lg p-4 mt-4 flex items-center justify-center text-gray-500">
-        Loading...
+      <div className="w-full h-32 rounded-xl p-4 mt-4 bg-white border border-gray-100 flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
       </div>
     );
   }
@@ -94,62 +80,84 @@ export default function ActiveJobs() {
     <>
       <div
         onClick={() => setModalOpen(true)}
-        className="w-auto h-32 rounded-lg p-4 mt-4 hover:shadow-lg transition duration-300 ease-in-out flex flex-col cursor-pointer"
+        className="w-full h-32 rounded-xl p-5 mt-4 bg-white border border-gray-100 hover:shadow-md hover:border-blue-200 transition-all cursor-pointer flex flex-col justify-between group"
       >
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-lg text-gray-800">Active Jobs</h3>
-          <FiBriefcase className="text-blue-500 w-6 h-6" />
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-lg text-gray-800">Active Jobs</h3>
+          <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+             <FiBriefcase className="w-5 h-5" />
+          </div>
         </div>
-        <p className="mt-2 text-2xl font-bold text-blue-600">{activeJobs.length}</p>
-        <p className="text-sm text-gray-500">Currently in progress</p>
+        
+        <div>
+           <p className="text-3xl font-black text-blue-600">{activeJobs.length}</p>
+           <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Currently in progress</p>
+        </div>
       </div>
 
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-h-[80vh] overflow-y-auto relative">
-            <h2 className="text-xl font-bold mb-4">Active Jobs</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl">
+            
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 rounded-t-2xl">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Active Jobs</h2>
+                <p className="text-xs text-gray-500">Manage your ongoing work</p>
+              </div>
+              <button onClick={() => setModalOpen(false)} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
+                ✕
+              </button>
+            </div>
 
-            {activeJobs.length === 0 ? (
-              <p>No active jobs.</p>
-            ) : (
-              activeJobs.map((job, idx) => (
-                <div key={job._id ?? `active-${idx}`} className="border p-3 rounded mb-3">
-                  <p className="font-semibold">{job.clientName}</p>
-                  <p className="text-gray-600">{job.description}</p>
-                  <button
-                    // onClick={() => handleCompleteJob(job._id)}
-                    className="mt-2 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                  >
-                    Mark as Completed
-                  </button>
+            <div className="p-6 overflow-y-auto space-y-4">
+              {activeJobs.length === 0 ? (
+                <div className="text-center py-10">
+                  <FiBriefcase className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">No active jobs right now.</p>
+                  <p className="text-xs text-gray-400">Accept requests to see them here.</p>
                 </div>
-              ))
-            )}
+              ) : (
+                activeJobs.map((job) => (
+                  <div key={job._id} className="border border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-all bg-white shadow-sm">
+                    <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-50">
+                        <img 
+                           src={job.clientId?.profilePic || "/images/avatar.avif"} 
+                           className="w-10 h-10 rounded-full object-cover bg-gray-100" 
+                           alt="Client" 
+                        />
+                        <div>
+                            <p className="font-bold text-gray-800">{job.clientId?.name || "Client"}</p>
+                            <p className="text-xs text-blue-600 font-bold uppercase">{job.title}</p>
+                        </div>
+                    </div>
 
-            {user?.profile?.requests?.length ? (
-              <>
-                <h3 className="text-lg font-semibold mt-4 mb-2">Pending Requests</h3>
-                {user.profile.requests.map((req, idx) => (
-                  <div key={req._id ?? `req-${idx}-${Date.now()}`} className="border p-3 rounded mb-3">
-                    <p className="font-semibold">{req.name}</p>
-                    <p className="text-gray-600">{req.description}</p>
+                    <div className="space-y-2 mb-4">
+                        <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{job.description}</p>
+                        <div className="flex flex-wrap gap-2 text-xs font-bold text-gray-500">
+                             <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded">
+                                <Calendar size={12} className="text-blue-500"/>
+                                {job.scheduledDate ? format(new Date(job.scheduledDate), "MMM dd") : "Date N/A"}
+                             </span>
+                             <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded">
+                                <Phone size={12} className="text-green-500"/>
+                                {job.clientPhone}
+                             </span>
+                        </div>
+                    </div>
+
                     <button
-                      onClick={() => handleAcceptRequest(req)}
-                      className="mt-2 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                      onClick={() => handleCompleteJob(job._id)}
+                      disabled={actionLoading === job._id}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-green-200 shadow-md disabled:opacity-70"
                     >
-                      Accept Request
+                      {actionLoading === job._id ? <Loader2 className="animate-spin w-4 h-4"/> : <CheckCircle className="w-4 h-4" />}
+                      Mark as Completed
                     </button>
                   </div>
-                ))}
-              </>
-            ) : null}
-
-            <button
-              onClick={() => setModalOpen(false)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-            >
-              ✕
-            </button>
+                ))
+              )}
+            </div>
+            
           </div>
         </div>
       )}

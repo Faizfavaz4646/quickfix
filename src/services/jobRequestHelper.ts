@@ -3,30 +3,54 @@ import { API_URL } from "@/lib/constants";
 import { JobRequest } from "@/types/request";
 import { toast } from "sonner";
 
-// --- GET PENDING REQUESTS (Worker) ---
+// ✅ MAIN FUNCTION: Fetches ALL requests (Pending + History)
+// This fixes the empty history tab issue.
 export const getWorkerRequests = async (token: string): Promise<JobRequest[]> => {
   try {
-    // ✅ CHANGED: "/requests" -> "/job-requests"
-    const { data } = await axios.get(`${API_URL}/job-requests/worker/pending`, {
+    // We use the '/all' endpoint so we get everything
+    const { data } = await axios.get(`${API_URL}/job-requests/worker/all`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    
-    console.log("Worker Requests Fetched:", data); 
-    return data;
+    return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Fetch requests error:", error);
     return [];
   }
 };
 
-// --- UPDATE STATUS (Accept/Decline) ---
+// --- GET ACTIVE JOBS (For Dashboard) ---
+export const getWorkerActiveJobs = async (token: string): Promise<JobRequest[]> => {
+  try {
+    const { data } = await axios.get(`${API_URL}/job-requests/worker/active`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Fetch active jobs error:", error);
+    return [];
+  }
+};
+
+// --- GET COMPLETED JOBS (For Dashboard) ---
+export const getWorkerCompletedJobs = async (token: string): Promise<JobRequest[]> => {
+  try {
+    const { data } = await axios.get(`${API_URL}/job-requests/worker/completed`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Fetch completed jobs error:", error);
+    return [];
+  }
+};
+
+// --- UPDATE STATUS ---
 export const updateRequestStatus = async (
   requestId: string, 
   status: "accepted" | "rejected" | "completed",
   token: string
 ): Promise<boolean> => {
   try {
-    // ✅ CHANGED: "/requests" -> "/job-requests"
     await axios.patch(
       `${API_URL}/job-requests/${requestId}/status`,
       { status },
@@ -39,69 +63,21 @@ export const updateRequestStatus = async (
     return false;
   }
 };
+//  GET CLIENT REQUESTS (Client View)
 
-// --- SEND REQUEST (Client) ---
-export const sendRequestToWorker = async (params: {
-  workerId: string;
-  token: string;       // We need token to authenticate
-  title: string;
-  description: string;
-  address: string;
-  scheduledDate: string; 
-  clientPhone: string; // ✅ Required by backend
-  city?: string;
-  state?: string;
-}): Promise<boolean> => {
+export const getClientRequests = async (token: string, status?: string): Promise<JobRequest[]> => {
   try {
-    console.log("📤 Sending Request Payload:", params);
+    // Allows filtering: getClientRequests(token, 'pending')
+    const url = status 
+      ? `${API_URL}/job-requests/client/all?status=${status}`
+      : `${API_URL}/job-requests/client/all`;
 
-    // Backend expects: { workerId, title, ... }
-    // We do NOT need to send clientId because the Backend gets it from the Token
-    const payload = {
-      workerId: params.workerId,
-      title: params.title,
-      description: params.description,
-      address: params.address,
-      scheduledDate: params.scheduledDate,
-      clientPhone: params.clientPhone, 
-      city: params.city || "",
-      state: params.state || ""
-    };
-
-    await axios.post(
-      `${API_URL}/job-requests`, 
-      payload,
-      {
-        headers: { Authorization: `Bearer ${params.token}` },
-      }
-    );
-    
-    return true;
-  } catch (error: any) {
-    console.error("Send request error:", error);
-    // Rethrow or return false so the component knows it failed
-    throw error; 
-  }
-};
-export const getWorkerActiveJobs = async (token: string): Promise<JobRequest[]> => {
-  try {
-    const { data } = await axios.get(`${API_URL}/job-requests/worker/active`, {
+    const { data } = await axios.get(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return data;
+    return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error("Fetch active jobs error:", error);
-    return [];
-  }
-};
-export const getWorkerCompletedJobs = async (token: string) => {
-  try {
-    const { data } = await axios.get(`${API_URL}/job-requests/worker/completed`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return data;
-  } catch (error) {
-    console.error("Fetch completed jobs error:", error);
+    console.error("Fetch client requests error:", error);
     return [];
   }
 };

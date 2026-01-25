@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { User, Profile, Job } from "@/types/user";
+import { User, Profile } from "@/types/user";
 import axios from "axios";
 import { API_URL } from "@/lib/constants";
 
@@ -11,28 +11,21 @@ import { API_URL } from "@/lib/constants";
 interface AuthState {
   // 1. DATA STATE
   user: User | null;
-  token: string | null; // ✅ Added Top-Level Token
+  token: string | null;
   isLogin: boolean;
   hasHydrated: boolean;
+  
+  // ✅ NEW: A simple signal to tell components to re-fetch data
+  refreshTrigger: number; 
 
   // 2. ACTIONS
   setHasHydrated: (state: boolean) => void;
-  
-  // Replaces 'setUser' with a more robust 'login' action
-  login: (user: User, token: string) => void; 
-  
-  // Updates specific parts of the user profile
+  login: (user: User, token: string) => void;
   updateUserProfile: (profile: Partial<Profile>, name?: string) => void;
-  
   logout: () => void;
-
-  // 3. JOB STATE
-  activeJobs: Job[];
-  completedJobs: Job[];
-  setActiveJobs: (jobs: Job[]) => void;
-  setCompletedJobs: (jobs: Job[]) => void;
-  markJobCompletedLocally: (jobId: number) => void;
-  addActiveJob: (job: Job) => void;
+  
+  // Call this when a job is finished to update the "Completed" counter instantly
+  triggerRefresh: () => void; 
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -40,19 +33,18 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       // --- Initial State ---
       user: null,
-      token: null, // Start empty
+      token: null,
       isLogin: false,
       hasHydrated: false,
-      activeJobs: [],
-      completedJobs: [],
+      refreshTrigger: 0, 
 
       // --- Actions ---
 
       setHasHydrated: (state) => set({ hasHydrated: state }),
 
-      // ✅ Real-World Login Method
-    login: (user, token) => {
-        // 1. Cast the status explicitly to User["status"] so TS knows it's valid
+      triggerRefresh: () => set({ refreshTrigger: get().refreshTrigger + 1 }),
+
+      login: (user, token) => {
         const status = (user.status === "blocked" ? "blocked" : "online") as User["status"];
         
         const finalUser = {
@@ -62,7 +54,6 @@ export const useAuthStore = create<AuthState>()(
         };
 
         set({
-          // 2. Cast the final object as User to resolve any other minor mismatches
           user: finalUser as User,
           token: token, 
           isLogin: true,
@@ -78,8 +69,8 @@ export const useAuthStore = create<AuthState>()(
             ...currentUser,
             name: name ?? currentUser.name,
             profile: {
-              ...currentUser.profile, // Keep existing profile data
-              ...profile, // Overwrite with new data
+              ...currentUser.profile,
+              ...profile,
             },
           },
         });
@@ -88,9 +79,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         const { user, token } = get();
         
-        // Optional: Notify backend of offline status
         if (user && user._id && user.status !== "blocked") {
-          // Use the token for the logout request if needed by backend
           axios.patch(
             `${API_URL}/users/${user._id}`, 
             { status: "offline" },
@@ -98,55 +87,28 @@ export const useAuthStore = create<AuthState>()(
           ).catch(console.error);
         }
 
-        // Wipe everything
+        // Wipe session data
         set({
           user: null,
           token: null,
           isLogin: false,
-          activeJobs: [],
-          completedJobs: [],
-        });
-      },
-
-      // --- Job Actions ---
-      setActiveJobs: (jobs) => set({ activeJobs: jobs }),
-      setCompletedJobs: (jobs) => set({ completedJobs: jobs }),
-      
-      addActiveJob: (job) => set({ activeJobs: [...get().activeJobs, job] }),
-
-      markJobCompletedLocally: (jobId) => {
-        const currentActive = get().activeJobs;
-        const jobIndex = currentActive.findIndex((j) => j.id === jobId); // Using findIndex is safer
-        
-        if (jobIndex === -1) return;
-
-        const job = currentActive[jobIndex];
-        const newActive = [...currentActive];
-        newActive.splice(jobIndex, 1);
-
-        set({
-          activeJobs: newActive,
-          completedJobs: [...get().completedJobs, { ...job, status: "completed" }],
+          refreshTrigger: 0,
         });
       },
     }),
     {
-      name: "quickfix-user", // Key in localStorage
+      name: "quickfix-user",
       storage: createJSONStorage(() => localStorage),
       
-      // Handle Hydration (Page Load)
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },
 
-      // ✅ Cleaner Persistence
-      // Only save what we strictly need to restore the session
+      // ✅ CLEAN PERSISTENCE: Only save Auth data
       partialize: (state) => ({
         user: state.user,
-        token: state.token, // Explicitly save the token
+        token: state.token,
         isLogin: state.isLogin,
-        activeJobs: state.activeJobs,
-        completedJobs: state.completedJobs,
       }),
     }
   )

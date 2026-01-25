@@ -3,17 +3,17 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 interface Review {
-  id: number;
+  _id?: string;
   clientId: string;
-  clientName: string;
-  clientProfilePic?: string; // optional profile picture
+  clientName?: string;
+  clientProfilePic?: string;
   review: string;
   rating: number;
   date: string;
 }
 
 interface WorkerReviewsProps {
-  userId: string; // the logged-in user ID
+  userId: string;
 }
 
 export default function WorkerReviews({ userId }: WorkerReviewsProps) {
@@ -26,34 +26,40 @@ export default function WorkerReviews({ userId }: WorkerReviewsProps) {
 
     const fetchReviews = async () => {
       setLoading(true);
-      setError(null);
-
       try {
-        // fetch the worker entry using userId
-        const { data: workers } = await axios.get(`http://localhost:3000/workers?userId=${userId}`);
-        if (workers.length === 0) {
+        // ✅ FIX 1: Port 5001 and try '/worker' (singular)
+        const { data } = await axios.get(`http://localhost:5001/worker?userId=${userId}`);
+        const workerData = Array.isArray(data) ? data[0] : data;
+
+        if (!workerData || !workerData.reviews) {
           setReviews([]);
           return;
         }
 
-        const worker = workers[0];
-
-        // Map reviews to include client profile pics from users DB
-        const reviewsWithPics = await Promise.all(
-          (worker.reviews || []).map(async (rev: Review) => {
+        // ✅ FIX 2: Fetch Client details from Port 5001
+        const reviewsWithDetails = await Promise.all(
+          workerData.reviews.map(async (rev: any) => {
             try {
-              const { data: users } = await axios.get(`http://localhost:3000/users?id=${rev.clientId}`);
-              return { ...rev, clientProfilePic: users[0]?.profile?.profilePic || "" };
-            } catch {
+              if (rev.clientId) {
+                  // Assuming GET /users/:id exists on backend
+                  const { data: user } = await axios.get(`http://localhost:5001/users/${rev.clientId}`);
+                  return { 
+                    ...rev, 
+                    clientName: user.name || "Client",
+                    clientProfilePic: user.profilePic || "/images/avatar.avif" 
+                  };
+              }
               return rev;
+            } catch (e) {
+              return { ...rev, clientName: "Client", clientProfilePic: "/images/avatar.avif" };
             }
           })
         );
 
-        setReviews(reviewsWithPics);
+        setReviews(reviewsWithDetails);
       } catch (err) {
-        console.error("Error fetching reviews:", err);
-        setError("Failed to load reviews.");
+        console.error("Reviews fetch failed");
+        setError("Could not load reviews");
       } finally {
         setLoading(false);
       }
@@ -62,43 +68,37 @@ export default function WorkerReviews({ userId }: WorkerReviewsProps) {
     fetchReviews();
   }, [userId]);
 
-  if (loading) return <div className="text-sm text-gray-500">Loading reviews...</div>;
-  if (error) return <div className="text-sm text-red-500">{error}</div>;
+  if (loading) return <div className="text-sm text-gray-400 mt-4 text-center">Loading reviews...</div>;
+  if (error) return <div className="text-sm text-red-400 mt-4 text-center">No reviews found.</div>;
 
   return (
-    <div className="border border-gray-200 w-full shadow-md rounded-md p-4 mt-4 hover:shadow-xl transition">
-      <h3 className="font-semibold mb-2">Reviews</h3>
-      <div className="space-y-3">
+    <div className="border border-gray-100 bg-white w-full shadow-sm rounded-xl p-6 mt-4 hover:shadow-md transition-all">
+      <h3 className="font-bold text-lg text-gray-800 mb-4">Reviews</h3>
+      <div className="space-y-4">
         {reviews.length > 0 ? (
-          reviews.map((review) => (
-            <div key={review.id} className="border-b pb-2 last:border-b-0">
-              {/* Client profile + name */}
-              <div className="flex items-center gap-2 mb-1">
-                {review.clientProfilePic && (
-                  <img
-                    src={review.clientProfilePic}
-                    alt={review.clientName}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                )}
-                <span className="text-sm font-medium">{review.clientName}</span>
+          reviews.map((review, index) => (
+            <div key={index} className="border-b border-gray-50 pb-4 last:border-b-0">
+              <div className="flex items-center gap-3 mb-2">
+                <img
+                  src={review.clientProfilePic || "/images/avatar.avif"}
+                  alt="Client"
+                  className="w-10 h-10 rounded-full object-cover bg-gray-100"
+                  onError={(e) => (e.currentTarget.src = "/images/avatar.avif")}
+                />
+                <div>
+                    <p className="text-sm font-bold text-gray-800">{review.clientName || "Client"}</p>
+                    <div className="flex text-yellow-400 text-xs">
+                        {[...Array(5)].map((_, i) => (
+                        <span key={i}>{i < review.rating ? "★" : "☆"}</span>
+                        ))}
+                    </div>
+                </div>
               </div>
-
-              <p className="text-xs text-gray-500">"{review.review}"</p>
-
-              <div className="flex mt-1 text-yellow-500 text-sm">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i}>{i < review.rating ? "⭐" : "☆"}</span>
-                ))}
-              </div>
-
-              <p className="text-xs text-gray-400 mt-1">
-                {new Date(review.date).toLocaleDateString()}
-              </p>
+              <p className="text-sm text-gray-600 italic">"{review.review}"</p>
             </div>
           ))
         ) : (
-          <p className="text-sm text-gray-500">No reviews yet.</p>
+          <p className="text-gray-400 text-sm text-center">No reviews yet.</p>
         )}
       </div>
     </div>

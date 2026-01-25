@@ -12,78 +12,50 @@ interface WorkerRatingProps {
 export default function WorkerRating({ userId }: WorkerRatingProps) {
   const [avgRating, setAvgRating] = useState<number>(0);
   const maxStars = 5;
-  
-  // Get both user and hasHydrated from the store
   const { user: authUser, hasHydrated } = useAuthStore();
-
-  // Determine the ID to fetch
   const workerId = userId || authUser?._id;
 
   useEffect(() => {
-    /**
-     * GUARD 1: Wait for Zustand hydration
-     * GUARD 2: Ensure workerId is a valid value (not "undefined" string)
-     */
-    const isValidId = hasHydrated && workerId && String(workerId) !== "undefined";
-
-    if (!isValidId) {
-      return;
-    }
+    if (!hasHydrated || !workerId) return;
 
     const fetchWorkerRating = async () => {
       try {
-        // Updated URL to match your standard service patterns if necessary
-        const { data: workers } = await axios.get(
-          `http://localhost:5001/workers?userId=${workerId}`
-        );
+        // ✅ FIX: Use port 5001 and try '/worker' (singular)
+        // If this still 404s, fetch '/workers' (plural)
+        const { data } = await axios.get(`http://localhost:5001/worker?userId=${workerId}`);
 
-        if (!workers || workers.length === 0) {
-          setAvgRating(0);
-          return;
-        }
+        // Handle Array vs Object response safely
+        const workerData = Array.isArray(data) ? data[0] : data;
 
-        // Logic to extract average rating
-        const worker = workers[0];
-        const ratings: number[] = worker.ratings || [];
-
-        const average =
-          ratings.length > 0
+        if (workerData && workerData.ratings) {
+          const ratings: number[] = workerData.ratings;
+          const average = ratings.length > 0
             ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
             : 0;
-
-        setAvgRating(average);
+          setAvgRating(average);
+        }
       } catch (err) {
-        // Log the error but don't crash the UI
-        console.error("Error fetching worker ratings:", err);
-        setAvgRating(0);
+        console.error("Rating fetch failed - Check if route is /worker or /workers");
       }
     };
 
     fetchWorkerRating();
-  }, [workerId, hasHydrated]); // Add hasHydrated as a dependency
+  }, [workerId, hasHydrated]);
 
-  // Optional: Show a skeleton/loading state while hydrating
-  if (!hasHydrated) {
-    return <div className="w-full h-32 animate-pulse bg-gray-100 rounded-lg mt-4" />;
-  }
+  if (!hasHydrated) return <div className="w-full h-32 animate-pulse bg-gray-100 rounded-lg mt-4" />;
 
   return (
-    <div className="w-full h-32 rounded-lg p-4 mt-4 hover:shadow-lg transition duration-300 ease-in-out flex flex-col border border-gray-100">
+    <div className="w-full h-32 rounded-xl p-5 mt-4 bg-white border border-gray-100 hover:shadow-md hover:border-yellow-200 transition-all flex flex-col justify-between">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="font-semibold text-lg text-gray-800">Rating</h3>
-        <FiStar className="text-yellow-500 w-6 h-6 fill-yellow-500" />
+        <h3 className="font-bold text-lg text-gray-800">Rating</h3>
+        <div className="p-2 bg-yellow-50 text-yellow-500 rounded-lg">
+           <FiStar className="w-5 h-5 fill-yellow-500" />
+        </div>
       </div>
 
       <div className="flex items-center gap-1 mt-2">
         {[...Array(maxStars)].map((_, i) => (
-          <span
-            key={i}
-            className={`text-xl ${
-              i < Math.round(avgRating) ? "text-yellow-500" : "text-gray-300"
-            }`}
-          >
-            ★
-          </span>
+          <span key={i} className={`text-xl ${i < Math.round(avgRating) ? "text-yellow-500" : "text-gray-200"}`}>★</span>
         ))}
         <span className="ml-2 text-sm text-gray-600 font-bold">
           {avgRating.toFixed(1)} <span className="text-gray-400 font-normal">/ {maxStars}</span>

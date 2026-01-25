@@ -1,70 +1,125 @@
 "use client";
 
-import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
-// FIX: Update import to clientService
-import { getClientProfile } from "@/services/clientService"; 
-import { FaTasks, FaClock, FaRunning, FaCheckCircle } from "react-icons/fa";
+import { useAuthStore } from "@/store/authStore";
+import { getClientRequests } from "@/services/jobRequestHelper"; 
+import { 
+  LayoutDashboard, 
+  Clock, 
+  Activity, 
+  CheckCircle2 
+} from "lucide-react";
 
-interface ClientStats {
-  profile: {
-    requests?: any[];
-    activeJobs?: any[];
-    completedJobs?: any[];
-  };
-}
+export default function StatCard() {
+  const storeToken = useAuthStore((state: any) => state.token);
+  const [token, setToken] = useState<string | null>(null);
+  
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    ongoing: 0,
+    completed: 0
+  });
+  
+  const [loading, setLoading] = useState(true);
 
-export default function StatsCard() {
-  const user = useAuthStore((state) => state.user);
-  const [clientData, setClientData] = useState<ClientStats | null>(null);
-
+  // 1. Hydrate Token
   useEffect(() => {
-    if (!user?.token) return;
+    if (typeof window !== "undefined") {
+      setToken(storeToken || localStorage.getItem("token"));
+    }
+  }, [storeToken]);
 
-    const loadClient = async () => {
+  // 2. Fetch Data
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!token) return;
+
       try {
-        const data = await getClientProfile(user.token!);
-        setClientData(data);
+        const allJobs = await getClientRequests(token);
+
+        // ✅ FIX: Only check for DB statuses ('accepted'), not UI labels ('ongoing')
+        const pendingCount = allJobs.filter(job => job.status === "pending").length;
+        
+        // In your DB, active jobs are "accepted". We map this to the "Ongoing" stat.
+        const activeCount = allJobs.filter(job => job.status === "accepted").length;
+        
+        const completedCount = allJobs.filter(job => job.status === "completed").length;
+
+        setStats({
+          total: allJobs.length,
+          pending: pendingCount,
+          ongoing: activeCount,
+          completed: completedCount
+        });
+
       } catch (err) {
-        console.error("Error fetching client profile:", err);
+        console.error("Error fetching stats:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    loadClient();
-  }, [user?.token]);
+    if (token) {
+        fetchStats();
+    } else {
+        const timer = setTimeout(() => setLoading(false), 1000);
+        return () => clearTimeout(timer);
+    }
+  }, [token]);
 
-  if (!clientData?.profile) {
+  if (loading) {
     return (
-      <div className="flex justify-center p-4">
-        <div className="w-6 h-6 border-2 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+         {[1,2,3,4].map((i) => (
+             <div key={i} className="h-32 bg-white rounded-2xl border border-slate-100 shadow-sm animate-pulse" />
+         ))}
       </div>
     );
   }
 
-  // ... rest of your component remains the same ...
-  const { requests = [], activeJobs = [], completedJobs = [] } = clientData.profile;
-
-  const allRequests = requests.length + activeJobs.length + completedJobs.length;
-  const pending = requests.filter((r: any) => r.status === "pending").length;
-  const ongoing = activeJobs.length;
-  const completed = completedJobs.length;
-
-  const stats = [
-    { title: "All Requests", value: allRequests, icon: <FaTasks size={24} className="text-blue-500" /> },
-    { title: "Pending", value: pending, icon: <FaClock size={24} className="text-yellow-500" /> },
-    { title: "Ongoing", value: ongoing, icon: <FaRunning size={24} className="text-blue-400" /> },
-    { title: "Completed", value: completed, icon: <FaCheckCircle size={24} className="text-green-500" /> },
+  const statItems = [
+    { 
+      title: "All Jobs", 
+      value: stats.total, 
+      icon: <LayoutDashboard size={24} />, 
+      bg: "bg-blue-50", 
+      color: "text-blue-600" 
+    },
+    { 
+      title: "Pending", 
+      value: stats.pending, 
+      icon: <Clock size={24} />, 
+      bg: "bg-yellow-50", 
+      color: "text-yellow-600" 
+    },
+    { 
+      title: "Ongoing", 
+      value: stats.ongoing, 
+      icon: <Activity size={24} />, 
+      bg: "bg-purple-50", 
+      color: "text-purple-600" 
+    },
+    { 
+      title: "Completed", 
+      value: stats.completed, 
+      icon: <CheckCircle2 size={24} />, 
+      bg: "bg-green-50", 
+      color: "text-green-600" 
+    },
   ];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {stats.map((stat, i) => (
-        <div key={i} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center justify-between">
+      {statItems.map((stat, i) => (
+        <div key={i} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex items-center justify-between transition-transform hover:scale-[1.02] duration-200">
           <div>
-            <p className="text-sm font-medium text-slate-500 mb-1">{stat.title}</p>
-            <h3 className="text-2xl font-black text-slate-800">{stat.value}</h3>
+            <p className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">{stat.title}</p>
+            <h3 className="text-3xl font-black text-slate-800">{stat.value}</h3>
           </div>
-          <div className="p-3 bg-slate-50 rounded-xl">{stat.icon}</div>
+          <div className={`p-4 rounded-xl ${stat.bg} ${stat.color}`}>
+            {stat.icon}
+          </div>
         </div>
       ))}
     </div>

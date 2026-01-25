@@ -5,78 +5,78 @@ import { useAuthStore } from "@/store/authStore";
 import { getWorkerActiveJobs, updateRequestStatus } from "@/services/jobRequestHelper"; 
 import { FiBriefcase } from "react-icons/fi";
 import { toast } from "sonner";
-import { Loader2, CheckCircle, MapPin, Phone, Calendar } from "lucide-react";
+import { Loader2, CheckCircle, Phone, Calendar } from "lucide-react";
 import { JobRequest } from "@/types/request";
 import { format } from "date-fns";
 
 export default function ActiveJobs() {
-  const user = useAuthStore((state: any) => state.user);
-  const token = useAuthStore((state: any) => state.token) || localStorage.getItem("token");
+  // 1. Get Store Data
+  const storeToken = useAuthStore((state: any) => state.token);
+  // FIX: Get the trigger function instead of the list
+  const triggerRefresh = useAuthStore((state: any) => state.triggerRefresh);
 
-  // ✅ 1. Get Access to Completed Jobs Store
-  const completedJobs = useAuthStore((state: any) => state.completedJobs) || [];
-  const setCompletedJobs = useAuthStore((state: any) => state.setCompletedJobs);
-
+  // 2. Local State
+  const [token, setToken] = useState<string | null>(null);
   const [activeJobs, setActiveJobs] = useState<JobRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  // ✅ HELPER: Finds the image wherever it is hiding
-  const getClientImage = (client: any) => {
-    if (!client) return "/images/avatar.avif";
-    if (client.profilePic && client.profilePic !== "") return client.profilePic;
-    if (client.profile?.profilePic && client.profile.profilePic !== "") return client.profile.profilePic;
-    return "/images/avatar.avif";
-  };
+  // Hydrate Token
+  useEffect(() => {
+    const localToken = localStorage.getItem("token");
+    setToken(storeToken || localToken);
+  }, [storeToken]);
 
+  // Fetch Jobs
   const fetchJobs = async () => {
-    if (!token) {
-        setLoading(false); 
-        return;
-    }
+    if (!token) return;
     try {
       const jobs = await getWorkerActiveJobs(token);
       setActiveJobs(jobs);
     } catch (error) {
-      console.error("❌ API Fetch Failed:", error);
-      toast.error("Could not load active jobs");
+      console.error("Fetch failed", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchJobs();
+    if (token) fetchJobs();
+    else {
+      const timer = setTimeout(() => setLoading(false), 500);
+      return () => clearTimeout(timer);
+    }
   }, [token]);
 
-  useEffect(() => {
-    if (modalOpen) fetchJobs();
-  }, [modalOpen]);
+  // Re-fetch when modal opens
+  useEffect(() => { if (modalOpen) fetchJobs(); }, [modalOpen]);
 
-  // ✅ 2. HANDLE COMPLETION (Updated Logic)
+  // Helper: Get Client Image
+  const getClientImage = (client: any) => {
+    if (!client) return "/images/avatar.avif";
+    if (client.profilePic) return client.profilePic;
+    if (client.profile?.profilePic) return client.profile.profilePic;
+    return "/images/avatar.avif";
+  };
+
+  // ✅ HANDLER: Mark Job as Completed
   const handleCompleteJob = async (jobId: string) => {
     setActionLoading(jobId);
     try {
-      // A. Call Backend
+      // 1. Update Backend
       await updateRequestStatus(jobId, "completed", token!); 
       
-      // B. Find the job we just finished
-      const finishedJob = activeJobs.find(job => job._id === jobId);
-
-      if (finishedJob) {
-        // C. INSTANTLY update Global Store for "Completed Jobs"
-        // This triggers the counter in CompletedJobs.tsx to jump up immediately!
-        if (setCompletedJobs) {
-            const updatedList = [...completedJobs, { ...finishedJob, status: "completed" }];
-            setCompletedJobs(updatedList);
-        }
+      // 2. Update Local UI (Remove the card immediately)
+      setActiveJobs((prev) => prev.filter((job) => job._id !== jobId));
+      
+      // 3. ✅ FIX: Trigger the 'CompletedJobs' component to refresh itself
+      // We do NOT update a list in the store anymore. We just signal a refresh.
+      if (triggerRefresh) {
+        triggerRefresh();
       }
 
-      toast.success("Job marked as completed! 🎉");
-      
-      // D. Remove from "Active" list locally
-      setActiveJobs((prev) => prev.filter((job) => job._id !== jobId));
+      toast.success("Job completed! 🎉");
       
       if (activeJobs.length <= 1) setModalOpen(false);
 
@@ -135,7 +135,6 @@ export default function ActiveJobs() {
                 <div className="text-center py-10">
                   <FiBriefcase className="w-12 h-12 text-gray-200 mx-auto mb-3" />
                   <p className="text-gray-500 font-medium">No active jobs right now.</p>
-                  <p className="text-xs text-gray-400">Accept requests to see them here.</p>
                 </div>
               ) : (
                 activeJobs.map((job) => (

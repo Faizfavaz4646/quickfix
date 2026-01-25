@@ -1,119 +1,165 @@
 "use client";
 
-import { useAuthStore } from "@/store/authStore";
-import { JobRequest } from "@/types/request";
 import { useEffect, useState } from "react";
-import { getWorkerRequests, updateRequestStatus } from "../../services/jobRequestHelper";
-import { CheckCircle, XCircle, Clock, Loader2, AlertCircle } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import { getWorkerRequests, updateRequestStatus } from "@/services/jobRequestHelper";
+import { JobRequest } from "@/types/request";
+import { CheckCircle, XCircle, Clock, Loader2, BellRing, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
 export default function NewRequests() {
-  // 1. Get hasHydrated to prevent race conditions
-  const { user, hasHydrated } = useAuthStore();
+  const storeToken = useAuthStore((state: any) => state.token);
   
-  // Safe token access
-  const token = (user as any)?.token || (useAuthStore.getState() as any).token;
-
+  // Local State
+  const [token, setToken] = useState<string | null>(null);
   const [requests, setRequests] = useState<JobRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
+  // 1. Safe Hydration
   useEffect(() => {
-    // 2. Only fetch if store is hydrated AND we have a token
-    if (hasHydrated && token) {
-      fetchRequests();
-    } else if (hasHydrated && !token) {
-      setLoading(false); // Stop loading if no user is logged in
-    }
-  }, [hasHydrated, token]);
+    setMounted(true);
+    const localToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    setToken(storeToken || localToken);
+  }, [storeToken]);
 
-  const fetchRequests = async () => {
-    setLoading(true);
-    try {
-      const data = await getWorkerRequests(token);
-      console.log("✅ [COMPONENT] Data Received:", data);
-      setRequests(data);
-    } catch (err) {
-      console.error("❌ [COMPONENT] Error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 2. Fetch Data
+  useEffect(() => {
+    if (!mounted) return;
+    
+    const fetchData = async () => {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-  const handleStatusUpdate = async (requestId: string, status: "accepted" | "rejected") => {
+      try {
+        // Fetch from API
+        const data = await getWorkerRequests(token);
+        
+        // 🛡️ SAFETY: Filter specifically for 'pending' requests.
+        // This ensures the widget is correct even if the API returns history.
+        const pendingRequests = Array.isArray(data) 
+          ? data.filter(r => r.status === 'pending') 
+          : [];
+          
+        setRequests(pendingRequests);
+      } catch (error) {
+        console.error("Failed to load new requests");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [token, mounted]);
+
+  // 3. Handle Actions
+  const handleAction = async (id: string, status: "accepted" | "rejected") => {
     if (!token) return;
-    setActionLoading(requestId);
-    
-    const success = await updateRequestStatus(requestId, status, token);
-    
-    if (success) {
-      toast.success(`Request ${status} successfully`);
-      setRequests((prev) => prev.filter((r) => r._id !== requestId));
+    setActionLoading(id);
+
+    try {
+      const success = await updateRequestStatus(id, status, token);
+      if (success) {
+        toast.success(status === "accepted" ? "Job Accepted! 🎉" : "Job Declined");
+        // Remove from list immediately
+        setRequests((prev) => prev.filter((r) => r._id !== id));
+        
+        // Optional: Trigger a global refresh if you have that setup
+        // useAuthStore.getState().triggerRefresh(); 
+      }
+    } finally {
+      setActionLoading(null);
     }
-    setActionLoading(null);
   };
 
-  // 3. Show loading state while waiting for hydration
-  if (!hasHydrated || loading) {
+  // Loading State
+  if (!mounted || loading) {
     return (
-      <div className="w-full h-64 rounded-xl p-4 mt-4 bg-white border border-gray-100 flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+      <div className="w-full h-80 bg-white border border-gray-100 rounded-xl p-4 flex flex-col gap-3 animate-pulse">
+        <div className="h-8 w-1/3 bg-gray-100 rounded mb-2"></div>
+        <div className="flex-1 bg-gray-50 rounded-lg"></div>
+        <div className="flex-1 bg-gray-50 rounded-lg"></div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-[350px] bg-white border border-gray-100 rounded-xl p-5 mt-4 hover:shadow-md transition-shadow duration-300 flex flex-col">
-      <div className="flex items-center justify-between mb-4">
+    <div className="w-full bg-white border border-gray-100 rounded-xl p-5 mt-4 hover:shadow-lg transition-all duration-300 flex flex-col h-[420px]">
+      
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 border-b border-gray-50 pb-3">
         <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+            <BellRing size={18} />
+          </div>
           <h3 className="font-bold text-lg text-gray-800">New Requests</h3>
-          <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">
-            {requests.length}
-          </span>
         </div>
-        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+        {requests.length > 0 && (
+          <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+            {requests.length} NEW
+          </span>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-200">
+      {/* List */}
+      <div className="flex-1 overflow-y-auto pr-1 space-y-3 scrollbar-thin scrollbar-thumb-gray-200">
         {requests.length > 0 ? (
           requests.map((req) => (
             <div
               key={req._id}
-              className="group border border-gray-100 p-4 rounded-xl bg-gray-50/50 hover:bg-white hover:border-blue-200 hover:shadow-sm transition-all duration-200"
+              className="border border-gray-100 p-4 rounded-xl bg-white shadow-sm hover:border-blue-300 transition-all"
             >
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs uppercase">
-                    {req.clientId?.name?.[0] || "C"}
-                  </div>
+              {/* Top Row: Client Info */}
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={req.clientId?.profilePic || "/images/avatar.avif"}
+                    alt="Client"
+                    className="w-9 h-9 rounded-full object-cover border border-gray-100 bg-gray-50"
+                    onError={(e) => { (e.target as HTMLImageElement).src = "/images/avatar.avif"; }}
+                  />
                   <div>
-                    <p className="text-sm font-bold text-gray-800">{req.clientId?.name || "Client"}</p>
-                    <p className="text-[10px] text-gray-500 flex items-center gap-1">
-                      <Clock size={10} />
-                      {req.createdAt ? formatDistanceToNow(new Date(req.createdAt), { addSuffix: true }) : "Recent"}
+                    <p className="text-sm font-bold text-gray-800 leading-tight">
+                        {req.clientId?.name || "Client"}
                     </p>
+                    <div className="flex items-center gap-1 text-[10px] text-gray-400 font-medium mt-0.5">
+                      <Clock size={10} />
+                      {req.createdAt ? formatDistanceToNow(new Date(req.createdAt), { addSuffix: true }) : "Just now"}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                {req.description || "No description provided."}
-              </p>
+              {/* Description */}
+              <div className="mb-4">
+                 <h4 className="text-xs font-bold text-blue-600 uppercase mb-1">{req.title}</h4>
+                 <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+                    {req.description || "No description provided."}
+                 </p>
+                 <div className="mt-2 flex items-center gap-1 text-xs text-gray-400">
+                    <MapPin size={12} />
+                    <span className="truncate max-w-[200px]">{req.address}</span>
+                 </div>
+              </div>
 
-              <div className="flex items-center gap-2">
+              {/* Actions */}
+              <div className="flex gap-2">
                 <button
-                  onClick={() => handleStatusUpdate(req._id, "accepted")}
+                  onClick={() => handleAction(req._id, "accepted")}
                   disabled={actionLoading === req._id}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-900 hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition-all shadow-md disabled:opacity-70"
                 >
                   {actionLoading === req._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
                   Accept
                 </button>
                 <button
-                  onClick={() => handleStatusUpdate(req._id, "rejected")}
+                  onClick={() => handleAction(req._id, "rejected")}
                   disabled={actionLoading === req._id}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-xs font-bold rounded-lg transition-all disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-xs font-bold rounded-lg transition-all disabled:opacity-70"
                 >
                   <XCircle className="w-3.5 h-3.5" /> Decline
                 </button>
@@ -121,12 +167,12 @@ export default function NewRequests() {
             </div>
           ))
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="bg-gray-50 p-4 rounded-full mb-3">
-              <Clock className="w-6 h-6 text-gray-300" />
+          <div className="flex flex-col items-center justify-center h-full text-center py-10 opacity-70">
+            <div className="bg-gray-50 p-3 rounded-full mb-3">
+              <CheckCircle className="w-8 h-8 text-green-500/50" />
             </div>
-            <p className="text-sm font-medium text-gray-500">No new requests</p>
-            <p className="text-xs text-gray-400">Wait for clients to hire you</p>
+            <p className="text-sm font-bold text-gray-600">All caught up!</p>
+            <p className="text-xs text-gray-400 mt-1">No pending requests at the moment.</p>
           </div>
         )}
       </div>

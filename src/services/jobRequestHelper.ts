@@ -94,3 +94,14 @@ export const getWorkerActiveJobs = async (token: string): Promise<JobRequest[]> 
     return [];
   }
 };
+export const getWorkerCompletedJobs = async (token: string) => {
+  try {
+    const { data } = await axios.get(`${API_URL}/job-requests/worker/completed`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return data;
+  } catch (error) {
+    console.error("Fetch completed jobs error:", error);
+    return [];
+  }
+};

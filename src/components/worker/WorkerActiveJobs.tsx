@@ -10,37 +10,39 @@ import { JobRequest } from "@/types/request";
 import { format } from "date-fns";
 
 export default function ActiveJobs() {
-  // ✅ FIX: Robust Token Retrieval
   const user = useAuthStore((state: any) => state.user);
   const token = useAuthStore((state: any) => state.token) || localStorage.getItem("token");
+
+  // ✅ 1. Get Access to Completed Jobs Store
+  const completedJobs = useAuthStore((state: any) => state.completedJobs) || [];
+  const setCompletedJobs = useAuthStore((state: any) => state.setCompletedJobs);
 
   const [activeJobs, setActiveJobs] = useState<JobRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  // 1. Fetch Real Data from DB
+  // ✅ HELPER: Finds the image wherever it is hiding
+  const getClientImage = (client: any) => {
+    if (!client) return "/images/avatar.avif";
+    if (client.profilePic && client.profilePic !== "") return client.profilePic;
+    if (client.profile?.profilePic && client.profile.profilePic !== "") return client.profile.profilePic;
+    return "/images/avatar.avif";
+  };
+
   const fetchJobs = async () => {
-    console.group("🔍 Debugging Active Jobs Fetch");
-    
     if (!token) {
-        console.warn("⚠️ Still no token found! Check Login.");
-        console.groupEnd();
         setLoading(false); 
         return;
     }
-    console.log("✅ Token found:", token.substring(0, 10) + "...");
-
     try {
       const jobs = await getWorkerActiveJobs(token);
-      console.log(`📊 Total Active Jobs: ${jobs.length}`);
       setActiveJobs(jobs);
     } catch (error) {
       console.error("❌ API Fetch Failed:", error);
       toast.error("Could not load active jobs");
     } finally {
       setLoading(false);
-      console.groupEnd();
     }
   };
 
@@ -52,15 +54,34 @@ export default function ActiveJobs() {
     if (modalOpen) fetchJobs();
   }, [modalOpen]);
 
-  // 2. Handle Completion
+  // ✅ 2. HANDLE COMPLETION (Updated Logic)
   const handleCompleteJob = async (jobId: string) => {
     setActionLoading(jobId);
     try {
-      await updateRequestStatus(jobId, "completed", token!); // token! because we know it exists here
+      // A. Call Backend
+      await updateRequestStatus(jobId, "completed", token!); 
+      
+      // B. Find the job we just finished
+      const finishedJob = activeJobs.find(job => job._id === jobId);
+
+      if (finishedJob) {
+        // C. INSTANTLY update Global Store for "Completed Jobs"
+        // This triggers the counter in CompletedJobs.tsx to jump up immediately!
+        if (setCompletedJobs) {
+            const updatedList = [...completedJobs, { ...finishedJob, status: "completed" }];
+            setCompletedJobs(updatedList);
+        }
+      }
+
       toast.success("Job marked as completed! 🎉");
+      
+      // D. Remove from "Active" list locally
       setActiveJobs((prev) => prev.filter((job) => job._id !== jobId));
+      
       if (activeJobs.length <= 1) setModalOpen(false);
+
     } catch (error) {
+      console.error(error);
       toast.error("Failed to update status");
     } finally {
       setActionLoading(null);
@@ -121,9 +142,10 @@ export default function ActiveJobs() {
                   <div key={job._id} className="border border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-all bg-white shadow-sm">
                     <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-50">
                         <img 
-                           src={job.clientId?.profilePic || "/images/avatar.avif"} 
-                           className="w-10 h-10 rounded-full object-cover bg-gray-100" 
+                           src={getClientImage(job.clientId)} 
+                           className="w-10 h-10 rounded-full object-cover bg-gray-100 border border-gray-200" 
                            alt="Client" 
+                           onError={(e) => { (e.target as HTMLImageElement).src = "/images/avatar.avif"; }}
                         />
                         <div>
                             <p className="font-bold text-gray-800">{job.clientId?.name || "Client"}</p>

@@ -8,44 +8,21 @@ const api = axios.create({ baseURL: API_URL });
 
 // --- Helper: Robust Token Finder (Updated for your nesting) ---
 const getAuthToken = () => {
-  // 1. Try Zustand Memory (Fastest)
   const state = useAuthStore.getState() as any;
   if (state.token) return state.token;
-  if (state.user?.token) return state.user.token; // Check inside user object
+  if (state.user?.token) return state.user.token;
 
-  // 2. Try LocalStorage for "quickfix-user"
   if (typeof window !== "undefined") {
     const quickFixData = localStorage.getItem("quickfix-user");
     if (quickFixData) {
       try {
         const parsed = JSON.parse(quickFixData);
-        
-        // ✅ CORRECT PATH: Check state.user.token (matches your screenshot)
-        if (parsed.state?.user?.token) {
-          return parsed.state.user.token;
-        }
-
-        // Fallback: Check state.token (older structure)
-        if (parsed.state?.token) {
-          return parsed.state.token;
-        }
-      } catch (e) {
-        console.warn("Failed to parse quickfix-user JSON", e);
-      }
-    }
-
-    // 3. Fallbacks for other common keys
-    const rawToken = localStorage.getItem("token") || localStorage.getItem("accessToken");
-    if (rawToken) return rawToken;
-
-    const authStorage = localStorage.getItem("auth-storage");
-    if (authStorage) {
-      try {
-        const parsed = JSON.parse(authStorage);
-        if (parsed.state?.token) return parsed.state.token;
         if (parsed.state?.user?.token) return parsed.state.user.token;
+        if (parsed.state?.token) return parsed.state.token;
       } catch (e) {}
     }
+    const rawToken = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    if (rawToken) return rawToken;
   }
   return null;
 };
@@ -58,7 +35,8 @@ export async function getClientProfile(token: string) {
     const { data } = await api.get("/client/profile", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return { profile: data }; 
+    // ✅ FIX: Backend already returns { profile: ... }, so just return data
+    return data; 
   } catch (err) {
     console.error("Client profile fetch failed:", err);
     return null;
@@ -92,12 +70,18 @@ export async function submitRatingAndReview(
   workerId: string,
   jobId: string,
   rating: number,
-  review: string
+  review: string // We accept "review" as the argument name...
 ) {
   try {
+    // ✅ FIX: Change the URL to /reviews (standard) and map 'review' to 'comment'
     const { data } = await api.post(
-      "/worker/rate", 
-      { workerId, jobId, rating, review },
+      "/reviews", 
+      { 
+        workerId, 
+        jobId, 
+        rating, 
+        comment: review // 👈 IMPORTANT: Backend expects "comment", not "review"
+      },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return { success: true, data };

@@ -36,8 +36,7 @@ export default function Sidebar({ notifications = [] }: SidebarProps) {
 
   const menu = [
     { key: "dashboard", label: "Dashboard", icon: <MdDashboard size={22} />, path: "/client/clientdashboard" },
-    { key: "jobs", label: "Jobs", icon: <FaBriefcase size={20} />, path: "/client/clientdashboard/jobs" },
-    { key: "requests", label: "Requests", icon: <FaListAlt size={20} />, path: "/client/clientdashboard/requests" },
+    { key: "requests", label: "Requests", icon: <FaListAlt size={20} />, path: "/client/requests" },
     { key: "notifications", label: "Notifications", icon: <FaBell size={20} />, path: "/client/clientdashboard/notifications", count: unreadCount },
     { key: "payments", label: "Payments", icon: <FaWallet size={20} />, path: "/client/clientdashboard/payments" },
     { key: "settings", label: "Settings", icon: <FaCog size={20} />, path: "/client/clientdashboard/settings" },

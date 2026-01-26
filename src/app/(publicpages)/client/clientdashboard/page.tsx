@@ -55,7 +55,7 @@ export default function DashboardPage() {
         ...(data.completedJobs?.map((j: any) => ({ ...j, status: "completed" })) || []),
       ];
       
-      console.log("✅ [DEBUG] Final Processed Jobs:", allJobs.length);
+      console.log(" Final Processed Jobs:", allJobs.length);
       setRequests(allJobs);
     } catch (err) {
       console.error("Dashboard fetch error:", err);

@@ -34,33 +34,37 @@ export default function RatingModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = async () => {
-    if (rating === 0) {
-      toast.error("Please select a star rating");
-      return;
-    }
+ // src/components/RatingModal.tsx
 
-    setLoading(true);
-    try {
-      await axios.post(`${API_URL}/reviews`, {
-        jobId,
-        workerId,
-        rating,
-        comment
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+const handleSubmit = async () => {
+  // ... check rating > 0 ...
 
-      toast.success("Thanks for your feedback!");
-      onSuccess(); // Refresh parent
-      onClose();   // Close modal
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to submit review");
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    await axios.post(`${API_URL}/reviews`, {
+      jobId,
+      workerId,
+      rating,
+      comment
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    toast.success("Thanks for your feedback!");
+    onSuccess(); 
+    onClose();   
+  } catch (error: any) {
+    console.error("Review Error:", error);
+    
+    // ✅ READ THE SERVER MESSAGE
+    // This will display: "You have already reviewed this job."
+    const serverMessage = error.response?.data?.message || "Failed to submit review";
+    toast.error(serverMessage);
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">

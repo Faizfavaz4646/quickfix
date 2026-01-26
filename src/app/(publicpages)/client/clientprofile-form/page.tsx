@@ -27,7 +27,6 @@ export default function ProfileForm() {
   const { user, token, updateUserProfile, hasHydrated } = useAuthStore(); 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Use a ref to prevent double-firing in strict mode
   const hasFetched = useRef(false);
 
   const [formData, setFormData] = useState<ClientProfileForm>({
@@ -48,17 +47,14 @@ export default function ProfileForm() {
 
   // --- FETCH DATA ---
   useEffect(() => {
-    // 1. Wait for Store Hydration
     if (!hasHydrated) return;
 
-    // 2. Prevent fetching if no token (Logged out)
     const authToken = token || (user as any)?.token;
     if (!authToken) {
       setFetching(false);
       return; 
     }
 
-    // 3. Prevent Infinite Loop: If we already fetched successfully, don't do it again
     if (hasFetched.current) {
         setFetching(false);
         return;
@@ -71,30 +67,33 @@ export default function ProfileForm() {
           headers: { Authorization: `Bearer ${authToken}` },
         });
 
-        if (data) {
-          // Update Form State
+        // ✅ FIX IS HERE: Check for nested 'profile' object
+        // The backend returns { profile: { ...data } }
+        const profileSource = data.profile || data; 
+
+        if (profileSource) {
+          // Update Form State with the correct source
           setFormData({
-            name: data.name || user?.name || "",
-            phone: data.phone || "",
-            gender: data.gender || "male",
-            state: data.state || "",
-            district: data.district || "",
-            city: data.city || "",
-            zip: data.zip || "",
-            profilePic: data.profilePic || "",
+            name: profileSource.name || user?.name || "",
+            phone: profileSource.phone || "",
+            gender: profileSource.gender || "male",
+            state: profileSource.state || "",
+            district: profileSource.district || "",
+            city: profileSource.city || "",
+            zip: profileSource.zip || "",
+            profilePic: profileSource.profilePic || "",
           });
 
-          if (data.profilePic) setPicPreview(data.profilePic);
+          if (profileSource.profilePic) setPicPreview(profileSource.profilePic);
           
           // Update Store
-          updateUserProfile(data, data.name);
+          updateUserProfile(profileSource, profileSource.name);
           
-          // MARK AS FETCHED to block future loops
           hasFetched.current = true;
         }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
-        // Fallback to existing user data
+        // Fallback to existing user data from store
         if (user) {
            setFormData({
             name: user.name || "",
@@ -114,11 +113,9 @@ export default function ProfileForm() {
 
     fetchProfileData();
 
-    // 💥 CRITICAL FIX: Removed 'user' and 'updateUserProfile' from dependencies
-    // This ensures it only runs when hydration finishes or token changes.
   }, [hasHydrated, token]); 
 
-  // --- Handlers (Unchanged) ---
+  // --- Handlers ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -155,11 +152,13 @@ export default function ProfileForm() {
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
 
-      if (data.profile) {
-        updateUserProfile(data.profile, formData.name);
-      }
+      // Handle response structure (it returns { profile: ... })
+      const updatedProfile = data.profile || data;
+      
+      updateUserProfile(updatedProfile, formData.name);
+      
       toast.success("Profile updated successfully");
-      router.push("/client/clientdashboard");
+      router.back(); // Or router.push("/client/clientdashboard") based on preference
     } catch (err) {
       console.error(err);
       toast.error("Failed to update profile.");

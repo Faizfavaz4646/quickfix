@@ -104,14 +104,24 @@ export interface Profile {
 }
 
 export interface User {
-  _id: string; // MongoDB ID
+  _id: string; 
   name: string;
   email?: string;
+  emailId?: string; // ✅ Added to match backend
   role: "client" | "worker" | "admin";
   token?: string;
   profile?: Profile;
+  
+  // ✅ Admin & Moderation Fields
+  status: "active" | "online" | "offline" | "blocked";
+  averageRating?: number; // ✅ Added for Stats
+  totalReviews?: number;  // ✅ Added for Stats
+
+  createdAt?: string; 
+  updatedAt?: string;
+  
+  // Locations & Visuals
   profession?: string;
-  status?: "active" | "online" | "offline" | "blocked";
   location?: string;
   profilePic?: string;
   state?: string;

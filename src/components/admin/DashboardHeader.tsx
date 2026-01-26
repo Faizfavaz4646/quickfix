@@ -3,38 +3,31 @@
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { FaUser, FaSignOutAlt } from "react-icons/fa";
-import { MdSettings } from "react-icons/md";
+import { User, Settings, LogOut, Search, Bell, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 export default function DashboardHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const logout = useAuthStore((state) => state.logout);
+  const { user, logout } = useAuthStore();
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const admin = typeof window !== "undefined" ? JSON.parse(sessionStorage.getItem("admin") || "{}") : {};
-  const adminEmail = admin?.email || "admin@example.com";
 
   const handleLogout = () => {
-    toast("Are you sure you want to logout?", {
+    toast("Confirm Logout", {
+      description: "Are you sure you want to end your session?",
       action: {
-        label: "Yes",
+        label: "Logout",
         onClick: () => {
           logout();
           setIsMenuOpen(false);
           router.push("/auth/login");
-          toast.success("You have been logged out.");
+          toast.success("Logged out successfully");
         },
       },
-      cancel: {
-        label: "No",
-        onClick: () => toast.dismiss(),
-      },
-      duration: 10000,
+      cancel: { label: "Cancel", onClick: () => {} },
     });
   };
 
-  // Close menu on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -46,80 +39,73 @@ export default function DashboardHeader() {
   }, [isMenuOpen]);
 
   return (
-    <header className="bg-white shadow-md px-6 py-8 sm:py-6 min-h-[150px] relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      {/* Heading */}
-      <h1 className="text-3xl font-bold text-gray-900 mt-8">Admin Dashboard</h1>
-
-      {/* Search */}
-      <div className="w-full sm:max-w-md">
+    <header className="sticky top-0 z-[70] bg-white/80 backdrop-blur-md border-b border-slate-100 px-8 py-4 flex items-center justify-between">
+      
+      {/* Left: Search Bar */}
+      <div className="hidden md:flex relative w-full max-w-md group">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
         <input
           type="text"
-          placeholder="Search..."
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 mt-8"
+          placeholder="Search for users, jobs, or reports..."
+          className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:bg-white focus:border-indigo-600 transition-all"
         />
       </div>
 
-      {/* Profile button */}
-      <div ref={menuRef} className="absolute top-6 right-6 sm:relative sm:top-0 sm:right-0 z-50">
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="w-12 h-12 bg-blue-600 text-white font-bold flex items-center justify-center rounded-full z-50 mt-8"
-        >
-          AD
+      {/* Right: Actions & Profile */}
+      <div className="flex items-center gap-3 ml-auto">
+        
+        {/* Notifications */}
+        <button className="p-2.5 text-slate-500 hover:bg-slate-50 rounded-xl transition-colors relative">
+          <Bell size={20} />
+          <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
         </button>
 
-        {isMenuOpen && (
-          <>
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 bg-black/10 z-40"
-              onClick={() => setIsMenuOpen(false)}
-            ></div>
+        <div className="h-8 w-[1px] bg-slate-100 mx-2 hidden sm:block"></div>
 
-            {/* Dropdown menu */}
-            <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-              {/* Email & Close Button */}
-              <div className="flex justify-between items-center p-2 border-b border-gray-200">
-                {/* Admin Email */}
-                <span className="text-blue-600 font-medium text-sm truncate">
-                  {adminEmail}
-                </span>
+        {/* Profile Dropdown */}
+        <div ref={menuRef} className="relative">
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="flex items-center gap-3 p-1.5 pr-3 hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-100"
+          >
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-indigo-100 uppercase">
+              {user?.name?.substring(0, 2) || "AD"}
+            </div>
+            <div className="hidden sm:block text-left">
+              <p className="text-xs font-black text-slate-900 leading-none">{user?.name || "Admin"}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Super Admin</p>
+            </div>
+            <ChevronDown size={14} className={`text-slate-400 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
+          </button>
 
-                {/* Close button */}
-                <button
-                  className="text-gray-500 hover:text-gray-800 font-bold"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  ×
-                </button>
+          {isMenuOpen && (
+            <div className="absolute right-0 mt-3 w-64 bg-white border border-slate-100 rounded-3xl shadow-2xl shadow-slate-200/60 p-2 animate-in fade-in zoom-in-95 duration-200">
+              <div className="px-4 py-3 border-b border-slate-50 mb-1">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Account</p>
+                <p className="text-sm font-bold text-slate-900 truncate mt-0.5">{user?.email || "admin@quickfix.com"}</p>
               </div>
 
-              <ul className="py-2">
-                <li>
-                  <button className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100">
-                    <FaUser className="mr-2" />
-                    Profile
-                  </button>
-                </li>
-                <li>
-                  <button className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100">
-                    <MdSettings className="mr-2" />
-                    Settings
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    <FaSignOutAlt className="mr-2" />
-                    Logout
-                  </button>
-                </li>
-              </ul>
+              <div className="space-y-1">
+                <button className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
+                  <User size={18} className="text-slate-400" />
+                  My Profile
+                </button>
+                <button className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
+                  <Settings size={18} className="text-slate-400" />
+                  Account Settings
+                </button>
+                <div className="h-[1px] bg-slate-50 my-1 mx-2"></div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                >
+                  <LogOut size={18} />
+                  Sign Out
+                </button>
+              </div>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
     </header>
   );

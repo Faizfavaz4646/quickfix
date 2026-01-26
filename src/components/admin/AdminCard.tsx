@@ -1,106 +1,125 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  fetchAllUsers,
-  fetchAllWorkers,
-  fetchAllClients,
-  fetchActiveJobs,
-  fetchClientSatisfaction,
-} from "@/services/adminService";
-
-import { FaUsers, FaUserTie } from "react-icons/fa";
-import { RiShoppingCartLine } from "react-icons/ri";
-import { MdOutlineStar } from "react-icons/md";
+import { fetchDashboardStats, fetchClientSatisfaction } from "@/services/adminService";
+import { Users, HardHat, Briefcase, Star, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 
 interface CardProps {
   title: string;
   value: string | number;
-  change?: string;
+  change: string;
+  isUp: boolean;
   icon: React.ReactNode;
-  iconBg: string;
+  color: string;
 }
 
-const StatCard = ({ title, value, change, icon, iconBg }: CardProps) => (
-  <div className="flex items-center justify-between p-6 bg-white rounded-lg shadow hover:shadow-lg transition mb-4">
-    <div>
-      <h3 className="text-sm text-gray-500">{title}</h3>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
-      {change && (
-        <p
-          className={`text-sm ${
-            change.startsWith("-") ? "text-red-500" : "text-green-600"
-          }`}
-        >
-          {change}
-        </p>
-      )}
+const StatCard = ({ title, value, change, isUp, icon, color }: CardProps) => (
+  <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group">
+    <div className="flex items-start justify-between">
+      <div className={`p-3 rounded-2xl ${color} bg-opacity-10 transition-colors group-hover:bg-opacity-20`}>
+        <div className={`${color.replace('bg-', 'text-')}`}>
+          {icon}
+        </div>
+      </div>
+      <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+        isUp ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
+      }`}>
+        {isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+        {change}
+      </div>
     </div>
-    <div className={`p-3 rounded-full ${iconBg} text-white text-xl`}>
-      {icon}
+    
+    <div className="mt-4">
+      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{title}</h3>
+      <div className="flex items-baseline gap-2 mt-1">
+        <p className="text-3xl font-black text-slate-900 tracking-tight">
+          {typeof value === 'number' ? value.toLocaleString() : value}
+        </p>
+        <span className="text-[10px] text-slate-400 font-medium">live sync</span>
+      </div>
     </div>
   </div>
 );
 
 export default function DashboardCards() {
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [totalWorkers, setTotalWorkers] = useState(0);
-  const [totalClients, setTotalClients] = useState(0);
-  const [activeJobs, setActiveJobs] = useState(0);
-  const [clientSatisfaction, setClientSatisfaction] = useState<number | null>(
-    null
-  );
+  const [stats, setStats] = useState({
+    users: 0,
+    posts: 0,
+    jobs: 0,
+    satisfaction: 0,
+    loading: true
+  });
 
   useEffect(() => {
     const loadData = async () => {
-      const users = await fetchAllUsers();
-      setTotalUsers(users.length);
+      try {
+        // 🔥 This calls http://localhost:5001/admin/stats
+        const [dashboardData, rating] = await Promise.all([
+          fetchDashboardStats(),
+          fetchClientSatisfaction()
+        ]);
 
-      const workers = await fetchAllWorkers();
-      setTotalWorkers(workers.length);
-
-      const clients = await fetchAllClients();
-      setTotalClients(clients.length);
-
-      const jobs = await fetchActiveJobs();
-      setActiveJobs(jobs.length);
-
-     const avgRating = await fetchClientSatisfaction();
-    setClientSatisfaction(avgRating);
+        setStats({
+          users: dashboardData?.users ?? 0,
+          posts: dashboardData?.posts ?? 0,
+          jobs: dashboardData?.jobs ?? 0,
+          satisfaction: rating ?? 4.5,
+          loading: false
+        });
+      } catch (error) {
+        console.error("Dashboard Stats loading error:", error);
+        setStats(prev => ({ ...prev, loading: false }));
+      }
     };
 
     loadData();
-  }, []); // ✅ Added dependency array
+  }, []);
+
+  if (stats.loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-40 bg-white rounded-[2rem] animate-pulse border border-slate-50 flex items-center justify-center">
+             <Loader2 className="animate-spin text-slate-200" size={24} />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col mt-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
       <StatCard
         title="Total Users"
-        value={totalUsers}
-        change="+12% from last month"
-        icon={<FaUsers />}
-        iconBg="bg-blue-500"
+        value={stats.users}
+        change="12%"
+        isUp={true}
+        icon={<Users size={22} />}
+        color="bg-indigo-600"
       />
       <StatCard
-        title="Total Workers"
-        value={totalWorkers}
-        change="+8% from last month"
-        icon={<FaUserTie />}
-        iconBg="bg-green-500"
+        title="Platform Posts"
+        value={stats.posts}
+        change="24%"
+        isUp={true}
+        icon={<HardHat size={22} />}
+        color="bg-blue-500"
       />
       <StatCard
-        title="Active Jobs"
-        value={activeJobs}
-        change="-3% from last month"
-        icon={<RiShoppingCartLine />}
-        iconBg="bg-purple-500"
+        title="Job Requests"
+        value={stats.jobs}
+        change="3%"
+        isUp={false}
+        icon={<Briefcase size={22} />}
+        color="bg-rose-500"
       />
       <StatCard
-        title="Client Satisfaction"
-        value={clientSatisfaction ? `${clientSatisfaction}/5` : "N/A"}
-        change="+5% from last month"
-        icon={<MdOutlineStar />}
-        iconBg="bg-yellow-500"
+        title="Avg Rating"
+        value={`${stats.satisfaction}/5`}
+        change="0.2"
+        isUp={true}
+        icon={<Star size={22} />}
+        color="bg-amber-500"
       />
     </div>
   );

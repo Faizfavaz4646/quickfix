@@ -8,7 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { searchWorkers } from "@/services/clientService"; 
 
-// Helper: render stars based on rating
+// Helper: Render stars based on numeric rating
 const renderStars = (rating: number) => {
   const fullStars = Math.floor(rating);
   const halfStar = rating - fullStars >= 0.5;
@@ -23,12 +23,6 @@ const renderStars = (rating: number) => {
       ))}
     </div>
   );
-};
-
-const getAverageRating = (worker: any) => {
-  const ratings = worker.ratings || [];
-  if (!ratings.length) return 0;
-  return ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length;
 };
 
 export default function FindWorker() {
@@ -56,7 +50,7 @@ export default function FindWorker() {
   return (
     <section className="relative w-full min-h-screen overflow-x-hidden pb-10">
       
-      {/* Back Home Button */}
+      {/* Navigation */}
       <Link 
         href="/" 
         className="absolute top-6 left-6 z-20 flex items-center gap-2 text-white bg-black/30 backdrop-blur-md px-4 py-2 rounded-full hover:bg-black/50 transition-all shadow-lg font-medium text-sm border border-white/10"
@@ -64,7 +58,7 @@ export default function FindWorker() {
         <FaArrowLeft /> Back Home
       </Link>
 
-      {/* Background Image */}
+      {/* Hero Background */}
       <Image
         src="/images/cleaning.jpg"
         alt="Worker background"
@@ -73,10 +67,9 @@ export default function FindWorker() {
         priority
       />
 
-      {/* Overlay Content */}
       <div className="absolute inset-0 flex flex-col items-center text-center px-4">
         
-        {/* Headings */}
+        {/* Title Section */}
         <div className="mb-8 mt-28 sm:mt-32 lg:mt-40">
           <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-white drop-shadow-lg leading-snug">
             <span className="text-blue-400">Find</span> Trusted Service{" "}
@@ -87,7 +80,7 @@ export default function FindWorker() {
           </p>
         </div>
 
-        {/* Search Box */}
+        {/* Search Bar */}
         <div className="bg-white/95 backdrop-blur-md shadow-2xl rounded-2xl w-full max-w-4xl p-2 sm:p-4 flex flex-col sm:flex-row gap-3 mb-8 border border-white/50">
           <div className="flex-1 relative">
             <select
@@ -125,7 +118,7 @@ export default function FindWorker() {
           </button>
         </div>
 
-        {/* Stats Row */}
+        {/* Trust Badges */}
         <div className="flex flex-wrap justify-center gap-6 text-white mb-10 text-sm font-medium">
           <div className="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm">
             <MdOutlineVerifiedUser size={18} className="text-blue-400" />
@@ -141,30 +134,32 @@ export default function FindWorker() {
           </div>
         </div>
 
-        {/* --- RESULTS SECTION --- */}
+        {/* --- RESULTS GRID --- */}
         {showResults && (
           <div className="w-full max-w-3xl space-y-4 pb-20">
             {searchResult.length > 0 ? (
               <div className="space-y-3">
                 {searchResult.map((worker, index) => {
-                  const rating = getAverageRating(worker);
                   
-                  // 1. Calculate Name
-                  const name = worker.userId?.name || worker.name || "Verified Worker";
-                  const jobsDone = worker.completedJobs?.length ?? 0;
+                  // Read backend calculated fields
+                  const averageRating = worker.averageRating || 0;
+                  const reviewCount = worker.totalReviews || 0;
+                  const profilePic = worker.finalProfilePic || "/images/avatar.avif";
+                  const name = worker.name || "Service Professional";
+                  const jobsDone = worker.jobsDone || 0;
 
                   return (
                     <Link
                       key={worker._id || index}
-                      href={`/client/workerprofile/${worker._id}`}
+                      href={`/client/workerprofile/${worker.userId}`} 
                       className="block group"
                     >
                       <div className="bg-white p-5 rounded-2xl shadow-lg border border-transparent hover:border-blue-400 hover:shadow-2xl transition-all duration-300 flex flex-col sm:flex-row items-center gap-5">
                         
-                        {/* 1. Left: Avatar */}
+                        {/* Avatar */}
                         <div className="relative w-16 h-16 shrink-0">
                           <Image
-                            src={worker.profilePic || "/images/avatar.avif"}
+                            src={profilePic}
                             alt={name}
                             fill
                             className="rounded-full object-cover border-2 border-slate-100 group-hover:border-blue-100 transition-colors"
@@ -172,18 +167,16 @@ export default function FindWorker() {
                           <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                         </div>
 
-                        {/* 2. Middle: Name & Ratings */}
+                        {/* Details */}
                         <div className="flex-1 text-center sm:text-left min-w-0">
-                          
-                          {/* FIX: Use {name} here, NOT {worker.name} */}
                           <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate">
                             {name}
                           </h3>
                           
                           <div className="flex items-center justify-center sm:justify-start gap-2 mt-1">
-                            {renderStars(rating)}
+                            {renderStars(averageRating)}
                             <span className="text-xs font-semibold text-slate-400">
-                              ({worker.ratings?.length || 0} reviews)
+                              ({reviewCount} reviews)
                             </span>
                           </div>
 
@@ -192,7 +185,7 @@ export default function FindWorker() {
                           </p>
                         </div>
 
-                        {/* 3. Right: Profession & Location */}
+                        {/* Badge */}
                         <div className="flex flex-col items-center sm:items-end gap-2 min-w-[120px]">
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wide rounded-full">
                             <FaBriefcase size={10} />

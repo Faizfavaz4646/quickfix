@@ -4,113 +4,108 @@ import { Post } from "@/types/post";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
 
-const POSTS_ENDPOINT = `${API_URL}/posts`;
+// ✅ Create a specialized instance for Posts
+const postApi = axios.create({
+  baseURL: `${API_URL}/posts`,
+});
 
-// --- Helper: Robust Token Finder (Same as clientService) ---
-const getAuthToken = () => {
-  // 1. Try Zustand Memory
+/**
+ *  Centralized Interceptor
+ * Automatically finds the token from Zustand or LocalStorage 
+ * and attaches it to every request header.
+ */
+postApi.interceptors.request.use((config) => {
+  // 1. Try to get token from active Zustand state
   const state = useAuthStore.getState() as any;
-  if (state.token) return state.token;
-  if (state.user?.token) return state.user.token;
+  let token = state.user?.token || state.token;
 
-  // 2. Try LocalStorage
-  if (typeof window !== "undefined") {
-    // Check "quickfix-user" key
-    const quickFixData = localStorage.getItem("quickfix-user");
-    if (quickFixData) {
+  // 2. Fallback: Check LocalStorage if the store hasn't hydrated yet
+  if (!token && typeof window !== "undefined") {
+    const storageData = localStorage.getItem("quickfix-user");
+    if (storageData) {
       try {
-        const parsed = JSON.parse(quickFixData);
-        if (parsed.state?.user?.token) return parsed.state.user.token;
-        if (parsed.state?.token) return parsed.state.token;
+        const parsed = JSON.parse(storageData);
+        token = parsed.state?.user?.token || parsed.state?.token;
       } catch (e) {
-        console.warn("Failed to parse quickfix-user JSON", e);
+        console.error("Auth storage parse error", e);
       }
     }
-
-    // Check standard keys
-    const rawToken = localStorage.getItem("token") || localStorage.getItem("accessToken");
-    if (rawToken) return rawToken;
-    
-    // Check "auth-storage"
-    const authStorage = localStorage.getItem("auth-storage");
-    if (authStorage) {
-      try {
-        const parsed = JSON.parse(authStorage);
-        if (parsed.state?.token) return parsed.state.token;
-        if (parsed.state?.user?.token) return parsed.state.user.token;
-      } catch (e) {}
-    }
   }
-  return null;
-};
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 // --- API Functions ---
 
-export const createPost = async (data: {
+export const getFeed = async (): Promise<Post[]> => {
+  try {
+    // Hits: GET http://localhost:5001/posts
+    const { data } = await postApi.get("/");
+    return data;
+  } catch (error: any) {
+    console.error("Fetch feed error:", error.response?.status);
+    // If feed is public, the 401 might be coming from a strict backend middleware
+    return [];
+  }
+};
+
+export const getMyPosts = async (): Promise<Post[]> => {
+  try {
+    const { data } = await postApi.get("/me");
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch personal posts", error);
+    return [];
+  }
+};
+
+export const createPost = async (postData: {
   title: string;
   content: string;
   images: string[];
   postType: "job" | "portfolio";
 }): Promise<Post | null> => {
   try {
-    const token = getAuthToken();
-    if (!token) throw new Error("No token found");
-
-    const response = await axios.post(POSTS_ENDPOINT, data, {
-      headers: { Authorization: `Bearer ${token}` }, // ✅ Token Added
-    });
-    
-    toast.success("Post created successfully!");
-    return response.data;
+    const { data } = await postApi.post("/", postData);
+    toast.success("Post published successfully!");
+    return data;
   } catch (error) {
-    console.error("Create post error:", error);
     toast.error("Failed to create post");
     return null;
   }
 };
 
-export const getFeed = async (): Promise<Post[]> => {
+export const updatePost = async (postId: string, contentData: { content: string }): Promise<boolean> => {
   try {
-    const token = getAuthToken();
-    const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-    
-    const response = await axios.get(POSTS_ENDPOINT, config);
-    return response.data;
+    await postApi.patch(`/${postId}`, contentData);
+    toast.success("Post updated");
+    return true;
   } catch (error) {
-    console.error("Fetch feed error:", error);
-    return [];
+    toast.error("Failed to update post");
+    return false;
   }
 };
 
 export const toggleLikePost = async (postId: string): Promise<Post | null> => {
   try {
-    const token = getAuthToken();
-    if (!token) throw new Error("No token found");
-
-    const response = await axios.patch(`${POSTS_ENDPOINT}/${postId}/like`, {}, {
-      headers: { Authorization: `Bearer ${token}` }, // ✅ Token Added
-    });
-    return response.data;
+    const { data } = await postApi.patch(`/${postId}/like`);
+    return data;
   } catch (error) {
-    console.error("Like error:", error);
+    console.error("Like action failed", error);
     return null;
   }
 };
 
 export const deletePost = async (postId: string): Promise<boolean> => {
   try {
-    const token = getAuthToken();
-    if (!token) throw new Error("No token found");
-
-    await axios.delete(`${POSTS_ENDPOINT}/${postId}`, {
-      headers: { Authorization: `Bearer ${token}` }, // ✅ Token Added
-    });
-    
-    toast.success("Post deleted");
+    await postApi.delete(`/${postId}`);
+    toast.success("Post removed");
     return true;
   } catch (error) {
-    console.error("Delete error:", error);
-    toast.error("Failed to delete post");
+    toast.error("Could not delete post");
     return false;
   }
 };

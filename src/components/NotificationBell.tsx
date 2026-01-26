@@ -81,23 +81,40 @@ export default function NotificationBell() {
   };
 
   const handleNotificationClick = async (notif: Notification) => {
-    // 1. Mark as read in backend
+    // 1. Mark as read in backend (Keep this same)
     if (!notif.isRead) {
       await markNotificationAsRead(notif._id);
-      
-      // Update local state
       setNotifications((prev) =>
         prev.map((n) => (n._id === notif._id ? { ...n, isRead: true } : n))
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     }
 
-    // 2. Navigate based on type
     setIsOpen(false);
+
+    // 2. ✅ NEW REDIRECT LOGIC
     if (notif.type === "job_request" || notif.type === "job_update") {
-       // Logic to redirect depending on if user is worker or client
-       if (user?.role === 'worker') router.push(`/worker/requests`);
-       else router.push(`/client/previous-requests`); 
+       
+       // A. If user is a WORKER
+       if (user?.role === 'worker') {
+          router.push(`/worker/requests`); // Or /worker/pending
+       } 
+       
+       // B. If user is a CLIENT (Redirect to your new page)
+       else {
+          const msg = notif.message.toLowerCase();
+          
+          if (msg.includes("accepted")) {
+             // Go to Ongoing tab
+             router.push("/client/requests?tab=ongoing");
+          } else if (msg.includes("completed")) {
+             // Go to History tab (to rate the worker)
+             router.push("/client/requests?tab=completed");
+          } else {
+             // Default to the main list
+             router.push("/client/requests");
+          }
+       } 
     }
   };
 

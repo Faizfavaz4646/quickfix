@@ -5,33 +5,24 @@ import { useAuthStore } from "@/store/authStore";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { FaComments, FaPaperPlane, FaTimes, FaCalendarAlt, FaMapMarkerAlt } from "react-icons/fa";
+import { FaVideo, FaPaperPlane, FaTimes, FaCalendarAlt, FaMapMarkerAlt } from "react-icons/fa"; // Changed FaComments to FaVideo
 import { motion, AnimatePresence } from "framer-motion";
-import ChatBox from "@/components/ChatBox";
 
 // ✅ Helper to robustly fix image URLs
 const getImageUrl = (path?: string) => {
-  if (!path) return "/images/avatar.avif"; // Default fallback
-  
-  // If it's already a full URL (Cloudinary/Google), use it as is
-  if (path.startsWith("http") || path.startsWith("https")) {
-    return path;
-  }
-  
-  // If it's a local file, prepend backend URL
+  if (!path) return "/images/avatar.avif";
+  if (path.startsWith("http") || path.startsWith("https")) return path;
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
   return `http://localhost:5001/${cleanPath}`;
 };
 
 export default function RequestDialog({ workerId, workerName, workerPic }: { workerId: string, workerName?: string, workerPic?: string }) {
   const [open, setOpen] = useState(false);
-  const [showChat, setShowChat] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { user } = useAuthStore();
   const router = useRouter();
 
-  // Initialize form with user data if available
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -42,14 +33,26 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
     state: user?.profile?.state || ""
   });
 
-  // Process the image URL once
   const fixedWorkerPic = getImageUrl(workerPic);
 
-  const workerObj = {
-    _id: workerId,
-    name: workerName || "Worker",
-    profilePic: fixedWorkerPic, 
+  // --- 🎥 VIDEO CALL LOGIC ---
+  const handleVideoCall = () => {
+    if (!user) {
+      toast.info("Please login to video call.");
+      router.push("/auth/login");
+      return;
+    }
+
+    // 1. Create a Deterministic Room ID
+    // Logic: Sort IDs so "Client+Worker" is always the same string as "Worker+Client"
+    // This ensures they always land in the same room.
+    const ids = [user._id, workerId].sort(); 
+    const roomId = `call-${ids[0]}-${ids[1]}`;
+
+    // 2. Redirect to the Call Page
+    router.push(`/call/${roomId}`);
   };
+  // ---------------------------
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -57,8 +60,6 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
 
   const handleSendRequest = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // 1. Auth & Role Checks
     if (!user) {
       toast.info("Please login first!");
       router.push("/auth/login");
@@ -68,8 +69,6 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
       toast.error("Only clients can send requests!");
       return;
     }
-
-    // 2. Date Validation
     if (new Date(formData.scheduledDate) <= new Date()) {
         toast.error("Scheduled date must be in the future");
         return;
@@ -77,7 +76,6 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
 
     setLoading(true);
     try {
-      // 3. Send Request
       await sendRequestToWorker(
           workerId.toString(),
           user._id.toString(),
@@ -94,14 +92,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
 
       toast.success("Request sent successfully! Worker notified.");
       setOpen(false);
-      
-      // 4. Reset specific form fields
-      setFormData(prev => ({
-          ...prev, 
-          title: "", 
-          description: "", 
-          scheduledDate: ""
-      }));
+      setFormData(prev => ({ ...prev, title: "", description: "", scheduledDate: "" }));
     } catch (err: any) {
       console.error("Error sending request:", err);
       toast.error(err.response?.data?.message || "Failed to send request.");
@@ -110,57 +101,37 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
     }
   };
 
-  const handleOpenClick = () => {
-    if (!user) {
-      toast.info("Please login to request services.");
-      router.push("/auth/login");
-    } else if (user.role !== "client") {
-      toast.error("Only client accounts can hire workers.");
-    } else {
-      setOpen(true);
-    }
-  };
-
   return (
     <div className="relative flex flex-col sm:flex-row gap-3 w-full">
       
       {/* REQUEST BUTTON */}
       <button
-        onClick={handleOpenClick}
+        onClick={() => user ? setOpen(true) : router.push("/auth/login")}
         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-200 active:scale-[0.98] flex items-center justify-center gap-2"
       >
         <span>Request Service</span>
         <FaPaperPlane className="text-sm opacity-80" />
       </button>
 
-      {/* CHAT BUTTON */}
+      {/* 🎥 VIDEO CALL BUTTON */}
       <button
-        onClick={() => {
-           if (!user) {
-             toast.info("Please login to chat.");
-             router.push("/auth/login");
-             return;
-           }
-           setShowChat(true);
-        }}
-        className="px-6 py-3.5 rounded-xl font-bold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-all flex items-center justify-center gap-2"
+        onClick={handleVideoCall}
+        className="px-6 py-3.5 rounded-xl font-bold bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-all flex items-center justify-center gap-2"
       >
-        <FaComments size={20} />
-        Chat
+        <FaVideo size={20} />
+        Video Call
       </button>
 
       {/* MODAL */}
       <AnimatePresence>
         {open && (
           <>
-            {/* Backdrop */}
             <motion.div 
                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
                onClick={() => setOpen(false)}
             />
             
-            {/* Modal Content */}
             <motion.div
               key="requestModal"
               initial={{ opacity: 0, scale: 0.95, x: "-50%", y: "-45%" }} 
@@ -172,8 +143,6 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
               {/* Header */}
               <div className="flex justify-between items-start mb-5 sticky top-0 bg-white z-10 pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-3">
-                  
-                  {/* Worker Image */}
                   <img 
                     src={fixedWorkerPic} 
                     alt={workerName} 
@@ -205,7 +174,6 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
                     onChange={handleChange}
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium bg-slate-50"
                     required
-                    minLength={3}
                   />
                 </div>
 
@@ -220,7 +188,6 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium bg-slate-50"
                     required
                     pattern="[0-9]{10}"
-                    title="Please enter a valid 10-digit phone number"
                   />
                 </div>
 
@@ -254,7 +221,6 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
                             onChange={handleChange}
                             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium bg-slate-50 pl-8 resize-none"
                             required
-                            minLength={5}
                         />
                          <FaMapMarkerAlt className="absolute left-2.5 top-3 text-slate-400 text-sm" />
                     </div>
@@ -271,11 +237,9 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
                     onChange={handleChange}
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium bg-slate-50 resize-none"
                     required
-                    minLength={10}
                   />
                 </div>
                 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={loading}
@@ -288,11 +252,6 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
           </>
         )}
       </AnimatePresence>
-
-      {/* Chat UI */}
-      {showChat && (
-        <ChatBox worker={workerObj} onClose={() => setShowChat(false)} />
-      )}
     </div>
   );
 }

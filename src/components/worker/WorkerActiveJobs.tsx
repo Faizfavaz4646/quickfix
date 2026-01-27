@@ -5,17 +5,17 @@ import { useAuthStore } from "@/store/authStore";
 import { getWorkerActiveJobs, updateRequestStatus } from "@/services/jobRequestHelper"; 
 import { FiBriefcase } from "react-icons/fi";
 import { toast } from "sonner";
-import { Loader2, CheckCircle, Phone, Calendar } from "lucide-react";
+import { useRouter } from "next/navigation"; // 1. IMPORT ROUTER
+import { Loader2, CheckCircle, Phone, Calendar, Video } from "lucide-react"; // 2. IMPORT VIDEO ICON
 import { JobRequest } from "@/types/request";
 import { format } from "date-fns";
 
 export default function ActiveJobs() {
-  // 1. Get Store Data
-  const storeToken = useAuthStore((state: any) => state.token);
-  // FIX: Get the trigger function instead of the list
-  const triggerRefresh = useAuthStore((state: any) => state.triggerRefresh);
+  const router = useRouter(); // 3. INITIALIZE ROUTER
+  
+  // 4. GET USER (We need the Worker's ID to generate the Room ID)
+  const { token: storeToken, user, triggerRefresh } = useAuthStore((state: any) => state);
 
-  // 2. Local State
   const [token, setToken] = useState<string | null>(null);
   const [activeJobs, setActiveJobs] = useState<JobRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,6 @@ export default function ActiveJobs() {
     setToken(storeToken || localToken);
   }, [storeToken]);
 
-  // Fetch Jobs
   const fetchJobs = async () => {
     if (!token) return;
     try {
@@ -49,10 +48,8 @@ export default function ActiveJobs() {
     }
   }, [token]);
 
-  // Re-fetch when modal opens
   useEffect(() => { if (modalOpen) fetchJobs(); }, [modalOpen]);
 
-  // Helper: Get Client Image
   const getClientImage = (client: any) => {
     if (!client) return "/images/avatar.avif";
     if (client.profilePic) return client.profilePic;
@@ -60,26 +57,30 @@ export default function ActiveJobs() {
     return "/images/avatar.avif";
   };
 
-  // ✅ HANDLER: Mark Job as Completed
+  // --- 🎥 5. VIDEO CALL FUNCTION ---
+  const handleCallClient = (client: any) => {
+    if (!user?._id || !client?._id) {
+       toast.error("Cannot start call: Missing user info");
+       return;
+    }
+
+    // Sort IDs so this Room ID matches the Client's Room ID exactly
+    const ids = [user._id, client._id].sort(); 
+    const roomId = `call-${ids[0]}-${ids[1]}`;
+
+    // Redirect to the call page
+    router.push(`/call/${roomId}`);
+  };
+  // --------------------------------
+
   const handleCompleteJob = async (jobId: string) => {
     setActionLoading(jobId);
     try {
-      // 1. Update Backend
       await updateRequestStatus(jobId, "completed", token!); 
-      
-      // 2. Update Local UI (Remove the card immediately)
       setActiveJobs((prev) => prev.filter((job) => job._id !== jobId));
-      
-      // 3. ✅ FIX: Trigger the 'CompletedJobs' component to refresh itself
-      // We do NOT update a list in the store anymore. We just signal a refresh.
-      if (triggerRefresh) {
-        triggerRefresh();
-      }
-
+      if (triggerRefresh) triggerRefresh();
       toast.success("Job completed! 🎉");
-      
       if (activeJobs.length <= 1) setModalOpen(false);
-
     } catch (error) {
       console.error(error);
       toast.error("Failed to update status");
@@ -88,7 +89,6 @@ export default function ActiveJobs() {
     }
   };
 
-  // --- RENDER ---
   if (loading && activeJobs.length === 0) {
     return (
       <div className="w-full h-32 rounded-xl p-4 mt-4 bg-white border border-gray-100 flex items-center justify-center">
@@ -139,17 +139,33 @@ export default function ActiveJobs() {
               ) : (
                 activeJobs.map((job) => (
                   <div key={job._id} className="border border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-all bg-white shadow-sm">
-                    <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-50">
-                        <img 
-                           src={getClientImage(job.clientId)} 
-                           className="w-10 h-10 rounded-full object-cover bg-gray-100 border border-gray-200" 
-                           alt="Client" 
-                           onError={(e) => { (e.target as HTMLImageElement).src = "/images/avatar.avif"; }}
-                        />
-                        <div>
-                            <p className="font-bold text-gray-800">{job.clientId?.name || "Client"}</p>
-                            <p className="text-xs text-blue-600 font-bold uppercase">{job.title}</p>
+                    
+                    {/* Header with Client Info & Video Button */}
+                    <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-50">
+                        <div className="flex items-center gap-3">
+                            <img 
+                               src={getClientImage(job.clientId)} 
+                               className="w-10 h-10 rounded-full object-cover bg-gray-100 border border-gray-200" 
+                               alt="Client" 
+                               onError={(e) => { (e.target as HTMLImageElement).src = "/images/avatar.avif"; }}
+                            />
+                            <div>
+                                <p className="font-bold text-gray-800">{job.clientId?.name || "Client"}</p>
+                                <p className="text-xs text-blue-600 font-bold uppercase">{job.title}</p>
+                            </div>
                         </div>
+
+                        {/* 6. CALL BUTTON ADDED HERE */}
+                        <button 
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handleCallClient(job.clientId);
+                           }}
+                           className="flex items-center gap-2 bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-purple-200 transition-colors"
+                        >
+                           <Video size={14} />
+                           Call
+                        </button>
                     </div>
 
                     <div className="space-y-2 mb-4">

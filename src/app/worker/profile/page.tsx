@@ -168,6 +168,7 @@ const WorkerProfileForm = () => {
                 <option value="Painter">Painter</option>
                 <option value="Carpenter">Carpenter</option>
                 <option value="Cleaner">Cleaner</option>
+                <option value="HVAC Technician">HVAC Technician</option>
               </select>
             </div>
             <div>

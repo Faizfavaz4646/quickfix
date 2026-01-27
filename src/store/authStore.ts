@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { User, Profile } from "@/types/user";
+import { User, Profile, Notification } from "@/types/user"; // Ensure Notification is imported
 import axios from "axios";
 import { API_URL } from "@/lib/constants";
 
@@ -28,6 +28,9 @@ interface AuthState {
   
   // Trigger this when a job finishes or status changes
   triggerRefresh: () => void; 
+
+  // ✅ FIX: Added hydrate method to interface
+  hydrate: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -45,6 +48,13 @@ export const useAuthStore = create<AuthState>()(
       setHasHydrated: (state) => set({ hasHydrated: state }),
 
       triggerRefresh: () => set({ refreshTrigger: get().refreshTrigger + 1 }),
+
+      // ✅ FIX: Added hydrate implementation
+      // This allows RoleGuard to call await hydrate() if needed, 
+      // though the actual data loading happens automatically via 'persist'.
+      hydrate: async () => {
+        return Promise.resolve();
+      },
 
       login: (user, token) => {
         // Normalize status

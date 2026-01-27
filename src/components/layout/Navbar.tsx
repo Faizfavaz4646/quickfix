@@ -201,7 +201,7 @@ export default function Navbar() {
                       <MenuItem icon={<RiAccountPinCircleFill size={20} />} label="Your Profile" onClick={() => router.push("/client/loggedin_profile")} />
                       <MenuItem icon={<MdDashboardCustomize size={20} />} label="Dashboard" onClick={() => router.push("/client/clientdashboard")} />
                       <MenuItem icon={<MdOutlineRateReview size={20} />} label="My Requests" onClick={() => router.push("/client/previous-requests")} />
-                      <MenuItem icon={<IoMdSettings size={20} />} label="Settings" onClick={() => router.push("/settings")} />
+                      <MenuItem icon={<IoMdSettings size={20} />} label="Settings" onClick={() => router.push("/client/settings")} />
                       <div className="my-1 border-t border-gray-100 dark:border-gray-800"></div>
                       <button onClick={() => { handleLogout(); setShowDropdown(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                         <FaSignOutAlt size={18} /> Sign Out

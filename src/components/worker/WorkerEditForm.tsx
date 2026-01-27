@@ -243,6 +243,7 @@ const WorkerEditForm = () => {
                     <option value="Painter">Painter</option>
                     <option value="Carpenter">Carpenter</option>
                     <option value="Cleaner">Cleaner</option>
+                    <option value="HVAC Technician">HVAC Technician</option>
                   </select>
                   <Briefcase className="absolute right-4 top-3.5 text-slate-400 w-5 h-5 pointer-events-none" />
                 </div>

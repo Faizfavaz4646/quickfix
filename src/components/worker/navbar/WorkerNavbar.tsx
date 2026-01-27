@@ -69,9 +69,7 @@ export default function WorkerNavbar() {
 
   // --- 3. Render Helper ---
   const renderProfilePic = (size: 'sm' | 'lg' = 'sm') => {
-    // Priority: Worker Profile -> User ID Nested -> User Store
-    // Note: We cast to 'any' for nested properties just in case 'Profile' type definition 
-    // in your types file is strict and doesn't explicitly declare the populated 'userId' object.
+
     const rawPic = 
       workerProfile?.profilePic || 
       (workerProfile as any)?.userId?.profilePic || 

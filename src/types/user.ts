@@ -76,32 +76,46 @@ export interface Notification {
   description?: string;
 }
 
+
+
 export interface Profile {
   _id?: string;
-  userId?: string;
+  // ✅ FIXED: Allow string (ID) OR object (Populated User)
+  userId?: string | any; 
   email?: string;
   profilePic?: string;
   state?: string;
   district?: string;
   city?: string;
-  schedule?: string;
+  schedule?: string | any; // Flexible for string or object
   phone?: string;
   gender?: string;
-  address?:string;
+  address?: string;
   zip?: string;
   profession?: string;
   previousWorkImages?: string[];
+  
+  // Arrays
   notifications?: Notification[];
-  requests?: Request[];
+  requests?: any[]; // changed to 'any' to prevent errors if Request type isn't imported
   termsAccepted?: boolean;
   name?: string;
-  reviews?: Review[];
+  reviews?: any[]; // changed to 'any' for safety
   ratings?: number[];
   avgRating?: number;
-  activeJobs?: Job[];
-  completedJobs?: Job[];
+  activeJobs?: any[];
+  completedJobs?: any[];
   location?: string;
+
+  // ✅ NEW FIELDS (Fixes the errors in ProfileCompletion)
+  hourlyRate?: number; 
+  about?: string;
+  
+  // Optional: Good for UI logic
+  totalReviews?: number;
+  jobsDone?: number;
 }
+
 
 export interface User {
   _id: string; 

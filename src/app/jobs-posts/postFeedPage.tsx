@@ -3,11 +3,14 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { getFeed, toggleLikePost, deletePost, updatePost } from "@/services/postServices";
+import { getTopRatedWorkers } from "@/services/workerService"; // ✅ IMPORTED SERVICE
 import { Post } from "@/types/post";
 import CreatePostModal from "@/components/CreatePostModal";
 import CommentSection from "@/components/CommentSection"; 
 import { formatDistanceToNow, differenceInMinutes } from "date-fns";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation"; // ✅ IMPORT ROUTER
+import Link from "next/link"; // ✅ IMPORT LINK
 import { 
   Heart, MessageCircle, Share2, MoreHorizontal, Trash2, Edit3, Check, X,
   Star, Search, Wrench, Zap, Droplet, Truck, Paintbrush, BadgeCheck, Loader2
@@ -15,9 +18,26 @@ import {
 
 const EDIT_TIME_LIMIT_MINUTES = 60; 
 
+// ✅ Interface for Sidebar Data
+interface WorkerProfile {
+  _id: string;
+  name: string;
+  profilePic?: string;
+  profession?: string;
+  rating?: number;
+}
+
 export default function PostFeedPage() {
+  const router = useRouter(); // ✅ Initialize Router
+  const { user } = useAuthStore();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // --- State ---
   const [posts, setPosts] = useState<Post[]>([]);
+  const [topWorkers, setTopWorkers] = useState<WorkerProfile[]>([]); // ✅ Sidebar State
   const [loading, setLoading] = useState(true);
+  const [loadingSidebars, setLoadingSidebars] = useState(true); // ✅ Sidebar Loading State
+  
   const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   
@@ -25,12 +45,36 @@ export default function PostFeedPage() {
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
-  
-  const { user } = useAuthStore();
-  const menuRef = useRef<HTMLDivElement>(null);
 
+  // --- Initial Data Fetching ---
   useEffect(() => {
-    fetchPosts();
+    const fetchAllData = async () => {
+      setLoading(true);
+      setLoadingSidebars(true);
+      try {
+        // 1. Fetch Feed
+        const feedResponse = await getFeed();
+        const feedData = Array.isArray(feedResponse) ? feedResponse : (feedResponse as any).data || [];
+        setPosts(feedData);
+
+        // 2. Fetch Top Workers (Real Data)
+        try {
+          const workersData = await getTopRatedWorkers();
+          setTopWorkers(workersData);
+        } catch (err) {
+          console.error("Failed to load top workers", err);
+        }
+      } catch (error) {
+        console.error("Failed to fetch feed", error);
+      } finally {
+        setLoading(false);
+        setLoadingSidebars(false);
+      }
+    };
+
+    fetchAllData();
+
+    // Click Outside Handler
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setOpenMenuId(null);
@@ -40,19 +84,7 @@ export default function PostFeedPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const fetchPosts = async () => {
-    setLoading(true);
-    try {
-      const response = await getFeed();
-      const feedData = Array.isArray(response) ? response : (response as any).data || [];
-      setPosts(feedData);
-    } catch (error) {
-      console.error("Failed to fetch feed", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // --- Handlers (Kept exactly as original) ---
   const handleUpdate = async (postId: string) => {
     if (!editContent.trim()) return;
     setIsUpdating(true);
@@ -97,32 +129,66 @@ export default function PostFeedPage() {
     await toggleLikePost(post._id);
   };
 
+  // ✅ Re-fetch just the feed (passed to CreatePostModal)
+  const refreshFeed = async () => {
+    const feedResponse = await getFeed();
+    const feedData = Array.isArray(feedResponse) ? feedResponse : (feedResponse as any).data || [];
+    setPosts(feedData);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50/50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* --- LEFT SIDEBAR --- */}
+          {/* --- LEFT SIDEBAR (Top Rated) --- */}
           <div className="hidden lg:block lg:col-span-3 space-y-6">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sticky top-24">
                <div className="flex items-center gap-2 mb-4 px-1">
                  <BadgeCheck size={18} className="text-yellow-500 fill-yellow-500" />
                  <h3 className="font-bold text-slate-900 text-sm">Top Rated Pros</h3>
                </div>
+               
                <div className="space-y-4">
-                  <TopWorkerRow name="Alex Johnson" role="Electrician" rating={4.9} image="https://i.pravatar.cc/150?img=11" />
-                  <TopWorkerRow name="Sarah Smith" role="Plumber" rating={4.8} image="https://i.pravatar.cc/150?img=5" />
-                  <TopWorkerRow name="Mike Brown" role="Carpenter" rating={4.7} image="https://i.pravatar.cc/150?img=3" />
+                  {loadingSidebars ? (
+                    // Skeleton Loader for Workers
+                    [1, 2, 3].map((i) => (
+                      <div key={i} className="flex gap-3 animate-pulse">
+                        <div className="w-10 h-10 bg-slate-200 rounded-full" />
+                        <div className="flex-1 space-y-2 py-1">
+                           <div className="h-2 bg-slate-200 rounded w-3/4" />
+                           <div className="h-2 bg-slate-200 rounded w-1/2" />
+                        </div>
+                      </div>
+                    ))
+                  ) : topWorkers.length > 0 ? (
+                    // Real Worker Data
+                    topWorkers.slice(0, 5).map((worker) => (
+                      <Link href={`/client/workerprofile/${worker._id}`} key={worker._id}>
+                        <TopWorkerRow 
+                          name={worker.name} 
+                          role={worker.profession || "Professional"} 
+                          rating={worker.rating} 
+                          image={worker.profilePic} 
+                        />
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="text-xs text-slate-400 text-center py-4">No top workers found.</p>
+                  )}
                </div>
-               <button className="w-full mt-5 py-2.5 text-xs font-bold text-slate-600 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                  View Leaderboard
-               </button>
+
+               <Link href="/client/findworker" className="block w-full mt-5">
+                 <button className="w-full py-2.5 text-xs font-bold text-slate-600 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                    View Leaderboard
+                 </button>
+               </Link>
             </div>
           </div>
 
-          {/* --- CENTER FEED --- */}
+          {/* --- CENTER FEED (Existing Functionality) --- */}
           <div className="lg:col-span-6 space-y-6">
-            <CreatePostModal onPostCreated={fetchPosts} />
+            <CreatePostModal onPostCreated={refreshFeed} />
 
             {loading ? (
               <div className="space-y-4">
@@ -139,17 +205,13 @@ export default function PostFeedPage() {
                   const minsDiff = differenceInMinutes(new Date(), new Date(post.createdAt));
                   const canEdit = isAuthor && minsDiff < EDIT_TIME_LIMIT_MINUTES;
 
-                  /**
-                   * ✅ FIXED IMAGE RESOLVER
-                   * Checks multiple fallback levels to ensure Worker pictures appear.
-                   */
                   const authorImage = authorData?.profilePic || authorData?.profile?.profilePic || "/images/avatar.avif";
                   const authorName = authorData?.name || "User";
 
                   return (
                     <article key={post._id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                       
-                      {/* Header */}
+                      {/* Post Header */}
                       <div className="p-4 flex justify-between items-start">
                         <div className="flex gap-3">
                           <div className="relative w-10 h-10 shrink-0">
@@ -283,23 +345,53 @@ export default function PostFeedPage() {
             )}
           </div>
 
-          {/* --- RIGHT SIDEBAR --- */}
+          {/* --- RIGHT SIDEBAR (Real Search Categories) --- */}
           <div className="lg:col-span-3 space-y-6">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sticky top-24">
               <div className="flex items-center gap-2 mb-4 px-1">
                  <Search size={16} className="text-slate-400" />
                  <h3 className="font-bold text-slate-900 text-sm">Find a Professional</h3>
               </div>
+              
+              {/* ✅ Categories now click to search */}
               <div className="grid grid-cols-2 gap-2">
-                <ServiceMiniCard icon={<Wrench size={16} />} label="HVAC" color="text-blue-500 bg-blue-50" />
-                <ServiceMiniCard icon={<Zap size={16} />} label="Electrical" color="text-yellow-500 bg-yellow-50" />
-                <ServiceMiniCard icon={<Droplet size={16} />} label="Plumbing" color="text-cyan-500 bg-cyan-50" />
-                <ServiceMiniCard icon={<Truck size={16} />} label="Auto" color="text-red-500 bg-red-50" />
-                <ServiceMiniCard icon={<Paintbrush size={16} />} label="Painter" color="text-purple-500 bg-purple-50" />
+                <ServiceMiniCard 
+                  icon={<Wrench size={16} />} 
+                  label="HVAC" 
+                  color="text-blue-500 bg-blue-50" 
+                  onClick={() => router.push('/client/findworker?query=hvac')}
+                />
+                <ServiceMiniCard 
+                  icon={<Zap size={16} />} 
+                  label="Electrical" 
+                  color="text-yellow-500 bg-yellow-50" 
+                  onClick={() => router.push('/client/findworker?query=electrician')}
+                />
+                <ServiceMiniCard 
+                  icon={<Droplet size={16} />} 
+                  label="Plumbing" 
+                  color="text-cyan-500 bg-cyan-50" 
+                  onClick={() => router.push('/client/findworker?query=plumber')}
+                />
+                <ServiceMiniCard 
+                  icon={<Truck size={16} />} 
+                  label="Auto" 
+                  color="text-red-500 bg-red-50" 
+                  onClick={() => router.push('/client/findworker?query=mechanic')}
+                />
+                <ServiceMiniCard 
+                  icon={<Paintbrush size={16} />} 
+                  label="Painter" 
+                  color="text-purple-500 bg-purple-50" 
+                  onClick={() => router.push('/client/findworker?query=painter')}
+                />
               </div>
-              <button className="w-full mt-4 py-2.5 text-xs font-bold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                View All Categories
-              </button>
+              
+              <Link href="/client/findworker">
+                <button className="w-full mt-4 py-2.5 text-xs font-bold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                  View All Categories
+                </button>
+              </Link>
             </div>
           </div>
 
@@ -309,27 +401,33 @@ export default function PostFeedPage() {
   );
 }
 
-// Sub-components
-function ServiceMiniCard({ icon, label, color }: { icon: any, label: string, color: string }) {
+// ✅ Updated ServiceMiniCard with onClick
+function ServiceMiniCard({ icon, label, color, onClick }: { icon: any, label: string, color: string, onClick?: () => void }) {
   return (
-    <button className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-100 hover:border-slate-300 transition-all bg-slate-50/50">
+    <button onClick={onClick} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-100 hover:border-blue-300 hover:shadow-md transition-all bg-slate-50/50 cursor-pointer">
       <div className={`p-1.5 rounded-full mb-1.5 ${color}`}>{icon}</div>
       <span className="text-[10px] font-bold text-slate-700 uppercase tracking-tight">{label}</span>
     </button>
   );
 }
 
+// ✅ Updated TopWorkerRow to handle null images safely
 function TopWorkerRow({ name, role, rating, image }: any) {
   return (
     <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group">
-       <img src={image} className="w-10 h-10 rounded-full object-cover border border-slate-200 bg-slate-50" alt={name} />
+       <img 
+          src={image || "/images/avatar.avif"} 
+          className="w-10 h-10 rounded-full object-cover border border-slate-200 bg-slate-50" 
+          alt={name} 
+          onError={(e) => { e.currentTarget.src = "/images/avatar.avif"; }}
+       />
        <div className="flex-1 min-w-0">
           <h4 className="font-bold text-slate-900 text-sm truncate group-hover:text-blue-600 transition-colors">{name}</h4>
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{role}</p>
        </div>
        <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">
           <Star size={10} className="fill-yellow-500 text-yellow-500" />
-          <span className="text-[10px] font-black text-slate-700">{rating}</span>
+          <span className="text-[10px] font-black text-slate-700">{rating?.toFixed(1) || "5.0"}</span>
        </div>
     </div>
   );

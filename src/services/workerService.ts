@@ -268,14 +268,15 @@ export const getWorkerRating = async (workerId: string): Promise<number> => {
   }
 }
 
-export const getTopRatedWorkers = async () => {
+export async function getTopRatedWorkers() {
   try {
-    // Assuming your backend has a generic get workers endpoint
-    // We pass a query param 'sort=-rating' or 'limit=5'
-    const response = await axios.get(`${API_URL}/workers?sort=-rating&limit=3`);
-    return response.data.data; // Adjust based on your actual API response structure
-  } catch (error) {
-    console.error("Error fetching top workers:", error);
+    const { data } = await api.get("/worker/top", {
+      params: { limit: 3, sort: "-rating" }
+    });
+    // Backend returns { success: true, data: [...] }
+    return data.data || [];
+  } catch (err) {
+    console.error("Error fetching top workers:", err);
     return [];
   }
 }

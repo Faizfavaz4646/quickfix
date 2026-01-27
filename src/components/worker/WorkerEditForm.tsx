@@ -11,10 +11,12 @@ import { getMyWorkerProfile, updateMyWorkerProfile } from '@/services/workerServ
 
 const WorkerEditForm = () => {
   const router = useRouter();
-  const { user } = useAuthStore();
+  
+  // Get store values
+  const { user, hasHydrated, updateUserProfile } = useAuthStore(); 
 
   const [form, setForm] = useState<Profile & { name: string }>({
-    name: user?.name || '', 
+    name: '', 
     profilePic: '',
     profession: '',
     phone: '',
@@ -30,9 +32,46 @@ const WorkerEditForm = () => {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // --- HELPER: Get Token Robustly ---
+  // This checks the Store first, then falls back to LocalStorage to prevent false logouts
+  const getSafeToken = () => {
+    if (user?.token) return user.token;
+    if (typeof window !== 'undefined') {
+       // Check raw storage in case Zustand is lagging
+       const storage = localStorage.getItem('quickfix-user');
+       if (storage) {
+         try { return JSON.parse(storage).state.token; } catch (e) {}
+       }
+    }
+    return null;
+  };
+
+  // --- EFFECT: Handle Data Loading ---
   useEffect(() => {
-    if (!user?.token) return;
-    getMyWorkerProfile(user.token)
+    // 1. Wait for hydration to finish
+    if (!hasHydrated) return; 
+
+    const token = getSafeToken();
+
+    // 2. REAL AUTH CHECK: If absolutely no token found anywhere, THEN redirect
+    if (!token) {
+      toast.error("Please log in to edit your profile");
+      router.push('/auth/login');
+      return;
+    }
+
+    // 3. OPTIMISTIC FILL: If user data exists in store, show it while loading
+    if (user?.profile) {
+      setForm(prev => ({
+        ...prev,
+        ...user.profile,
+        name: user.name || prev.name,
+      }));
+    }
+
+    // 4. Fetch Fresh Data
+    setLoading(true);
+    getMyWorkerProfile(token)
       .then((profile) => {
         if (profile) {
           setForm((prev) => ({ 
@@ -43,14 +82,15 @@ const WorkerEditForm = () => {
           }));
         }
       })
+      .catch((err) => console.error("Background fetch failed", err))
       .finally(() => setLoading(false));
-  }, [user?.token, user?.name]);
+
+  }, [hasHydrated, user?.token]); // Rerun when hydration finishes
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // --- Image Upload Logic ---
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, isProfilePic: boolean) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -87,31 +127,49 @@ const WorkerEditForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const token = getSafeToken();
+
+    if (!token) {
+      toast.error("Session expired. Please login again.");
+      router.push('/auth/login');
+      return;
+    }
+
     try {
       setUploading(true);
-      await updateMyWorkerProfile(form, user!.token);
+
+      // 1. Update Backend
+      const response = await updateMyWorkerProfile(form, token);
+      
+      // 2. Extract Data safely
+      const profileData = response.data || response; 
+
+      // 3. Update Global Store (Instant UI Update)
+      updateUserProfile(profileData, form.name);
+
       toast.success('Profile updated successfully!');
       router.push('/worker/dashboard');
     } catch (err: any) {
-      const detail = err.response?.data?.details?.[0]?.message || "Check fields: Phone(10), Zip(6), Gender";
+      console.error(err);
+      const detail = err.response?.data?.details?.[0]?.message || "Please check your inputs";
       toast.error(detail);
     } finally {
       setUploading(false);
     }
   };
 
-  if (loading) return (
+  // Show loading state until hydration is complete AND we have attempted to load data
+  if (!hasHydrated || loading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
       <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
-      <p className="text-slate-500 font-medium">Loading profile information...</p>
+      <p className="text-slate-500 font-medium">Loading profile...</p>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        
-        {/* Page Title */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900">Edit Profile</h1>
           <p className="mt-2 text-slate-600">Update your personal details and professional portfolio.</p>
@@ -119,7 +177,7 @@ const WorkerEditForm = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           
-          {/* --- Section 1: Profile Photo --- */}
+          {/* Profile Photo */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
             <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
               <User className="w-5 h-5 text-blue-600" />
@@ -150,7 +208,7 @@ const WorkerEditForm = () => {
             </div>
           </div>
 
-          {/* --- Section 2: Personal & Professional Details --- */}
+          {/* Personal Information */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
             <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
               <Briefcase className="w-5 h-5 text-blue-600" />
@@ -158,7 +216,6 @@ const WorkerEditForm = () => {
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Full Name */}
               <div className="col-span-1 md:col-span-2">
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
                 <input 
@@ -166,12 +223,10 @@ const WorkerEditForm = () => {
                   value={form.name} 
                   onChange={handleChange} 
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400" 
-                  placeholder="e.g. John Doe"
                   required 
                 />
               </div>
 
-              {/* Profession */}
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Profession</label>
                 <div className="relative">
@@ -193,7 +248,6 @@ const WorkerEditForm = () => {
                 </div>
               </div>
 
-              {/* Gender */}
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Gender</label>
                 <select 
@@ -209,34 +263,30 @@ const WorkerEditForm = () => {
                 </select>
               </div>
 
-              {/* Phone */}
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Phone Number</label>
                 <input 
                   name="phone" 
                   value={form.phone} 
                   onChange={handleChange} 
-                  placeholder="10 digit mobile number" 
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
                   required 
                 />
               </div>
 
-              {/* Schedule */}
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Availability Schedule</label>
                 <input 
                   name="schedule" 
                   value={form.schedule} 
                   onChange={handleChange} 
-                  placeholder="e.g. Mon-Sat, 9AM - 6PM" 
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
                 />
               </div>
             </div>
           </div>
 
-          {/* --- Section 3: Location --- */}
+          {/* Location */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
             <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
               <MapPin className="w-5 h-5 text-blue-600" />
@@ -258,16 +308,15 @@ const WorkerEditForm = () => {
             </div>
           </div>
 
-          {/* --- Section 4: Portfolio --- */}
+          {/* Portfolio */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
             <h2 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
               <ImageIcon className="w-5 h-5 text-blue-600" />
               Portfolio
             </h2>
-            <p className="text-sm text-slate-500 mb-6">Upload photos of your previous work to showcase your skills.</p>
+            <p className="text-sm text-slate-500 mb-6">Upload photos of your previous work.</p>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {/* Add Button */}
               <label className="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all group">
                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
                   <Plus className="text-slate-400 group-hover:text-blue-600" size={20} />
@@ -276,14 +325,9 @@ const WorkerEditForm = () => {
                 <input type="file" hidden multiple accept="image/*" onChange={(e) => handleFileChange(e, false)} />
               </label>
 
-              {/* Images */}
               {form.previousWorkImages?.map((url, index) => (
                 <div key={index} className="relative aspect-square group rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                  <img 
-                    src={url} 
-                    alt={`work-${index}`} 
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={url} alt={`work-${index}`} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button
                       type="button"
@@ -298,7 +342,7 @@ const WorkerEditForm = () => {
             </div>
           </div>
 
-          {/* --- Footer Action --- */}
+          {/* Footer */}
           <div className="flex justify-end pt-4 pb-12">
             <button 
               disabled={uploading} 

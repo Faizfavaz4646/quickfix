@@ -2,8 +2,9 @@
 
 import { FiStar } from "react-icons/fi";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
+import { getWorkerRating } from "@/services/workerService";
+import { Loader2 } from "lucide-react";
 
 interface WorkerRatingProps {
   userId?: string; 
@@ -11,38 +12,52 @@ interface WorkerRatingProps {
 
 export default function WorkerRating({ userId }: WorkerRatingProps) {
   const [avgRating, setAvgRating] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
   const maxStars = 5;
+  
   const { user: authUser, hasHydrated } = useAuthStore();
   const workerId = userId || authUser?._id;
 
   useEffect(() => {
-    if (!hasHydrated || !workerId) return;
+    // 🔍 DEBUG 1: Check if we have the ID to start fetching
+    if (!hasHydrated) return;
+    console.log("⭐ [WorkerRating] Init. WorkerID:", workerId);
 
-    const fetchWorkerRating = async () => {
+    if (!workerId) {
+      console.warn("⚠️ [WorkerRating] No Worker ID found. Skipping fetch.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchRating = async () => {
+      setLoading(true);
       try {
-        // ✅ FIX: Use port 5001 and try '/worker' (singular)
-        // If this still 404s, fetch '/workers' (plural)
-        const { data } = await axios.get(`http://localhost:5001/worker?userId=${workerId}`);
+        console.log("🚀 [WorkerRating] Calling service for:", workerId);
+        
+        // Call service
+        const rating = await getWorkerRating(workerId);
+        
+        // 🔍 DEBUG 2: What did the service return?
+        console.log("✅ [WorkerRating] Service returned:", rating, "Type:", typeof rating);
 
-        // Handle Array vs Object response safely
-        const workerData = Array.isArray(data) ? data[0] : data;
-
-        if (workerData && workerData.ratings) {
-          const ratings: number[] = workerData.ratings;
-          const average = ratings.length > 0
-            ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
-            : 0;
-          setAvgRating(average);
-        }
-      } catch (err) {
-        console.error("Rating fetch failed - Check if route is /worker or /workers");
+        setAvgRating(rating);
+      } catch (error) {
+        console.error("🔥 [WorkerRating] Component Error:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchWorkerRating();
+    fetchRating();
   }, [workerId, hasHydrated]);
 
-  if (!hasHydrated) return <div className="w-full h-32 animate-pulse bg-gray-100 rounded-lg mt-4" />;
+  if (loading || !hasHydrated) {
+    return (
+      <div className="w-full h-32 rounded-xl p-5 mt-4 bg-white border border-gray-100 flex items-center justify-center">
+         <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-32 rounded-xl p-5 mt-4 bg-white border border-gray-100 hover:shadow-md hover:border-yellow-200 transition-all flex flex-col justify-between">
@@ -55,10 +70,13 @@ export default function WorkerRating({ userId }: WorkerRatingProps) {
 
       <div className="flex items-center gap-1 mt-2">
         {[...Array(maxStars)].map((_, i) => (
-          <span key={i} className={`text-xl ${i < Math.round(avgRating) ? "text-yellow-500" : "text-gray-200"}`}>★</span>
+          <span key={i} className={`text-xl ${i < Math.round(avgRating) ? "text-yellow-500" : "text-gray-200"}`}>
+            ★
+          </span>
         ))}
         <span className="ml-2 text-sm text-gray-600 font-bold">
-          {avgRating.toFixed(1)} <span className="text-gray-400 font-normal">/ {maxStars}</span>
+          {/* Ensure we display 0.0 if rating is missing/NaN */}
+          {(avgRating || 0).toFixed(1)} <span className="text-gray-400 font-normal">/ {maxStars}</span>
         </span>
       </div>
     </div>

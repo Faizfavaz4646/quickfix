@@ -7,6 +7,21 @@ interface ProfileCardProps {
   worker: any; 
 }
 
+// ✅ 1. ADD HELPER: Fixes broken image links
+const getImageUrl = (path?: string) => {
+  if (!path) return "/images/avatar.avif"; // Default fallback
+  
+  // If it's already a full URL (Cloudinary/Google), use it as is
+  if (path.startsWith("http") || path.startsWith("https")) {
+    return path;
+  }
+  
+  // If it's a local file, prepend backend URL
+  // Remove leading slash to avoid double slashes (e.g. //uploads)
+  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  return `http://localhost:5001/${cleanPath}`;
+};
+
 // --- Helpers ---
 const getAverageRating = (ratings?: number[]) => {
   if (!ratings || ratings.length === 0) return 0;
@@ -38,28 +53,28 @@ const renderStars = (rating: number) => {
 export default function ProfileCard({ worker }: ProfileCardProps) {
   const avgRating = getAverageRating(worker.ratings);
 
-  // 1. Resolve Display Name (Handle flattened vs nested structure)
+  // 1. Resolve Display Name
   const displayName = worker.userId?.name || worker.name || "Service Provider";
   
-  // 2. Resolve Display Image
-  const displayImage = worker.profilePic || worker.userId?.profilePic || "/images/avatar.avif";
+  // 2. ✅ FIX: Use the Helper to resolve the image
+  const rawImage = worker.profilePic || worker.userId?.profilePic;
+  const displayImage = getImageUrl(rawImage);
 
-  // 3. ✅ CRITICAL FIX: Resolve the Correct Target User ID
-  // Your backend sends `userId` as a String (flattened), so we must check for that.
+  // 3. Resolve the Correct Target User ID
   const targetUserId = (typeof worker.userId === 'string') 
     ? worker.userId 
     : (worker.userId?._id || worker._id);
-
-  console.log("👉 ProfileCard Target ID:", targetUserId);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col md:flex-row gap-6">
       <div className="flex flex-col items-center md:items-start">
       
+        {/* ✅ ADDED onError: If link breaks, show default avatar */}
         <img
           src={displayImage}
           alt={displayName}
-          className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+          className="w-32 h-32 rounded-full object-cover border-4 border-gray-200 bg-gray-100"
+          onError={(e) => (e.currentTarget.src = "/images/avatar.avif")}
         />
 
         {/* Worker Name */}
@@ -92,10 +107,9 @@ export default function ProfileCard({ worker }: ProfileCardProps) {
       <div className="flex flex-col justify-center ml-auto">
         {worker && (
           <RequestDialog 
-            // ✅ Pass the resolved ID (User ID)
             workerId={targetUserId} 
             workerName={displayName}
-            workerPic={displayImage}
+            workerPic={displayImage} // Pass the fixed URL here too
           />
         )}
       </div>

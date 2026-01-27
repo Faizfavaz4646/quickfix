@@ -27,10 +27,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      {/* 1. Sidebar - Fixed width matches w-72 used in AdminSidebar.tsx */}
+      {/*  Sidebar - Fixed width matches w-72 used in AdminSidebar.tsx */}
       <AdminSidebar />
 
-      {/* 2. Main Content Wrapper */}
+      {/*  Main Content Wrapper */}
       {/* lg:pl-72 ensures content starts AFTER the fixed sidebar on desktop */}
       <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
         

@@ -93,48 +93,42 @@ export async function submitRatingAndReview(
 
 export async function getWorkerProfile(workerId: string) {
   try {
-    const { data: worker } = await api.get(`/worker/${workerId}`);
+    // 1. Fetch the worker profile using the User ID
+    // This call works fine (Status 200)
+    const { data } = await api.get(`/worker`, {
+      params: { userId: workerId }
+    });
+
+    // Handle whether backend returns an Array [obj] or just the Object
+    const worker = Array.isArray(data) ? data[0] : data;
     
     if (!worker) return null;
 
-    if (worker.userId && typeof worker.userId === "string") {
-      try {
-        let user = null;
-        try {
-           const res = await api.get(`/users/${worker.userId}`);
-           user = res.data;
-        } catch (e) {
-           const res = await api.get(`/user/${worker.userId}`);
-           user = res.data;
-        }
+    // ❌ REMOVED: The nested try/catch block fetching `/users/...`
+    // Reason: It was causing 404s and is unnecessary because 'worker' already has the data.
 
-        if (user) {
-          worker.userId = {
-            _id: worker.userId,
-            name: user.name,
-            email: user.email || user.emailId, 
-            profilePic: user.profilePic 
-          };
-          worker.name = user.name;
-          worker.email = user.email || user.emailId;
-        }
-      } catch (userErr) {
-        console.warn("Could not fetch user details for worker:", userErr);
-      }
-    }
-    return worker;
+    // 2. Return a normalized object
+    // We prioritize the root fields (which contain your Cloudinary URL)
+    return {
+      ...worker,
+      // If name is at root, use it. Otherwise check nested userId object.
+      name: worker.name || worker.userId?.name || "Service Provider",
+      
+      // If email is at root, use it. Otherwise check nested userId object.
+      email: worker.email || worker.userId?.email || "Contact Hidden",
+      
+      // ✅ FIX: Use the root profilePic (Cloudinary) first. 
+      profilePic: worker.profilePic || worker.userId?.profilePic || null
+    };
+
   } catch (err) {
     console.error("Failed to fetch worker profile:", err);
     return null;
   }
 }
-
-/**
- * Send a Service Request
- */
 export async function sendRequestToWorker(
   workerId: string,
-  clientId: string,
+  clientId: string, // (Note: Backend uses token for ID, but we keep this param for consistency)
   data: {
     title: string;
     description: string;
@@ -146,13 +140,12 @@ export async function sendRequestToWorker(
   }
 ) {
   try {
-    // 1. GET TOKEN using the corrected helper
     const token = getAuthToken();
-
     if (!token) {
-      throw new Error("No authentication token found. Please login again.");
+      throw new Error("Authentication required. Please login.");
     }
 
+    // Backend expects: { workerId, title, description, address, scheduledDate, clientPhone }
     const payload = {
       workerId,
       title: data.title,
@@ -160,8 +153,10 @@ export async function sendRequestToWorker(
       address: data.address,
       scheduledDate: data.scheduledDate,
       clientPhone: data.clientPhone,
-      city: data.city || "",
-      state: data.state || ""
+      // Sending city/state just in case backend needs them later, 
+      // though your current controller doesn't explicitly save them.
+      city: data.city, 
+      state: data.state 
     };
 
     const { data: response } = await api.post("/job-requests", payload, {
@@ -170,10 +165,10 @@ export async function sendRequestToWorker(
         "Content-Type": "application/json",
       },
     });
-    
+
     return response;
-  } catch (err) {
-    console.error("Failed to send job request:", err);
-    throw err;
+  } catch (err: any) {
+    console.error("Failed to send request:", err.response?.data || err.message);
+    throw err; // Re-throw so the UI can show the toast error
   }
 }

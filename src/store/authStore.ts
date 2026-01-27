@@ -6,25 +6,27 @@ import { User, Profile } from "@/types/user";
 import axios from "axios";
 import { API_URL } from "@/lib/constants";
 
-// ---------- AUTH STORE ----------
+// ============================================================================
+// 1. AUTH STORE
+// ============================================================================
 
 interface AuthState {
-  // 1. DATA STATE
+  // --- Data State ---
   user: User | null;
   token: string | null;
   isLogin: boolean;
   hasHydrated: boolean;
   
-  // ✅ NEW: A simple signal to tell components to re-fetch data
+  // A simple counter signal to tell components (like dashboards) to re-fetch data
   refreshTrigger: number; 
 
-  // 2. ACTIONS
+  // --- Actions ---
   setHasHydrated: (state: boolean) => void;
   login: (user: User, token: string) => void;
   updateUserProfile: (profile: Partial<Profile>, name?: string) => void;
   logout: () => void;
   
-  // Call this when a job is finished to update the "Completed" counter instantly
+  // Trigger this when a job finishes or status changes
   triggerRefresh: () => void; 
 }
 
@@ -45,12 +47,17 @@ export const useAuthStore = create<AuthState>()(
       triggerRefresh: () => set({ refreshTrigger: get().refreshTrigger + 1 }),
 
       login: (user, token) => {
+        // Normalize status
         const status = (user.status === "blocked" ? "blocked" : "online") as User["status"];
         
+        // ✅ ROBUST DATA NORMALIZATION
+        // 1. Handle backend inconsistency (email vs emailId)
+        // 2. Ensure 'profile' object exists to prevent crashes later
         const finalUser = {
           ...user,
           status,
           email: user.email || (user as any).emailId, 
+          profile: user.profile || {} 
         };
 
         set({
@@ -60,17 +67,20 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      updateUserProfile: (profile, name) => {
+      // ✅ IMPROVED: Safe Deep Merge for Profile Updates
+      updateUserProfile: (profileData, name) => {
         const currentUser = get().user;
         if (!currentUser) return;
 
         set({
           user: {
             ...currentUser,
+            // Only update name if a new one is provided
             name: name ?? currentUser.name,
+            // Safely merge profile data (handling nulls)
             profile: {
-              ...currentUser.profile,
-              ...profile,
+              ...(currentUser.profile || {}), 
+              ...profileData,
             },
           },
         });
@@ -79,32 +89,33 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         const { user, token } = get();
         
-        if (user && user._id && user.status !== "blocked") {
-          axios.patch(
-            `${API_URL}/users/${user._id}`, 
-            { status: "offline" },
-            { headers: token ? { Authorization: `Bearer ${token}` } : {} } 
-          ).catch(console.error);
-        }
-
-        // Wipe session data
+        // 1. Optimistic Logout: Clear UI state immediately for speed
         set({
           user: null,
           token: null,
           isLogin: false,
           refreshTrigger: 0,
         });
+
+        // 2. Fire API call in background (don't await it)
+        if (user && user._id && user.status !== "blocked") {
+          axios.patch(
+            `${API_URL}/users/${user._id}`, 
+            { status: "offline" },
+            { headers: token ? { Authorization: `Bearer ${token}` } : {} } 
+          ).catch((err) => console.warn("Logout API call failed", err));
+        }
       },
     }),
     {
-      name: "quickfix-user",
+      name: "quickfix-user", // LocalStorage Key
       storage: createJSONStorage(() => localStorage),
       
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },
 
-      // ✅ CLEAN PERSISTENCE: Only save Auth data
+      // ✅ CLEAN PERSISTENCE: Only save essential Auth data
       partialize: (state) => ({
         user: state.user,
         token: state.token,
@@ -114,7 +125,10 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
-// ---------- NOTIFICATION STORE (Unchanged) ----------
+// ============================================================================
+// 2. NOTIFICATION STORE
+// ============================================================================
+
 interface NotificationState {
   notifications: Notification[];
   count: number;

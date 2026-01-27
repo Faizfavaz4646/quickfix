@@ -9,6 +9,20 @@ import { FaComments, FaPaperPlane, FaTimes, FaCalendarAlt, FaMapMarkerAlt } from
 import { motion, AnimatePresence } from "framer-motion";
 import ChatBox from "@/components/ChatBox";
 
+// ✅ Helper to robustly fix image URLs
+const getImageUrl = (path?: string) => {
+  if (!path) return "/images/avatar.avif"; // Default fallback
+  
+  // If it's already a full URL (Cloudinary/Google), use it as is
+  if (path.startsWith("http") || path.startsWith("https")) {
+    return path;
+  }
+  
+  // If it's a local file, prepend backend URL
+  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  return `http://localhost:5001/${cleanPath}`;
+};
+
 export default function RequestDialog({ workerId, workerName, workerPic }: { workerId: string, workerName?: string, workerPic?: string }) {
   const [open, setOpen] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -17,6 +31,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
   const { user } = useAuthStore();
   const router = useRouter();
 
+  // Initialize form with user data if available
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -27,10 +42,13 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
     state: user?.profile?.state || ""
   });
 
+  // Process the image URL once
+  const fixedWorkerPic = getImageUrl(workerPic);
+
   const workerObj = {
     _id: workerId,
     name: workerName || "Worker",
-    profilePic: workerPic || "",
+    profilePic: fixedWorkerPic, 
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -39,6 +57,8 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
 
   const handleSendRequest = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 1. Auth & Role Checks
     if (!user) {
       toast.info("Please login first!");
       router.push("/auth/login");
@@ -49,6 +69,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
       return;
     }
 
+    // 2. Date Validation
     if (new Date(formData.scheduledDate) <= new Date()) {
         toast.error("Scheduled date must be in the future");
         return;
@@ -56,6 +77,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
 
     setLoading(true);
     try {
+      // 3. Send Request
       await sendRequestToWorker(
           workerId.toString(),
           user._id.toString(),
@@ -73,6 +95,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
       toast.success("Request sent successfully! Worker notified.");
       setOpen(false);
       
+      // 4. Reset specific form fields
       setFormData(prev => ({
           ...prev, 
           title: "", 
@@ -101,7 +124,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
   return (
     <div className="relative flex flex-col sm:flex-row gap-3 w-full">
       
-      {/* 1. Request Button */}
+      {/* REQUEST BUTTON */}
       <button
         onClick={handleOpenClick}
         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-200 active:scale-[0.98] flex items-center justify-center gap-2"
@@ -110,7 +133,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
         <FaPaperPlane className="text-sm opacity-80" />
       </button>
 
-      {/* 2. Chat Button */}
+      {/* CHAT BUTTON */}
       <button
         onClick={() => {
            if (!user) {
@@ -126,7 +149,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
         Chat
       </button>
 
-      {/* --- Request Modal --- */}
+      {/* MODAL */}
       <AnimatePresence>
         {open && (
           <>
@@ -137,29 +160,41 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
                onClick={() => setOpen(false)}
             />
             
-            {/* Modal Content - CENTERED ON SCREEN */}
+            {/* Modal Content */}
             <motion.div
               key="requestModal"
-              // Center the modal using fixed positioning and percentage transforms
               initial={{ opacity: 0, scale: 0.95, x: "-50%", y: "-45%" }} 
               animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
               exit={{ opacity: 0, scale: 0.95, x: "-50%", y: "-45%" }}
               transition={{ duration: 0.2 }}
               className="fixed top-1/2 left-1/2 w-[95%] sm:w-[450px] bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 z-50 max-h-[85vh] overflow-y-auto"
             >
-              <div className="flex justify-between items-center mb-5 sticky top-0 bg-white z-10 pb-2 border-b border-slate-100">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-800">Hire {workerName}</h3>
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">Job Request Form</p>
+              {/* Header */}
+              <div className="flex justify-between items-start mb-5 sticky top-0 bg-white z-10 pb-2 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  
+                  {/* Worker Image */}
+                  <img 
+                    src={fixedWorkerPic} 
+                    alt={workerName} 
+                    className="w-12 h-12 rounded-full object-cover border border-slate-200 bg-slate-100"
+                    onError={(e) => (e.currentTarget.src = "/images/avatar.avif")}
+                  />
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-800 leading-tight">Hire {workerName}</h3>
+                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">Job Request Form</p>
+                  </div>
                 </div>
-                <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
+
+                <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors">
                   <FaTimes size={14} />
                 </button>
               </div>
 
+              {/* Form */}
               <form onSubmit={handleSendRequest} className="flex flex-col gap-4">
                 
-                {/* 1. Job Title */}
+                {/* Title */}
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Job Title <span className="text-red-500">*</span></label>
                   <input
@@ -174,7 +209,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
                   />
                 </div>
 
-                {/* 2. Phone Number */}
+                {/* Phone */}
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Your Phone <span className="text-red-500">*</span></label>
                   <input
@@ -189,7 +224,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
                   />
                 </div>
 
-                {/* 3. Address & Date Row */}
+                {/* Date */}
                 <div className="flex gap-3">
                     <div className="flex-1">
                         <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Date <span className="text-red-500">*</span></label>
@@ -207,7 +242,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
                     </div>
                 </div>
 
-                {/* 4. Full Address */}
+                {/* Address */}
                 <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Location / Address <span className="text-red-500">*</span></label>
                     <div className="relative">
@@ -225,7 +260,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
                     </div>
                 </div>
 
-                {/* 5. Description */}
+                {/* Description */}
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Description <span className="text-red-500">*</span></label>
                   <textarea
@@ -240,6 +275,7 @@ export default function RequestDialog({ workerId, workerName, workerPic }: { wor
                   />
                 </div>
                 
+                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={loading}

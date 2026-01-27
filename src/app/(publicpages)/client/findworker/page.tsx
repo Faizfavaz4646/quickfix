@@ -139,14 +139,17 @@ export default function FindWorker() {
           <div className="w-full max-w-3xl space-y-4 pb-20">
             {searchResult.length > 0 ? (
               <div className="space-y-3">
-                {searchResult.map((worker, index) => {
-                  
-                  // Read backend calculated fields
-                  const averageRating = worker.averageRating || 0;
-                  const reviewCount = worker.totalReviews || 0;
-                  const profilePic = worker.finalProfilePic || "/images/avatar.avif";
-                  const name = worker.name || "Service Professional";
-                  const jobsDone = worker.jobsDone || 0;
+               {searchResult.map((worker, index) => {
+  
+  // Read backend calculated fields
+  const averageRating = worker.averageRating || 0;
+  const reviewCount = worker.totalReviews || 0;
+ 
+  // The backend sends it as "profilePic" in the final JSON response.
+  const profilePic = worker.profilePic || "/images/avatar.avif"; 
+  
+  const name = worker.name || "Service Professional";
+  const jobsDone = worker.jobsDone || 0;
 
                   return (
                     <Link

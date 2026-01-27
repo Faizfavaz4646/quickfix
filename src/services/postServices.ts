@@ -9,23 +9,20 @@ const postApi = axios.create({
   baseURL: `${API_URL}/posts`,
 });
 
-/**
- *  Centralized Interceptor
- * Automatically finds the token from Zustand or LocalStorage 
- * and attaches it to every request header.
- */
-postApi.interceptors.request.use((config) => {
-  // 1. Try to get token from active Zustand state
-  const state = useAuthStore.getState() as any;
-  let token = state.user?.token || state.token;
 
-  // 2. Fallback: Check LocalStorage if the store hasn't hydrated yet
+
+postApi.interceptors.request.use((config) => {
+  const state = useAuthStore.getState() as any;
+  // Based on your previous code, the token is often directly in the state or nested in user
+  let token = state.token || state.user?.token;
+
   if (!token && typeof window !== "undefined") {
     const storageData = localStorage.getItem("quickfix-user");
     if (storageData) {
       try {
         const parsed = JSON.parse(storageData);
-        token = parsed.state?.user?.token || parsed.state?.token;
+        // Next.js Zustand persist usually wraps data in a 'state' object
+        token = parsed.state?.token || parsed.state?.user?.token;
       } catch (e) {
         console.error("Auth storage parse error", e);
       }

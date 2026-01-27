@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -29,17 +27,53 @@ const WorkerProfileForm = () => {
   });
 
   const [uploading, setUploading] = useState(false);
-  const [removedImages, setRemovedImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // --- Helper to get token safely ---
+  const getAuthToken = () => {
+    // 1. Try Zustand Store
+    if (user?.token) return user.token;
+    
+    // 2. Try LocalStorage (Fallback)
+    if (typeof window !== "undefined") {
+      // Check directly stored token
+      const directToken = localStorage.getItem('token');
+      if (directToken) return directToken;
+
+      // Check persisted Zustand store
+      const storage = localStorage.getItem('quickfix-user'); 
+      if (storage) {
+        try {
+           const parsed = JSON.parse(storage);
+           return parsed.state?.token || parsed.state?.user?.token;
+        } catch (e) { console.error("Token parse error", e); }
+      }
+    }
+    return null;
+  };
+
   useEffect(() => {
-    if (!user?.token) return;
-    getMyWorkerProfile(user.token)
+    const token = getAuthToken();
+
+    // 1. If no token, stop loading & warn
+    if (!token) {
+      setLoading(false); 
+      // Optional: router.push('/auth/login');
+      return;
+    }
+
+    // 2. Fetch profile
+    getMyWorkerProfile(token)
       .then((profile) => {
         if (profile) setForm((prev) => ({ ...prev, ...profile }));
       })
-      .finally(() => setLoading(false));
-  }, [user?.token]);
+      .catch((err) => {
+        console.error("Failed to load profile", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [user]); // Depend on user object update
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -68,12 +102,23 @@ const WorkerProfileForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // ✅ Fix: Use the helper to get token robustly
+    const token = getAuthToken();
+
+    if (!token) {
+      toast.error("Authentication error: No token found. Please login again.");
+      router.push('/auth/login'); // Redirect to login if token is genuinely gone
+      return;
+    }
+
     try {
       setUploading(true);
-      await updateMyWorkerProfile(form, user!.token);
+      await updateMyWorkerProfile(form, token); 
       toast.success('Profile updated successfully!');
       router.push('/worker/dashboard');
     } catch (err: any) {
+      console.error(err);
       const msg = err.response?.data?.details?.[0]?.message || "Check your input formats";
       toast.error(msg);
     } finally {

@@ -8,36 +8,113 @@ import { Profile } from "@/types/user";
 import { API_URL } from "@/lib/constants"; 
 import { 
   MapPin, Phone, Mail, Edit3, Calendar, 
-  Briefcase, Star, CheckCircle, Award, Loader2 
+  Briefcase, Star, CheckCircle, Award, Loader2, AlertCircle
 } from "lucide-react";
 
 export default function WorkerProfilePage() {
-  const { user, hasHydrated } = useAuthStore();
+  // ✅ FIX 1: Extract 'token' directly from the store
+  const { user, token, hasHydrated } = useAuthStore();
   const router = useRouter();
   const [workerProfile, setWorkerProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!hasHydrated || !user || !user.token) return;
+    // 🔍 DEBUG 1: Check initial store state
+    console.log("🔄 [WorkerProfile] Effect Triggered", { hasHydrated, userExists: !!user, tokenExists: !!token });
 
+    if (!hasHydrated) {
+      console.log("⏳ [WorkerProfile] Still hydrating store...");
+      return;
+    }
+
+    if (!user) {
+      console.error("❌ [WorkerProfile] No User found in AuthStore");
+      setError("Not authenticated");
+      setLoading(false);
+      return;
+    }
+
+    // ✅ FIX 2: Check the standalone 'token' variable, not 'user.token'
+    if (!token) {
+      console.error("❌ [WorkerProfile] User exists but NO TOKEN found in store.");
+      setError("Authentication token missing. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
+    // 🔍 DEBUG 3: Starting Fetch
+    console.log("🚀 [WorkerProfile] Fetching profile with token:", token.substring(0, 10) + "...");
     setLoading(true);
-    
-    // DEBUG: Check what user data we actually have in the store
-    console.log("Current Store User:", user);
 
-    getMyWorkerProfile(user.token)
+    // ✅ FIX 3: Pass the correct token variable
+    getMyWorkerProfile(token)
       .then((data) => {
-        console.log("Fetched Worker Profile:", data); // DEBUG: Check backend response
-        if (data) setWorkerProfile(data);
+        console.log("✅ [WorkerProfile] API Success. Data:", data);
+        if (data) {
+          setWorkerProfile(data);
+        } else {
+          console.warn("⚠️ [WorkerProfile] API returned empty data");
+          setError("Profile data is empty");
+        }
       })
-      .catch((err) => console.error("Failed to fetch worker profile:", err))
-      .finally(() => setLoading(false));
-  }, [hasHydrated, user]);
+      .catch((err) => {
+        console.error("🔥 [WorkerProfile] API Failed:", err);
+        if (err.response) {
+          console.error("   Status:", err.response.status);
+          console.error("   Data:", err.response.data);
+        }
+        setError(err.message || "Failed to load profile");
+      })
+      .finally(() => {
+        console.log("🏁 [WorkerProfile] Fetch finished. Stopping loader.");
+        setLoading(false);
+      });
+  }, [hasHydrated, user, token]); // ✅ FIX 4: Add 'token' to dependency array
 
-  if (!hasHydrated || !user) return null;
+  // 1. Waiting for Store
+  if (!hasHydrated) return null;
+
+  // 2. Handle Loading State
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <p className="mt-4 text-slate-500 font-medium">Loading Profile...</p>
+      </div>
+    );
+  }
+
+  // 3. Handle Errors
+  if (error || !user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+        <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Unable to Load Profile</h2>
+          <p className="text-slate-600 mb-6 bg-red-50 p-2 rounded text-sm font-mono">
+            {error || "User not found"}
+          </p>
+          <div className="flex gap-4 justify-center">
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg font-bold hover:bg-slate-300"
+            >
+              Retry
+            </button>
+            <button 
+              onClick={() => router.push("/auth/login")}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700"
+            >
+              Back to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // --- Display Helpers ---
-
   const getImageUrl = (path?: string) => {
     if (!path) return "/images/avatar.avif";
     if (path.startsWith("http") || path.startsWith("data:")) return path;
@@ -50,25 +127,15 @@ export default function WorkerProfilePage() {
   const rating = (workerProfile?.avgRating || 0).toFixed(1);
   const jobsCompleted = workerProfile?.completedJobs?.length || 0;
   
-  // --- ROBUST EMAIL FINDER ---
-  // We check 4 different places where the email might be hiding
   const displayEmail = 
-    user.email ||                           // 1. Standard Store location
-    (user as any).emailId ||                // 2. Legacy Store location
-    workerProfile?.email ||                 // 3. Profile root
-    (workerProfile as any)?.userId?.email || // 4. Nested User object in Profile
+    user.email ||                           
+    (user as any).emailId ||                
+    workerProfile?.email ||                 
+    (workerProfile as any)?.userId?.email || 
     "No Email Found";
 
   const addressParts = [workerProfile?.city, workerProfile?.district, workerProfile?.state].filter(Boolean);
   const address = addressParts.length > 0 ? addressParts.join(", ") : "Location not set";
-
-  if (loading && !workerProfile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-50 pb-12">

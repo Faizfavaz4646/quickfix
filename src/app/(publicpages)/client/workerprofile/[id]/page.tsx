@@ -49,7 +49,12 @@ export default function ProfilePage() {
       ? worker.userId 
       : (worker.userId?._id || worker._id);
 
-  const displayEmail = worker.email || worker.userId?.email || "Contact Hidden";
+ const displayEmail = 
+  worker.email || 
+  worker.userId?.email || 
+  worker.userId?.emailId || // 👈 Add this check
+  "Contact Hidden";
+  console.log("email:",displayEmail)
   
   const ratings = worker.ratings || [];
   const avgRating = ratings.length > 0 

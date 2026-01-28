@@ -18,7 +18,7 @@ import {
 
 const EDIT_TIME_LIMIT_MINUTES = 60; 
 
-// Interface for Sidebar Data
+//  Interface for Sidebar Data
 interface WorkerProfile {
   _id: string;
   name: string;

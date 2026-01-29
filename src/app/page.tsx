@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Hero from "@/components/ui/Hero";
-import PostFeedPage from "./jobs-posts/postFeedPage";
+import PostFeedPage from "./jobs-posts/page";
 import { cookies } from "next/headers";
 
 export default async function Home() {

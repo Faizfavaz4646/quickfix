@@ -1,4 +1,4 @@
-import PostFeedPage from "@/app/jobs-posts/postFeedPage";
+import PostFeedPage from "@/app/jobs-posts/page";
 
 
 

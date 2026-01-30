@@ -1,37 +1,34 @@
 import axios from "axios";
 import { User } from "@/types/user";
+import { API_URL } from "@/lib/constants";
+ // ✅ IMPORT FROM LIB
 
-// ✅ REMOVED /api - Matches your backend: app.use("/admin", adminRoutes)
-const API_URL = "http://localhost:5001/admin"; 
+// ✅ Matches backend: app.use("/admin", adminRoutes)
+const ADMIN_API_URL = `${API_URL}/admin`;
 
 // ✅ Create Axios instance
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: ADMIN_API_URL,
   withCredentials: true,
 });
 
 // ✅ Automatically add JWT Token from localStorage
 api.interceptors.request.use((config) => {
-  // 1. Get the raw string from localStorage
   const authData = localStorage.getItem("quickfix-user");
 
   if (authData) {
     try {
       const parsed = JSON.parse(authData);
-      
-      /** * ✅ MATCHING YOUR STORE: 
-       * Your partialize saves: { user, token, isLogin }
-       * So the token is located at: parsed.state.token
-       */
+
+      // token location: parsed.state.token
       const token = parsed.state?.token;
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       } else {
-        // This is what triggers your "Critical" console error
         console.error("Critical: No token found in persisted state!");
       }
-    } catch (e) {
+    } catch {
       console.error("Critical: Failed to parse auth storage JSON");
     }
   } else {
@@ -43,15 +40,13 @@ api.interceptors.request.use((config) => {
 
 /* ================= USERS MANAGEMENT ================= */
 
-/* ================= USERS MANAGEMENT ================= */
-
 export const fetchAllUsers = async (): Promise<User[]> => {
   try {
     const { data } = await api.get<User[]>("/users");
-    return data.map((u) => ({ 
-      ...u, 
-      id: u._id, 
-      status: u.status || "active" 
+    return data.map((u) => ({
+      ...u,
+      id: u._id,
+      status: u.status || "active",
     }));
   } catch (error: any) {
     console.error("Fetch Users Error:", error.response?.status, error.message);
@@ -59,13 +54,13 @@ export const fetchAllUsers = async (): Promise<User[]> => {
   }
 };
 
-// ✅ ADD THIS: Fetch and filter for Workers
+// ✅ Workers only
 export const fetchAllWorkers = async (): Promise<User[]> => {
   const users = await fetchAllUsers();
   return users.filter((u) => u.role === "worker");
 };
 
-// ✅ ADD THIS: Fetch and filter for Clients
+// ✅ Clients only
 export const fetchAllClients = async (): Promise<User[]> => {
   const users = await fetchAllUsers();
   return users.filter((u) => u.role === "client");
@@ -77,12 +72,11 @@ export const toggleUserStatus = async (user: User): Promise<User> => {
   const targetId = user._id || (user as any).id;
   if (!targetId) throw new Error("User ID is required");
 
-  // This hits: http://localhost:5001/admin/users/[ID]/block
-  const { data } = await api.patch(`/users/${targetId}/block`);
-  
+  await api.patch(`/users/${targetId}/block`);
+
   return {
     ...user,
-    status: user.status === "active" ? "blocked" : "active"
+    status: user.status === "active" ? "blocked" : "active",
   };
 };
 
@@ -95,23 +89,18 @@ export const fetchDashboardStats = async () => {
 
 /* ================= ANALYTICS ================= */
 
-// ✅ Added missing export
 export const fetchClientSatisfaction = async (): Promise<number> => {
   try {
     const users = await fetchAllUsers();
-    
-    // Filter for workers who have an averageRating
-    const workers = users.filter(u => u.role === 'worker');
-    
+    const workers = users.filter((u) => u.role === "worker");
+
     const ratings = workers
-      .map(w => w.averageRating || 0)
-      .filter(rating => rating > 0);
+      .map((w) => w.averageRating || 0)
+      .filter((r) => r > 0);
 
-    if (ratings.length === 0) return 4.5; // Default fallback for UI
+    if (ratings.length === 0) return 4.5;
 
-    const total = ratings.reduce((acc, curr) => acc + curr, 0);
-    const avg = total / ratings.length;
-    
+    const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
     return Number(avg.toFixed(1));
   } catch (error) {
     console.error("Error calculating satisfaction:", error);
@@ -119,10 +108,11 @@ export const fetchClientSatisfaction = async (): Promise<number> => {
   }
 };
 
-// ✅ Optional: Analytics for User Distribution
+// ✅ User distribution
 export const fetchUsersDistribution = async () => {
   const users = await fetchAllUsers();
-  const workers = users.filter(u => u.role === 'worker').length;
-  const clients = users.filter(u => u.role === 'client').length;
-  return { workers, clients };
+  return {
+    workers: users.filter((u) => u.role === "worker").length,
+    clients: users.filter((u) => u.role === "client").length,
+  };
 };

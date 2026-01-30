@@ -7,13 +7,14 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { FaVideo, FaPaperPlane, FaTimes, FaCalendarAlt, FaMapMarkerAlt } from "react-icons/fa"; // Changed FaComments to FaVideo
 import { motion, AnimatePresence } from "framer-motion";
+import { API_URL } from "@/lib/constants";
 
 // ✅ Helper to robustly fix image URLs
 const getImageUrl = (path?: string) => {
   if (!path) return "/images/avatar.avif";
   if (path.startsWith("http") || path.startsWith("https")) return path;
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-  return `http://localhost:5001/${cleanPath}`;
+  return `${API_URL}/${cleanPath}`
 };
 
 export default function RequestDialog({ workerId, workerName, workerPic }: { workerId: string, workerName?: string, workerPic?: string }) {

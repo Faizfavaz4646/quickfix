@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaStar, FaMapMarkerAlt } from "react-icons/fa";
 import { Profile } from "@/types/user";
+import { API_URL } from "@/lib/constants";
 
 // Predefined gradient styles 🎨
 const gradients = [
@@ -17,18 +18,24 @@ const gradients = [
 export default function TopRatedProfessionals() {
   const [workers, setWorkers] = useState<Profile[]>([]);
 
-  useEffect(() => {
-    axios.get("http://localhost:5001/workers").then((res) => {
+ 
+useEffect(() => {
+  axios
+    .get(`${API_URL}/workers`)
+    .then((res) => {
       const filtered = res.data.filter((w: Profile) => {
         const avg =
           w.ratings && w.ratings.length > 0
-            ? w.ratings.reduce((a, b) => a + b, 0) / w.ratings.length
+            ? w.ratings.reduce((a: number, b: number) => a + b, 0) / w.ratings.length
             : 0;
         return avg >= 2;
       });
       setWorkers(filtered);
+    })
+    .catch((err) => {
+      console.error("Failed to fetch workers:", err);
     });
-  }, []);
+}, []);
 
   if (workers.length === 0) return null;
 

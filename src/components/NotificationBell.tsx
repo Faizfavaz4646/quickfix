@@ -9,9 +9,10 @@ import { Notification } from "@/types/notification";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/constants";
 
 // Use your backend URL (not the API_URL, just the base domain)
-const SOCKET_URL = "http://localhost:5001"; 
+const SOCKET_URL = API_URL 
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);

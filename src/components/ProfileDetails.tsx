@@ -1,6 +1,7 @@
 import { FaMapMarkerAlt, FaPhone } from "react-icons/fa";
 import { AiFillStar } from "react-icons/ai";
 import RequestDialog from "./RequestDialog";
+import { API_URL } from "@/lib/constants";
 
 // Using 'any' to safely access nested properties regardless of backend format
 interface ProfileCardProps {
@@ -19,7 +20,7 @@ const getImageUrl = (path?: string) => {
   // If it's a local file, prepend backend URL
   // Remove leading slash to avoid double slashes (e.g. //uploads)
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-  return `http://localhost:5001/${cleanPath}`;
+return `${API_URL}/${cleanPath}`;
 };
 
 // --- Helpers ---

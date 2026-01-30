@@ -1,45 +1,35 @@
+// 
+
+
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useState, ReactNode } from "react";
 import SplashScreen from "@/components/ui/SplashScreen";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
-  const [loading, setLoading] = useState(true);
-  const pathname = usePathname();
+type MainLayoutProps = {
+  children: ReactNode;
+  splash?: boolean; // show splash for public pages only
+};
 
-  // 1. Define Exact Paths to Hide
-  const hideOnExactPaths = [
-    "/auth/login",
-    "/auth/signup",
-  ];
-
-  // 2. LOGIC: Hide if it's an Auth page OR a Video Call page
-  // We use .startsWith("/call") to catch ALL video rooms
-  const shouldHide = 
-    hideOnExactPaths.includes(pathname) || 
-    pathname?.startsWith("/call");
+export default function MainLayout({ children, splash = false }: MainLayoutProps) {
+  const [loading, setLoading] = useState(splash);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setLoading(false), 2000);
-    return () => clearTimeout(timeout);
-  }, []);
+    if (splash) {
+      const t = setTimeout(() => setLoading(false), 2000);
+      return () => clearTimeout(t);
+    }
+  }, [splash]);
 
-  if (loading) {
-    return <SplashScreen />;
-  }
+  if (loading) return <SplashScreen />;
 
   return (
     <>
-      {/* 3. Use the new variable here */}
-      {!shouldHide && <Navbar />}
-      
-      {children}
-
-      {/* 4. And here */}
-      {!shouldHide && <Footer />}
+      <Navbar />
+      <main>{children}</main>
+      <Footer />
     </>
   );
 }

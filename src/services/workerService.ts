@@ -246,23 +246,20 @@ export async function editMyWorkerProfile(form: Profile, token: string) {
 
 export const getWorkerRating = async (workerId: string): Promise<number> => {
   try {
-    // Calling your existing endpoint: GET /worker?userId=...
-    // Note: API_URL should technically be http://localhost:5001/api, but based on your app.js it might just be localhost:5001
-    // We manually construct the path to match your working '/worker' route
-    const { data } = await axios.get(`http://localhost:5001/worker`, {
+    // ❌ OLD: http://localhost:5001/worker
+    // ✅ NEW: Uses your Render URL automatically
+    const { data } = await axios.get(`${API_URL}/worker`, {
       params: { userId: workerId }
     });
 
-    // Handle array vs object response
     const workerData = Array.isArray(data) ? data[0] : data;
 
     if (workerData && typeof workerData.averageRating === 'number') {
       return workerData.averageRating;
     }
     
-    return 0; // Default to 0 if not found
+    return 0; 
   } catch (error: any) {
-    // Log error but return 0 so UI doesn't break
     console.error("Error fetching rating:", error.message);
     return 0; 
   }
